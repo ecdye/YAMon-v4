@@ -4,3 +4,4 @@ logs/
 daily-bu/
 config.file
 config.old
+includes/paths.sh
