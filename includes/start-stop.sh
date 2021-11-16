@@ -112,13 +112,14 @@ StartScheduledJobs(){
 	Send2Log "The YAMon jobs have been scheduled in \`$scheduler\`... run ${d_baseDir}/pause.sh to pause or stop the scripts" 99
 }
 StopScheduledJobs(){
-	StopCronJobs(){
-		nfc=""
-		local jobList=$(cat "$cronJobsFile")
+	StopCronJobs() {
+		local nfc
+    local jobList
+
+		jobList="$(cat "$cronJobsFile")"
 		IFS=$'\n'
-		for job in $jobList
-		do
-			[ ! -z $(echo "$line" | grep "$d_baseDir" | grep -v '^##') ] && line="## $job"
+		for job in $jobList; do
+			[ ! -z "$(echo "$job" | grep "$d_baseDir" | grep -v '^##')" ] && job="## $job"
 			[ -z $nfc ] && nfc="$job" && continue
 			nfc="$nfc\n$job"
 		done
