@@ -1,0 +1,119 @@
+#header {
+  background: #CCC;
+  border-bottom: 3px double #777;
+  margin: 0 0 12px 0;
+  padding: 0 20px;
+  position: fixed;
+  top: 0px;
+  width: 100%;
+}
+#log-contents{
+  margin-top:128px;
+}
+.hour-contents p{
+  background: #CCC;
+  margin: 0 0 4px 0;
+  padding: 0 0 0 8px;
+}
+#log-contents .hour-contents p{
+  margin-top: 4px;
+}
+.hour-contents p::before {
+  content: '+ ';
+}
+.hour-contents.showing p::before {
+  content: '- ';
+}
+.hour-contents * {
+  height: 0px;
+  visibility: collapse;
+}
+.hour-contents p,.hour-contents.showing * {
+  height: auto;
+  visibility: revert;
+}
+.hour-contents p {
+  margin-top: 126px;
+}
+
+#b1d, #a1d {
+  border-radius: 50%;
+  font-size: 12px;
+  height: 24px;
+  margin: 0 8px 8px;
+  vertical-align: middle;
+}
+.ll0,.ll1,.ll2,.ll3,.ll4,.ll5,.ll99{
+  counter-increment:line;
+  display:flex;
+}
+.filter {
+  margin-right: 4px;
+}
+label {
+  opacity: .33;
+  padding-left: 8px;
+}
+label:hover {
+  opacity: .66;
+}
+label:active {
+  opacity: 1;
+}
+.dt {
+  flex: 1;
+  max-width: 136px;
+  text-align: left;
+}
+.dt:before {
+  content: counter(line);
+  display: inline-block;
+  margin: 0 10px 0 4px;
+  min-width: 36px;
+  text-align: right;
+}
+.msg{
+  flex:1;
+}
+.ll0{
+  color:#777;
+  font-size: smaller;
+}
+.hour-contents .ll2{
+  background-color:#EEE;
+  color:#00F;
+  font-style:	italic;
+  font-weight: bold;
+}
+.ll0 ul,.ll1 ul,.ll2 ul{
+  margin: 0;
+}
+.ll0 li,.ll1 li,.ll2 li{
+  color:inherit;
+}
+.hour-contents.showing .err, .hour-contents.showing .ll0, .hour-contents.showing .ll1, .hour-contents.showing .ll2{
+  height:auto;
+  visibility:revert;
+}
+.hour-contents.showing.no-err .err, .hour-contents.showing.no-ll0 .ll0, .hour-contents.showing.no-ll1 .ll1, .hour-contents.showing.no-ll2 .ll2{
+  height:0px;
+  visibility:collapse;
+}
+.err {
+  background: #b78383;
+  color: #FF0000;
+  font-weight: bold;
+  margin: 0 8px;
+}
+.err:before{
+  content:'*** ';
+  display:inline-block;
+  min-width:132px;
+}
+pre {
+  background:silver;
+  color: blue;
+  font-weight: bold;
+  margin: 0;
+  padding: 0 0 0 72px;
+}

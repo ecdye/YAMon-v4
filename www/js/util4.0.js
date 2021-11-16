@@ -3,7 +3,7 @@
 ##########################################################################
 #																		 #
 # Yet Another Monitor (YAMon)											 #
-# Copyright (c) 2013-present Al Caughey									 #
+# Copyright (c) 2013-present Al Caughey								 #
 # All rights reserved.													 #
 # See `yamon4.x.js` for more T&C's										 #
 #																		 #
@@ -1338,7 +1338,6 @@ function setButtonsActions(){
 
 			var factor=g_toGB
 			var fields=line.trim().split(' ')
-			//sio && console.log(isp, fields)
 			var mnf=0, daf=1, yrf=2, dof=3, upf=4
 			switch (isp) {
 				case 'ATT':
@@ -1348,29 +1347,28 @@ function setButtonsActions(){
 				case 'Cox':
 				case 'GCI':
 				case 'TekSavvy':
-				break
+					break
 				case 'Afrihost':
 					daf=0, mnf=1, dof=4, upf=5
 					factor=g_toMB
-				break
+					break
 				case 'Electronic_Box':
 					yrf=0, mnf=1, daf=2
-				break
+					break
 				case 'Rogers':
 					factor=g_toMB
-				break
+					break
 				case 'Sodetel':
 					factor=g_toMB
 					dof=5, upf=6
-				break
-				break
+					break
 				case 'Telstra':
 					factor=g_toMB
 					daf=0, mnf=1, dof=2, upf=3, yrf=''
-				break
+					break
 				case 'Videotron': /* Videotron */
 					dof=2, upf=3, yrf=''
-				break
+					break
 			}
 			if(isNaN(fields[daf])) return false
 			return {dn:fields[daf], down:(fields[dof]*factor||0).toFixed(0), up:(fields[upf]*factor||0).toFixed(0), mn:fields[mnf], yr:fields[yrf]||-1}
@@ -2965,8 +2963,8 @@ function nudge(msg){
 				g_Settings.fnd=data.res
 				saveSettings(false)
 				$('.dismiss').slideUp('fast')
-				$('#pu-comment').text(data.msg).slideDown('slow').siblings().slideUp('fast')
-				$('#pop-up').delay(3600).slideUp('slow').fadeOut('slow')
+				$('#pu-comment').html(data.msg).slideDown('slow').siblings().slideUp('fast')
+				$('#pop-up').delay(5000).slideUp('slow').fadeOut('slow')
 			}
 			else {
 				alert( 'Something bad happened... wait a few minutes and try again or contact Al' );
@@ -2975,7 +2973,7 @@ function nudge(msg){
 		.fail(function(a,b,c){
 			//console.log( 'Something bad happened...',a,b,c )
 			$('.dismiss').slideUp('fast')
-			$('#pu-comment').text(data.msg).slideDown('slow').siblings().slideUp('fast')
+			$('#pu-comment').html(data.msg).slideDown('slow').siblings().slideUp('fast')
 			$('#pop-up').delay(3600).slideUp('slow').fadeOut('slow')
 		})
 	})
@@ -3044,7 +3042,7 @@ function checkFiles(){
 	});
 }
 function addISPList(){
-	var isp_list = ['','Rogers|Canada','Electronic Box|Canada','Bell (Eng)|Canada','Bell (Fr)|Canada','Cox|United States','ATT|United States','Telstra|Australia','Sodetel|Lebanon','TekSavvy|Canada','GCI|United States','Videotron|United States','Cable ONE|United States','Afrihost|South Africa']
+	var isp_list = ['','Rogers|Canada','Electronic Box|Canada','Bell (Eng)|Canada','Bell (Fr)|Canada','Cox|United States','ATT|United States','Telstra|Australia','Sodetel|Lebanon','TekSavvy|Canada','GCI|United States','Videotron|United States','Cable ONE|United States','Afrihost|South Africa','AT&T|TBD']
 	$('#isp-format').html('')
 	$('<option/>').attr('value','').attr('disabled','disabled ').text('Pick your ISP').appendTo('#isp-format')
 	$(isp_list).sort().each(function (a, b) {

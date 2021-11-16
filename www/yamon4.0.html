@@ -7,7 +7,7 @@
 		<!--meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=3.0"-->
 		<title>YAMon:: Usage monitoring by group and device...</title>
 		<meta name="description" content="Internet Usage Statistics" />
-		<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+		<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.min.css">
 		<script type="text/javascript" src="js/config4.0.js"></script>
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 		<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
@@ -19,10 +19,7 @@
 				path = (localStorage.getItem('devOrCurr') || 'current') + '/'
 				domain='https://usage-monitoring.com/'
 			}
-			$("<link/>", {rel: "stylesheet", type: "text/css", href: domain + path + 'css/normalize.css'}).appendTo("head");
-			$("<link/>", {rel: "stylesheet", type: "text/css", href: domain + path + 'css/yamon' + ver + '.css'}).appendTo("head");
-			$("<link/>", {rel: "shortcut icon",href: domain + path + 'images/favicon.png'}).appendTo("head");
-			$.ajax({url: domain + path + 'js/jquery.md5.min.js', dataType: "script"});
+			$.ajax({url: 'js/jquery.md5.min.js', dataType: "script"});
 		</script>
 		<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 		<script type="text/javascript">
@@ -30,17 +27,19 @@
 		</script>
 		<script defer type="text/javascript">
 			if(!localStorage.getItem('ajaxCache')) localStorage.setItem('ajaxCache', 'true')
-			$.ajaxSetup({'cache':localStorage.getItem('ajaxCache')=='true'});  //Comment out this line if your router requires timestamps appended to data URLs
+			$.ajaxSetup({'cache':localStorage.getItem('ajaxCache')=='true'});  // Comment out this line if your router requires timestamps appended to data URLs
 			google.charts.load('current', {'packages':['corechart', 'gauge']});
 			$(document).ready(function(){
-				$.ajax({crossDomain: true, url: domain + path + 'js/util' + ver+ '.js',dataType: "script", cache:false})
+				$.ajax({crossDomain: true, url: 'js/util4.0.js', dataType: "script"})
 					.done(function(){
-						$.ajax({crossDomain: true, url: domain + path + 'js/yamon' + ver+ '.js',dataType: "script", cache:false});
+						$.ajax({crossDomain: true, url: 'js/yamon4.0.js', dataType: "script"});
 					});
 			})
 		</script>
-
 		<link rel="stylesheet" type="text/css" href="css/custom.css"/>
+		<link rel="stylesheet" type="text/css" href="css/normalize.min.css"/>
+		<link rel="stylesheet" type="text/css" href="css/yamon4.0.css"/>
+		<link rel="shortcut icon" href="images/favicon.png"/>
 	</head>
 	<body>
 	<noscript class='alert'>This web application makes extensive use of JavaScript.  You must either enable JavaScript in your current browswer or upgrade to a JavaScript capable browser.</noscript>

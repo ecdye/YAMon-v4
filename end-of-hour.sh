@@ -51,16 +51,17 @@ echo "$tmplogContents</div>" | sed -E "s~^ ([^<].*$)~<pre>\1</pre>~g" | sed -E "
 tds=$(date +"%Y-%m-%d")
 thr=$(date +"%H")
 #reset the temporary log file
-echo "<html lang='en'>
+echo "<!DOCTYPE html>
+<html lang='en'>
 <head>
 <meta http-equiv='cache-control' content='no-cache' />
 <meta http-equiv='Content-Type' content='text/html;charset=utf-8' />
-<link rel='stylesheet' href='//code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css'>
-<link rel='stylesheet' type='text/css' href='https://usage-monitoring.com/current/css/normalize.css'>
-<link rel='stylesheet' type='text/css' href='https://usage-monitoring.com/current/css/logs.css'>
+<link rel='stylesheet' href='https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.min.css'>
+<link rel='stylesheet' type='text/css' href='../css/normalize.min.css'>
+<link rel='stylesheet' type='text/css' href='../css/logs.css'>
 <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js'></script>
 <script src='https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js'></script>
-<script src='https://usage-monitoring.com/current/js/logs.js'></script>
+<script src='../js/logs.js'></script>
 </head>
 <body>
 <div id='header'> <!--header-->
