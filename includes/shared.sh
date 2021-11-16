@@ -131,40 +131,32 @@ GetDeviceGroup(){
 	echo "$group"
 }
 
-CheckIPTableEntry(){
+CheckIPTableEntry() {
+	local ip="$1"
+	local tip="\b${ip//\./\\.}\b"
+	local groupName="${2:-Unknown}"
+	local re_ip4
+	local cmd
+	local g_ip
+	local nm
 
-	Send2Log "CheckIPTableEntry: $1 /  $2 " 0
-
-	local ip=$1
-	local groupName=${2:-Unknown}
-	local chain="$YAMON_IPTABLES"
-	Send2Log "CheckIPTableEntry: ip=$ip / cmd=$cmd / chain=$YAMON_IPTABLES " 0
-
-	re_ip4="([0-9]{1,3}\.){3}[0-9]{1,3}"
-	#if [ -n "$(echo $ip | egrep "$re_ip4")" ] ; then # simplistically matches IPv4
-	if [ -n "$(echo $ip | grep -E "$re_ip4")" ] ; then # simplistically matches IPv4
-		local cmd='iptables'
-		local g_ip='0.0.0.0/0'
-	else
-		[ -z "$ip6Enabled" ] && Send2Log "CheckIPTableEntry: skipping ip6tables check for $ip as IPv6 is not enabled" 1 && return
-		local cmd='ip6tables'
-		local g_ip='::/0'
-	fi
-	Send2Log "CheckIPTableEntry: checking $cmd for $ip"
-
-	ClearDuplicateRules(){
+	ClearDuplicateRules() {
 		local n=1
-		while [ true ]; do
+		local dup_num
+
+		while true; do
 			[ -z "$ip" ] && break
-			local dup_num=$($cmd -L "$YAMON_IPTABLES" -n --line-numbers | grep -m 1 -i "\b$ip\b" | cut -d' ' -f1)
+			dup_num="$($cmd -L "$YAMON_IPTABLES" -n --line-numbers | grep -m 1 -i "$tip" | cut -d' ' -f1)"
 			[ -z "$dup_num" ] && break
 			eval $cmd -D "$YAMON_IPTABLES" $dup_num "$_iptablesWait"
-			n=$(( $n + 1 ))
+			n=$(( n + 1 ))
 		done
 		Send2Log "ClearDuplicateRules: removed $n duplicate entries for $ip" 0
 	}
-	AddIP(){
-		local groupChain="${YAMON_IPTABLES}_$(echo $groupName | sed "s~[^a-z0-9]~~ig")"
+	AddIP() {
+		local groupChain
+
+		groupChain="${YAMON_IPTABLES}_$(echo $groupName | sed "s~[^a-z0-9]~~ig")"
 		Send2Log "AddIP: $cmd $YAMON_IPTABLES $ip --> $groupChain (firmware: $_firmware)" 0
 		if [ "$_firmware" -eq "0" ] && [ "$cmd" == 'ip6tables' ] ; then
 			eval $cmd -I "$YAMON_IPTABLES" -j "RETURN" -s $ip "$_iptablesWait"
@@ -174,15 +166,28 @@ CheckIPTableEntry(){
 		else
 			eval $cmd -I "$YAMON_IPTABLES" -g "$groupChain" -s $ip "$_iptablesWait"
 			eval $cmd -I "$YAMON_IPTABLES" -g "$groupChain" -d $ip "$_iptablesWait"
-			Send2Log "AddIP: $cmd -I "$YAMON_IPTABLES" -g "$groupChain" -s $ip"
+			Send2Log "AddIP: $cmd -I \"$YAMON_IPTABLES\" -g \"$groupChain\" -s $ip"
 		fi
 	}
 
-	[ "$ip" == "$g_ip" ] && return
-	local tip="\b${ip//\./\\.}\b"
-	local nm=$($cmd -L "$YAMON_IPTABLES" -n | grep -ic "$tip")
+	Send2Log "CheckIPTableEntry: $ip / $groupName" 0
+	Send2Log "CheckIPTableEntry: ip=$ip / cmd=$cmd / chain=$YAMON_IPTABLES" 0
 
-	if [ "$nm" -eq "2" ] || [ "$nm" -eq "4" ] ; then  #correct number of entries
+	re_ip4="([0-9]{1,3}\.){3}[0-9]{1,3}"
+	if [ -n "$(echo $ip | grep -E "$re_ip4")" ] ; then # simplistically matches IPv4
+		cmd='iptables'
+		g_ip='0.0.0.0/0'
+	else
+		[ -z "$ip6Enabled" ] && Send2Log "CheckIPTableEntry: skipping ip6tables check for $ip as IPv6 is not enabled" 1 && return
+		cmd='ip6tables'
+		g_ip='::/0'
+	fi
+	Send2Log "CheckIPTableEntry: checking $cmd for $ip"
+
+	[ "$ip" == "$g_ip" ] && return
+	nm="$($cmd -L "$YAMON_IPTABLES" -n | grep -ic "$tip")"
+
+	if [ "$nm" -eq "2" ] || [ "$nm" -eq "4" ]; then  # correct number of entries
 		Send2Log "CheckIPTableEntry: $nm matches for $ip in $cmd / $YAMON_IPTABLES"
 		return
 	fi
@@ -192,11 +197,12 @@ CheckIPTableEntry(){
 	if [ "$nm" -eq "0" ]; then
 		Send2Log "CheckIPTableEntry: no match for $ip in $cmd / $YAMON_IPTABLES"
 	else
-		Send2Log "CheckIPTableEntry: Incorrect number of rules for $ip in $cmd / $YAMON_IPTABLES -> $nm... removing duplicates\n\t$cmd -L "$YAMON_IPTABLES" | grep -ic "$tip"" 3
+		Send2Log "CheckIPTableEntry: Incorrect number of rules for $ip in $cmd / $YAMON_IPTABLES -> $nm... removing duplicates\n\t$cmd -L \"$YAMON_IPTABLES\" | grep -ic \"$tip\"" 3
 		ClearDuplicateRules
 	fi
 	AddIP
 }
+
 UpdateLastSeen(){
 	local id="$1"
 	local tls="$2"
