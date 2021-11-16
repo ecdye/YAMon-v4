@@ -40,6 +40,8 @@ ResetCron(){
 }
 
 StartScheduledJobs(){
+	local scheduler
+
 	SetCronJobs() { # for firmware using cron
 		local fileContents
 		local newjobs
@@ -48,7 +50,6 @@ StartScheduledJobs(){
 		local sm
 		local eh
 		local em
-		local inUnlimited
 		local udt="${_updateTraffic:-4}"
 
 		touch "$cronJobsFile"
@@ -68,7 +69,6 @@ StartScheduledJobs(){
 			eh="$(echo "$_unlimited_end" | cut -d':' -f1)"
 			em="$(echo "$_unlimited_end" | cut -d':' -f2)"
 			em="${em#0}"
-			inUnlimited="${tmplog}inUnlimited"
 			newjobs="${newjobs}\n${sm} ${sh} * * * ${user} ${d_baseDir}/in-unlimited.sh start"
 			newjobs="${newjobs}\n${em} ${eh} * * * ${user} ${d_baseDir}/in-unlimited.sh end"
 		fi
@@ -79,36 +79,39 @@ StartScheduledJobs(){
 		echo -e "$newjobs" > "$cronJobsFile"
 		Send2Log "SetCronEntries: updating \`${cronJobsFile}\` --> $(IndentList "$newjobs")" 1
 	}
+	SetCruJobs() { # for Tomato (and other firmware using cru rather than cron)
+		local sh
+		local sm
+		local eh
+		local em
+		local udt="${_updateTraffic:-4}"
 
-	SetCruJobs(){ #for Tomato (and other firmware using cru rather than cron)
 		cru a yamon1 "0 0 ${_ispBillingDay:-1} * * ${d_baseDir}/new-billing-interval.sh"
 		cru a yamon2 "59 * * * * ${d_baseDir}/end-of-hour.sh"
 		cru a yamon3 "59 23 * * * ${d_baseDir}/end-of-day.sh"
 		cru a yamon4 "0 0 * * * ${d_baseDir}/new-day.sh"
 		if [ "$_unlimited_usage" -eq "1" ] ; then
-			local sh=$(echo "$_unlimited_start" | cut -d':' -f1)
-			local sm=$(echo "$_unlimited_start" | cut -d':' -f2)
-			sm=${sm#0}
-			local eh=$(echo "$_unlimited_end" | cut -d':' -f1)
-			local em=$(echo "$_unlimited_end" | cut -d':' -f2)
-			em=${em#0}
-			inUnlimited="${tmplog}inUnlimited"
+			sh="$(echo "$_unlimited_start" | cut -d':' -f1)"
+			sm="$(echo "$_unlimited_start" | cut -d':' -f2)"
+			sm="${sm#0}"
+			eh="$(echo "$_unlimited_end" | cut -d':' -f1)"
+			em="$(echo "$_unlimited_end" | cut -d':' -f2)"
+			em="${em#0}"
 			cru a yamon5 "${sm} ${sh} * * * ${d_baseDir}/in-unlimited.sh start"
 			cru a yamon6 "${em} ${eh} * * * ${d_baseDir}/in-unlimited.sh end"
 		fi
 		cru a yamon7 "0 * * * * ${d_baseDir}/new-hour.sh"
 		[ "$_doLiveUpdates" -eq "1" ] && cru a yamon8 "* * * * * ${d_baseDir}/update-live-data.sh"
-		local udt=${_updateTraffic:-4}
-		cru a yamon9 "$udt-$((60 - $udt))/$udt * * * * ${d_baseDir}/update-reports.sh"
+		cru a yamon9 "${udt}-$(( 60 - udt ))/${udt} * * * * ${d_baseDir}/update-reports.sh"
 		Send2Log "Setting cru jobs for: $(IndentList "$(cru l | grep 'yamon')")"
 	}
 
 	Send2Log "StartScheduledJobs - started..." 0
 	if [ "$_firmware" -eq "3" ] || [ "$_firmware" -eq "2" ] || [ "$_firmware" -eq "5" ]; then
-		local scheduler='cru'
+		scheduler='cru'
 		SetCruJobs
 	else
-		local scheduler='cron'
+		scheduler='cron'
 		SetCronJobs
 		ResetCron
 	fi
