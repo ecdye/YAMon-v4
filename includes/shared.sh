@@ -94,24 +94,29 @@ CheckGroupChain(){
 		eval $cmd -A "$groupChain" -j "RETURN" "$_iptablesWait"
 	fi
 }
-GetMACbyIP(){
-	# first check arp
+
+GetMACbyIP() {
 	local ip="$1"
 	local tip="\b${ip//\./\\.}\b"
+	local mip
+	local dd
+	local id
+	local mac
 
-	local mip=$(cat /proc/net/arp | grep "$tip" | awk '{print $4}')
-	if [ -n "$mip" ] ; then
+	# first check arp
+  mip="$(cat /proc/net/arp | grep "$tip" | awk '{print $4}' | tr "[A-Z]" "[a-z]")"
+	if [ -n "$mip" ]; then
 		echo "$mip"
 		return
 	fi
 
 	# then check users.js
-	local dd=$(echo "$_currentUsers" | grep -e "^mac2ip({.*})$" | grep "$tip")
-	if [ -z "$dd" ] ; then
+	dd="$(echo "$_currentUsers" | grep -e "^mac2ip({.*})$" | grep "$tip")"
+	if [ -z "$dd" ]; then
 		Send2Log "GetMACbyIP - no matching entry for $ip in users.js $(IndentList $dd)" 2
 	else
-		local id=$(GetField "$dd" 'id')
-		local mac=$(echo "$id"| cut -d- -f1)
+		id="$(GetField "$dd" 'id')"
+		mac="$(echo "$id"| cut -d'-' -f1)"
 		Send2Log "GetMACbyIP - $ip --> $id  --> $mac"
 		[ -n "$mac" ] && echo "$mac"
 	fi
