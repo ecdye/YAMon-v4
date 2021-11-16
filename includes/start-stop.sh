@@ -111,7 +111,10 @@ StartScheduledJobs(){
 	fi
 	Send2Log "The YAMon jobs have been scheduled in \`$scheduler\`... run ${d_baseDir}/pause.sh to pause or stop the scripts" 99
 }
-StopScheduledJobs(){
+
+StopScheduledJobs() {
+	local scheduler
+
 	StopCronJobs() {
 		local nfc
     local jobList
@@ -129,13 +132,14 @@ StopScheduledJobs(){
 		Send2Log "StopCronJobs: $(IndentList "$nfc")" 1
 		ResetCron
 	}
+	StopCruJobs() {
+		local jobList
+		local jn
 
-	StopCruJobs(){
-		local jobList=$(cru l | grep 'yamon' | tr -d '#') # Remove '#' from cru id #yamon*#
+		jobList="$(cru l | grep 'yamon' | tr -d '#')" # Remove '#' from cru id #yamon*#
 		IFS=$'\n'
-		for job in $jobList
-		do
-			local jn=$(echo "$job" | awk '{ print $7 }')
+		for job in $jobList; do
+			jn="$(echo "$job" | awk '{ print $7 }')"
 			cru d "$jn"
 		done
 		unset $IFS
@@ -143,14 +147,15 @@ StopScheduledJobs(){
 	}
 
 	if [ "$_firmware" -eq "3" ] || [ "$_firmware" -eq "2" ] || [ "$_firmware" -eq "5" ]; then
-		local scheduler='cru'
+		scheduler='cru'
 		StopCruJobs
 	else
-		local scheduler='cron'
+		scheduler='cron'
 		StopCronJobs
 	fi
 	Send2Log "The YAMon jobs in \`$scheduler\` have been paused... run ${d_baseDir}/start.sh to restart the scripts" 99
 }
+
 SetAccessRestrictions(){
 	local fileContents=$(cat "$cronJobsFile")
 	local otherjobs=$(echo "$fileContents" | grep -v "#Access Restriction" | grep -v "block.sh")
