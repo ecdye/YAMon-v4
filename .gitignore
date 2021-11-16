@@ -2,3 +2,5 @@
 data/
 logs/
 daily-bu/
+config.file
+config.old
