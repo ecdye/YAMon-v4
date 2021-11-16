@@ -125,7 +125,7 @@ GetTraffic(){
 			# (so check-network is only executed when there is new unmatched data)
 			${d_baseDir}/check-network.sh
 			UpdateLastSeen "${_generic_mac}-${ip}" "$tls"
-			local do=$(echo "$ipt" | cut -d' ' -f1)
+			local do=$(echo "$fl" | cut -d' ' -f1)
 			Send2Log "GetTraffic: down: $do / $total_down " 1
 			total_down=$(( $total_down + ${do:-0} )) #assuming total_up is zero because all traffic goes to a single iptable rule
 			local newLine="hourlyData4({ \"id\":\"$_generic_mac-$ip\", \"hour\":\"$hr\", \"traffic\":\"${do:-0},0,$(( ${do:-0} * $currentlyUnlimited )),0\" })"
@@ -159,8 +159,8 @@ GetTraffic(){
 			fi
 
 			if [ -n "$mac" ] ; then
-				local do=$(echo "$ipt" | grep -E "($_generic_ipv4|$_generic_ipv6) $tip\b" | cut -d' ' -f1)
-				local up=$(echo "$ipt" | grep -E "$tip ($_generic_ipv4|$_generic_ipv6)" | cut -d' ' -f1)
+				local do=$(echo "$ipt" | grep -E "($_generic_ipv4|$_generic_ipv6) $tip\b" | cut -d' ' -f1 | head -n 1)
+				local up=$(echo "$ipt" | grep -E "$tip ($_generic_ipv4|$_generic_ipv6)" | cut -d' ' -f1 | head -n 1)
 				total_down=$(( $total_down + ${do:-0} ))
 				total_up=$(( $total_up + ${up:-0} ))
 				Send2Log "GetTraffic: $mac-$ip / ${do:-0} / ${up:-0} / $hr"
