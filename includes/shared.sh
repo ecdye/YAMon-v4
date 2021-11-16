@@ -18,8 +18,8 @@
 #
 ##########################################################################
 
-_ds=$(date +"%Y-%m-%d")
-_ts=$(date +"%T")
+_ds="$(date +"%Y-%m-%d")"
+_ts="$(date +"%T")"
 _generic_mac="un:kn:ow:n0:0m:ac"
 
 source "${d_baseDir}/includes/version.sh"
@@ -33,35 +33,36 @@ tmplogFile='/tmp/yamon/yamon.log'
 
 [ -z "$showEcho" ] && exec >> $tmplogFile 2>&1 # send error messages to the log file as well!
 
-[ -f "$_usersFile" ] && _currentUsers=$(cat "$_usersFile")
+[ -f "$_usersFile" ] && _currentUsers="$(cat "$_usersFile")"
 
-Send2Log(){
+Send2Log() {
 	[ "${2:-0}" -lt "${_loglevel:-0}" ] && return
-	echo -e "<section class='ll${2:-0}'><article class='dt'>$(date +"%T")</article><article class='msg'>$1</article></section>" >> "$tmplogFile"
+	echo -e "<section class='ll${2:-0}'><article class='dt'>$(date +"%T")</article><article class='msg'>${1}</article></section>" >> "$tmplogFile"
 }
 
-IndentList(){
+IndentList() {
 	echo '<ul>'
-	echo -e "$1" | grep -Ev "^\s{0,}$" | sed -e "s~^\s\{0,\}~<li>~Ig"
+	echo -e "$1" | grep -Ev '^\s{0,}$' | sed -e "s~^\s\{0,\}~<li>~Ig"
 	echo '</ul>'
 }
 
 Send2Log "${0##$d_baseDir/} - start" 0
 
-SetRenice(){
+SetRenice() {
 	# if firmware supports renice, set the value
-	#Send2Log "SetRenice: renice 10 $$" 1
+	Send2Log "SetRenice: renice 10 $$" 1
 	renice 10 $$
 }
-NoRenice(){
+
+NoRenice() {
 	# if firmware doesn't support renice
-	#Send2Log "NoRenice" 1
+	Send2Log "NoRenice" 1
 	return
 }
 
 $_setRenice
 
-LogEndOfFunction(){
+LogEndOfFunction() {
 	Send2Log "${0##$d_baseDir/} - end" $1
 }
 
