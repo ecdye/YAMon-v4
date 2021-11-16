@@ -40,41 +40,44 @@ ResetCron(){
 }
 
 StartScheduledJobs(){
-	SetCronJobs(){ #for firmware using cron
+	SetCronJobs() { # for firmware using cron
+		local fileContents
+		local newjobs
+		local user
+		local sh
+		local sm
+		local eh
+		local em
+		local inUnlimited
+		local udt="${_updateTraffic:-4}"
+
 		touch "$cronJobsFile"
-		local fileContents=$(cat "$cronJobsFile")
-		local newjobs=$(echo "$fileContents" | grep -v "${d_baseDir}" | grep -v "YAMon jobs")
-		local networkChecks=''
-		if [ "${_check4Devices:-1}" -gt "1" ] ; then
-			networkChecks="/${_check4Devices}"
-		fi
-		local user=''
+		fileContents="$(cat "$cronJobsFile")"
+		newjobs="$(echo "$fileContents" | grep -v "$d_baseDir" | grep -v "YAMon jobs")"
+
 		[ "$_firmware" -eq "0" ] && user='root'
-		newjobs="${newjobs}\n#YAMon jobs: (updated $_ds)"
-		newjobs="${newjobs}\n0 0 ${_ispBillingDay:-1} * * $user ${d_baseDir}/new-billing-interval.sh"
-		newjobs="${newjobs}\n59 * * * * $user ${d_baseDir}/end-of-hour.sh"
-		newjobs="${newjobs}\n59 23 * * * $user ${d_baseDir}/end-of-day.sh"
-		newjobs="${newjobs}\n0 0 * * * $user ${d_baseDir}/new-day.sh"
-		if [ "$_unlimited_usage" -eq "1" ] ; then
-			local sh=$(echo "$_unlimited_start" | cut -d':' -f1)
-			local sm=$(echo "$_unlimited_start" | cut -d':' -f2)
-			sm=${sm#0}
-			local eh=$(echo "$_unlimited_end" | cut -d':' -f1)
-			local em=$(echo "$_unlimited_end" | cut -d':' -f2)
-			em=${em#0}
+		newjobs="${newjobs}\n# YAMon jobs: (updated ${_ds})"
+		newjobs="${newjobs}\n0 0 ${_ispBillingDay:-1} * * ${user} ${d_baseDir}/new-billing-interval.sh"
+		newjobs="${newjobs}\n59 * * * * ${user} ${d_baseDir}/end-of-hour.sh"
+		newjobs="${newjobs}\n59 23 * * * ${user} ${d_baseDir}/end-of-day.sh"
+		newjobs="${newjobs}\n0 0 * * * ${user} ${d_baseDir}/new-day.sh"
+		if [ "$_unlimited_usage" -eq "1" ]; then
+			sh="$(echo "$_unlimited_start" | cut -d':' -f1)"
+			sm="$(echo "$_unlimited_start" | cut -d':' -f2)"
+			sm="${sm#0}"
+			eh="$(echo "$_unlimited_end" | cut -d':' -f1)"
+			em="$(echo "$_unlimited_end" | cut -d':' -f2)"
+			em="${em#0}"
 			inUnlimited="${tmplog}inUnlimited"
-			newjobs="${newjobs}\n${sm} ${sh} * * * $user ${d_baseDir}/in-unlimited.sh start"
-			newjobs="${newjobs}\n${em} ${eh} * * * $user ${d_baseDir}/in-unlimited.sh end"
+			newjobs="${newjobs}\n${sm} ${sh} * * * ${user} ${d_baseDir}/in-unlimited.sh start"
+			newjobs="${newjobs}\n${em} ${eh} * * * ${user} ${d_baseDir}/in-unlimited.sh end"
 		fi
-		newjobs="${newjobs}\n0 * * * * $user ${d_baseDir}/new-hour.sh"
-		[ "$_doLiveUpdates" -eq "1" ] && newjobs="${newjobs}\n* * * * * $user ${d_baseDir}/update-live-data.sh"
-		local udt=${_updateTraffic:-4}
-		newjobs="${newjobs}\n$udt-$((60 - $udt))/$udt * * * * $user ${d_baseDir}/update-reports.sh"
-		# line below is seemingly not a reliable as the one above?!?
-		#newjobs="${newjobs}\n*${networkChecks} * * * * $user ${d_baseDir}/check-network.sh"
+		newjobs="${newjobs}\n0 * * * * ${user} ${d_baseDir}/new-hour.sh"
+		[ "$_doLiveUpdates" -eq "1" ] && newjobs="${newjobs}\n* * * * * ${user} ${d_baseDir}/update-live-data.sh"
+		newjobs="${newjobs}\n${udt}-$(( 60 - udt ))/${udt} * * * * ${user} ${d_baseDir}/update-reports.sh"
 
 		echo -e "$newjobs" > "$cronJobsFile"
-		Send2Log "SetCronEntries: updating \`$cronJobsFile\` --> $(IndentList "$newjobs")" 1
+		Send2Log "SetCronEntries: updating \`${cronJobsFile}\` --> $(IndentList "$newjobs")" 1
 	}
 
 	SetCruJobs(){ #for Tomato (and other firmware using cru rather than cron)
