@@ -117,15 +117,19 @@ GetMACbyIP(){
 	fi
 }
 
-GetDeviceGroup(){
-	local mgList=$(echo "$_currentUsers" | grep -e "^mac2group({.*})$")
-	local dd=$(echo "$mgList" | grep "$1")
-	if [ -z "$dd" ] ; then
-		Send2Log "GetDeviceGroup - no matching entry for $1 in users.js... set to '$_defaultGroup' " 2  #to do...
-		echo "${_defaultGroup:-${_defaultOwner:-Unknown}}"
+GetDeviceGroup() {
+	local mgList
+	local dd
+	local group
+
+	mgList="$(echo "$_currentUsers" | grep -e '^mac2group({.*})$')"
+	dd="$(echo "$mgList" | grep "$1")"
+	if [ -z "$dd" ]; then
+		Send2Log "GetDeviceGroup - no matching entry for $1 in users.js... set to '${_defaultGroup:-Unknown}'" 2
+		echo "${_defaultGroup:-Unknown}"
 		return
 	fi
-	local group=$(GetField "$dd" 'group')
+	group="$(GetField "$dd" 'group')"
 
 	Send2Log "GetDeviceGroup - $1 / $2 --> $dd --> $group"
 	echo "$group"
