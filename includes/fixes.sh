@@ -97,7 +97,7 @@ Renamev3MonthlyFiles(){
 		else
 			mv "$filepath" "$newpath"
 		fi
-		n=$((n+1))		
+		n=$((n+1))
 	done
 	Send2Log "Renamev3MonthlyFiles: Copied $n monthly data files & skipped $skipped"
 }
@@ -121,11 +121,11 @@ Renamev3HourlyFiles(){
 		else
 			mv "$filepath" "$newfilepath"
 		fi
-		n=$((n+1))		
+		n=$((n+1))
 	done
 	Send2Log "Renamev3MonthlyFiles: Copied $n monthly data files & skipped $skipped"
 }
-	
+
 FixDefaultDeviceNames
 
 FixMonthlyUsageFile

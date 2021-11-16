@@ -19,8 +19,8 @@ SetupLog(){
 	echo -e "<section class='ll${2:-0}'><article class='dt'>$(date +"%T")</article><article class='msg'>$1</article></section>" >> "$setupLogFile"
 }
 
-Prompt(){ 
-    local resp='' 
+Prompt(){
+    local resp=''
     local vn=$1
     eval nv=\"\$$vn\"
     local df="$4"
@@ -34,26 +34,26 @@ Prompt(){
     p3="$(echo -e "    $3
     "| sed -re 's~[\t]+~    ~g')
     "
-    if [ -z "$nv" ] && [ -z "$df" ] ; then 
-        nv='n/a' 
-        df='n/a' 
-        readStr="    Enter your preferred value: " 
-    elif [ -z "$df" ] ; then 
+    if [ -z "$nv" ] && [ -z "$df" ] ; then
+        nv='n/a'
+        df='n/a'
+        readStr="    Enter your preferred value: "
+    elif [ -z "$df" ] ; then
         readStr="${p3}Hit <enter> to accept the current value (\`$nv\`),
-      or enter your preferred value: " 
-    elif [ -z "$nv" ] ; then 
-        nv='n/a' 
+      or enter your preferred value: "
+    elif [ -z "$nv" ] ; then
+        nv='n/a'
         readStr="${p3}Hit <enter> to accept the default (\`$df\`),
-      or enter your preferred value: " 
-    elif [ "$df" == "$nv" ] ; then 
+      or enter your preferred value: "
+    elif [ "$df" == "$nv" ] ; then
         readStr="${p3}Hit <enter> to accept the current/default value (\`$df\`),
-      or enter your preferred value: " 
-    else 
+      or enter your preferred value: "
+    else
         readStr="${p3}Hit <enter> to accept the current value: \`$nv\`, \`d\` for the default (\`$df\`)
-      or enter your preferred value: " 
-    fi 
-    local tries=0 
-    while true ; do 
+      or enter your preferred value: "
+    fi
+    local tries=0
+    while true ; do
         read -p "$readStr" resp
         [ ! "$df" == 'n/a' ] && [ "$resp" == 'd' ] && resp="$df" && break
         [ ! "$nv" == 'n/a' ] && [ -z "$resp" ] && resp="$nv" && break

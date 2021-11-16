@@ -9,7 +9,7 @@ _s_title="
     \\\|//  ////  \\\\\\\  |||| \\/ |||| |||   ||| |||   |||
     ////  //////\\\\\\\\\\\\ ||||    |||| \\\\\\\\.//// |||   |||
    ////  ////      \\\\\\\\||||    ||||  \\\\\\|///  |||   |||
-   
+
               Yet Another Monitor (v: $_version)
             Copyright (c) 2013-present Al Caughey
                   All rights reserved.

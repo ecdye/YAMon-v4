@@ -25,14 +25,14 @@ check4Overflow(){
 	local a=9
 	local b=9
 	local ob=0
-	while [ true ] ; do 
+	while [ true ] ; do
 		c=$(($a + $b))
 		[ $c -lt $a ] || [ $c -lt $b ] && break #check for sum overflow
 		ob=$b
 		a=$(($a * 10 + 1))
 		b=$(($b * 10 + 9))
 		[ $b -lt $ob ] && break #check for value overflow
-		[ $n -eq 32 ] && break #check for max digits 
+		[ $n -eq 32 ] && break #check for max digits
 		n=$(($n + 1))
 	done
 	echo $n
@@ -42,11 +42,11 @@ if [ -n "$1" ] && [ "$1" == 'clean' ] ; then
 	echo 'Clean install...'
 
 	[ -d "/tmp/yamon/" ] && rmdir /tmp/yamon/
-	
+
 	[ -d "$d_baseDir/daily-bu/" ] && rm -r "$d_baseDir/daily-bu/" && rmdir $d_baseDir/daily-bu/
 	[ -d "$d_baseDir/data/" ] && rm -r "$d_baseDir/data/" && rmdir $d_baseDir/data/
 	[ -d "$d_baseDir/logs/" ] && rm -r "$d_baseDir/logs/" && rmdir $d_baseDir/logs/
-	
+
 	[ -f "$d_baseDir/includes/paths.sh" ] && rm $d_baseDir/includes/paths.sh
 fi
 
@@ -60,7 +60,7 @@ echo "# generated $_ds $_ts" > "${pathsFile}"
 echo -e "\n#Generic functions" >> "${pathsFile}"
 	tmplog='/tmp/yamon/'
 	[ -d "$tmplog" ] || mkdir -p "$tmplog"
-	
+
 	if [ "${_logDir:0:1}" == "/" ] ; then
 		AddEntry '_path2logs' "${_logDir}" #absolute path to the logs
 	else
@@ -79,7 +79,7 @@ echo -e "\n#Generic functions" >> "${pathsFile}"
 	hr=$(echo $_ts | cut -d':' -f1)
 	mo=${mo#0}
 	[ ${da#0} -lt ${_ispBillingDay:-1} ] && mo=$(($mo - 1))
-	
+
 	if [ "$mo" -eq "0" ]; then
 		mo='12'
 		yr=$(($yr - 1))
@@ -88,7 +88,7 @@ echo -e "\n#Generic functions" >> "${pathsFile}"
 	fi
 	_currentInterval="${yr}-${mo}"
 	AddEntry '_currentInterval' "$_currentInterval"
-	
+
 	_path2CurrentMonth="${_path2data}${_currentInterval/-//}/"
 	AddEntry '_path2CurrentMonth' "$_path2CurrentMonth"
 	AddEntry '_intervalDataFile' "$_path2CurrentMonth${_currentInterval}-mac_usage.js"
@@ -105,7 +105,7 @@ echo -e "\n#Generic functions" >> "${pathsFile}"
 	fi
 	AddEntry '_usersFile' "${_path2data}users.js"
 	AddEntry 'tmpUsersFile' "${tmplog}users.js"
-	
+
 	AddEntry '_lastSeenFile' "${_path2data}lastseen.js"
 	AddEntry 'tmpLastSeen' "${tmplog}lastseen.js"
 
@@ -137,7 +137,7 @@ echo -e "\n#Generic functions" >> "${pathsFile}"
 		AddEntry '_conntrack' '/proc/net/ip_conntrack'
 		AddEntry '_conntrack_awk' 'BEGIN { printf "var curr_connections=["} { gsub(/(src|dst|sport|dport|bytes)=/, ""); if($1 == "tcp"){ printf "[\"%s\",\"%s\",%s,\"%s\",%s,%s],",$1,$5,$7,$6,$8,$10;} else if($3 == "udp"){ printf "[\"%s\",\"%s\",%s,\"%s\",%s,%s],",$1,$4,$6,$5,$7,$9;} else { printf "[\"%s\",\"%s\",,\"%s\",,%s],",$1,$4,$5,$9;} }'
 	fi
-	
+
 	if [ "${_doLiveUpdates:-1}" -eq "1" ] ; then
 		AddEntry '_liveFilePath' "${_wwwPath}${_wwwJS:-js/}live_data4.js"
 		AddEntry 'doCurrConnections' "CurrentConnections_${_doCurrConnections}"
@@ -153,7 +153,7 @@ echo -e "\n#Generic functions" >> "${pathsFile}"
 		AddEntry 'hourlyDataTemplate' 'hourlyData4({\"id\":\"%s\",\"hour\":\"%s\",\"down\":\"%s\",\"up\":\"%s\"})'
 	fi
 	AddEntry 'currentlyUnlimited' "0"
-	
+
 #Firmware specfic & dependent entries
 
 echo -e "\n#Firmware specfic & dependent entries:" >> "${pathsFile}"
@@ -168,7 +168,7 @@ echo -e "\n#Firmware specfic & dependent entries:" >> "${pathsFile}"
 		AddEntry "_wwwURL" '/user'
 		_lan_iface='br-0'
 		AddEntry "_iptablesWait" ""
-		
+
 		hip6=$(nvram get ipv6_enable)
 		[ "${hip6:-0}" -eq '1' ] && ipv6Enabled=1
 
@@ -182,10 +182,10 @@ echo -e "\n#Firmware specfic & dependent entries:" >> "${pathsFile}"
 		AddEntry "_wwwURL" '/yamon'
 		_lan_iface='br-lan'
 		AddEntry "_iptablesWait" '-w -W1'
-		
+
 		hip6=$( uci show ddns.myddns_ipv6.use_ipv6 | cut -d'=' -f2 | sed -e "s~'~~g")
 		[ "${hip6:-0}" -eq '1' ] && ipv6Enabled=1
-	
+
 	elif [ "$_firmware" -eq "2" ] || [ "$_firmware" -eq "3" ] || [ "$_firmware" -eq "5" ] ; then #AsusMerlin, Tomato & variants
 		AddEntry 'nameFromStaticLeases' "StaticLeases_Merlin_Tomato"
 		AddEntry 'deviceIPField' '2'
@@ -196,7 +196,7 @@ echo -e "\n#Firmware specfic & dependent entries:" >> "${pathsFile}"
 		AddEntry "_wwwURL" '/user'
 		_lan_iface='br0'
 		AddEntry "_iptablesWait" '-w -W1'
-		
+
 		hse6=$(nvram get ipv6_service):-disabled
 		[ "${hse6:-disabled}" != 'disabled' ] && ipv6Enabled=1
 
@@ -213,30 +213,30 @@ echo -e "\n#Firmware specfic & dependent entries:" >> "${pathsFile}"
 	fi
 	AddEntry "_lan_iface" "$_lan_iface"
 	AddEntry "_interfaces" "$_lan_iface"
-	
-	if [ -z "$ipv6Enabled" ] ; then 
+
+	if [ -z "$ipv6Enabled" ] ; then
 		AddEntry 'ip6tablesFn' 'NoIP6'
 		AddEntry 'ip6Enabled' ''
 	else
 		AddEntry 'ip6tablesFn' 'IP6Enabled'
 		AddEntry 'ip6Enabled' '1'
 	fi
-	
+
 	if [ -f "$_dnsmasq_conf" ] ; then
 		AddEntry 'nameFromDNSMasqConf' "DNSMasqConf"
 	else
 		AddEntry 'nameFromDNSMasqConf' "NullFunction"
 	fi
-	if [ -f "$_dnsmasq_leases" ] ; then 
+	if [ -f "$_dnsmasq_leases" ] ; then
 		AddEntry 'nameFromDNSMasqLease' "DNSMasqLease"
 	else
 		AddEntry 'nameFromDNSMasqLease' "NullFunction"
 	fi
 	AddEntry '_max_digits' "$(check4Overflow)"
-	
-	
+
+
 # Set nice level of current PID to 10 (low priority)
-if [ -n "$(which renice)" ] ; then 
+if [ -n "$(which renice)" ] ; then
 	AddEntry '_setRenice' 'SetRenice'
 else
 	AddEntry '_setRenice' 'NoRenice'

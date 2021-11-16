@@ -9,11 +9,11 @@
 
 
 IndentList(){
-	echo -e "$1" | grep -Ev "^\s{0,}$" | sed -e "s~^\s\{0,\}~  * ~Ig" 
+	echo -e "$1" | grep -Ev "^\s{0,}$" | sed -e "s~^\s\{0,\}~  * ~Ig"
 }
 
 UpdateEntries(){
-	local spacing='========================='	
+	local spacing='========================='
 	for line in $1; do
 		local fn=$(echo "$line" | cut -d',' -f1)
 		local pad=${spacing:0:$((32-${#fn}+1))}
@@ -46,8 +46,8 @@ echo "
 Comparing files...
     dev path: \`http://usage-monitoring.com/dev/YAMon4/Setup/\`
     current path: \`http://usage-monitoring.com/current/YAMon4/Setup/\`
-	
-	
+
+
    file                              status
 --------------------------------------------------"
 

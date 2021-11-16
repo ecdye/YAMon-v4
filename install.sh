@@ -47,10 +47,10 @@ echo "
 
    For installation tips & tricks, see
       https://usage-monitoring.com/install
-	  
+
    Please report any issues to
       install@usage-monitoring.com
-	  
+
 **************************************
  "
 echo "Would you like to install YAMon on your router?"
@@ -95,7 +95,7 @@ while true; do
 	p2c=$(dirname "$YAMON")
 	[ -z "${p2c%/}" ] && p2c="$YAMON"
 	#echo "$p2c: $(ls -laL "$p2c" | grep ' .$' | awk '{print $1}')"
-	
+
 	if [ -z "$(ls -laL  "$p2c" | grep ' .$' | awk '{print $1}' | grep 'w')" ] ; then
 		echo -e "\n    *** Un-oh... You do not have write permissions in '$p2c'!\n"
 	elif [ -d "$YAMON" ] ; then

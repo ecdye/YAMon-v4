@@ -19,7 +19,7 @@ getlatest()
 	local src="http://www.usage-monitoring.com/$directory/YAMon4/Setup/${path}?$_ts"
 	local dst="${YAMON}${path}"
 	local rm="$3"
-	
+
 	[ -z "$rm" ] && echo "  * $dst"
 	if [ -z "$rm" ] && [ -x /usr/bin/curl ] ; then
 		curl -sk --max-time 15 -o "$dst" --header "Pragma: no-cache" --header "Cache-Control: no-cache" -A "YAMon-Setup" "$src"
@@ -51,7 +51,7 @@ getlatest()
 		getlatest "$1" "$2" "$rm"
 		return
 	fi
-	
+
 	#change windows linefeeds to unix
 	sed -i -e 's/\r$//' "$dst" #change windows linefeeds to unix
 

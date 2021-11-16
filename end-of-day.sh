@@ -22,8 +22,8 @@ DeactiveIdleDevices(){
 	[ -f "$_lastSeenFile" ] && lastseen=$(cat "$_lastSeenFile" | grep -e "^lastseen({.*})$")
 	IFS=$'\n'
 	Send2Log "DeactiveIdleDevices - _activeIPs"
-	for line in $_activeIPs 
-	do	
+	for line in $_activeIPs
+	do
 		[ -z "$line" ] && continue
 		local id=$(GetField "$line" 'id')
 		local ls=$(GetField "$(echo "$lastseen" | grep "$id")" 'last-seen')
@@ -36,12 +36,12 @@ DeactiveIdleDevices(){
 			local changes1=1
 		fi
 	done
-	[ -z "$changes1" ] && Send2Log "DeactiveIdleDevices: no active devices deactivated" 
+	[ -z "$changes1" ] && Send2Log "DeactiveIdleDevices: no active devices deactivated"
 
 	local _inActiveIPs=$(cat "$_usersFile" | grep -e "^mac2ip({.*})$" | grep '"active":"0"')
 
 	Send2Log "DeactiveIdleDevices - lastseen"
-	for line in $lastseen 
+	for line in $lastseen
 	do
 		[ -z "$line" ] && continue
 		local id=$(GetField "$line" 'id')
@@ -71,7 +71,7 @@ cp "$hourlyDataFile" "$_path2CurrentMonth"
 Send2Log "End of day: tally the traffic for the day and update the monthly file"
 CalculateDailyTotals ## no param --> implies value of _ds
 
-Send2Log "End of day: backup files as required" 
+Send2Log "End of day: backup files as required"
 cp "$tmplogFile" "$_path2logs"
 
 [ "$_doDailyBU" -eq "1" ] && tar -cf "${_path2bu}bu-${_ds}.tar.gz" $_usersFile $tmpLastSeen $(find -L ${d_baseDir} | grep "$_ds") 2>/dev/null && Send2Log "End of day: archive date specific files to '${_path2bu}bu-${_ds}.tar.gz'"

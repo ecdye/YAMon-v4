@@ -50,7 +50,7 @@ function loadSettings(){
 	if(!g_Settings['show-tcp']) g_Settings['show-tcp']=true
 	if(!g_Settings['show-udp']) g_Settings['show-udp']=true
 	if(!g_Settings['show-unknown']) g_Settings['show-unknown']=false
-	
+
 	if(typeof(_dbkey)=='undefined' || _dbkey==''){
 		showLoading('Settings from localStorage')
 		$('#dbkey-clicked,#dbkey,#sv-btn,#p-useHTTPS,#p-autoSave,#acses-tab').hide()
@@ -283,7 +283,7 @@ function setSettingsDefaults(){
 		$('#hourly-table').attr('data-showing','AM')
 	})
 	$('#filter-results').keyup(debounce(function(){
-		
+
 		var st=$('#filter-results').val(), all_r=$('#devicesData tr'), rows
 		if($('#ShowZeroes').is(':checked'))
 			rows=$('#devicesData tr')
@@ -303,12 +303,12 @@ function setSettingsDefaults(){
 			all_r.not($('td:containsCI("'+st+'")').parents('tr')).hide().removeClass('showing');
 			all_r.find($('td:containsCI("'+st+'")')).parents('tr').slideDown('fast').addClass('showing');
 		}
-		$('#devicesData tr:visible:odd').addClass('odd')	
+		$('#devicesData tr:visible:odd').addClass('odd')
 	}, 333))
 	$("#numBusyDevices").slider({
-		animate: true, 
+		animate: true,
 		max:10,
-		min:1,  
+		min:1,
 		value: g_Settings['numBusyDevices']||'3',
 		slide: function( event, ui ){
 			$('.numBusyDevices').text(ui.value)
@@ -319,11 +319,11 @@ function setSettingsDefaults(){
 			g_Settings[$(this).attr('id')]=ui.value
 			saveSettings(false)
 		}
-	}) 
+	})
 	$("#numBusyGroups").slider({
-		animate: true, 
+		animate: true,
 		max:10,
-		min:1,  
+		min:1,
 		value: g_Settings['numBusyGroups']||'3',
 		slide: function( event, ui ){
 			$('.numBusyGroups').text(ui.value)
@@ -334,7 +334,7 @@ function setSettingsDefaults(){
 			g_Settings[$(this).attr('id')]=ui.value
 			saveSettings(false)
 		}
-	}) 
+	})
 	$('.numBusyDevices').text(g_Settings['numBusyDevices'])
 	$('.numBusyGroups').text(g_Settings['numBusyGroups'])
 
@@ -363,7 +363,7 @@ function setSettingsDefaults(){
 		})
 		$('[name="groups"]').val(log.join(','))
 		$('[name="setAccessRestrictions"]').submit()
-	})	
+	})
 }
 function setGlobals(){
 	g_base=1024
@@ -386,7 +386,7 @@ function setButtonsActions(){
 		loadView(false)
 	})
 	$("#settings_pswd").change(function(){
-		//if (typeof(_settings_pswd)!='undefined') return false 
+		//if (typeof(_settings_pswd)!='undefined') return false
 		var tv=$(this).val(),tv5=$.md5(tv)
 		if($('#settings_pswd_cb').is(':checked')) localStorage.setItem('settings_pswd',tv5)
 		$('.bad_value').removeClass('bad_value')
@@ -709,7 +709,7 @@ function setButtonsActions(){
 		var cl=$('[data-mac="'+mac+'"] .legend-colour')
 		var devn=$('[data-mac="'+mac+'"] .thedevice')
 		var ishidden=cl.hasClass('op10')
-		var struck=$(this).parents('tr').find('.thedevice').hasClass('so') 
+		var struck=$(this).parents('tr').find('.thedevice').hasClass('so')
 		$(cl)[ishidden?'removeClass':'addClass']('op10')
 		$(devn)[struck?'removeClass':'addClass']('so')
 		$('[data-mac="'+mac+'"] .group,[data-mac="'+mac+'"] .num')[struck?'removeClass':'addClass']('so')
@@ -876,12 +876,12 @@ function setButtonsActions(){
 			if(cip==0) return false
 			return cip>=lower && cip<=upper;
 		});
-	};			
+	};
 	$('#blank-acon-row .dest-ip').click(function(e){
 		if($(this).hasClass('ipfnd')){
 			return false;
 		}
-		var ctd=$(this), ip=ctd.data('ip'), url= domain+'current/getIP2.php?ip='+ip	
+		var ctd=$(this), ip=ctd.data('ip'), url= domain+'current/getIP2.php?ip='+ip
 		$.getJSON(url)
 		.done(function(list,textStatus){
 			if(!list['org']) return
@@ -896,7 +896,7 @@ function setButtonsActions(){
 		.fail(function(jqXHR, textStatus, errorThrown){
 			var list=jqXHR.responseJSON
 			$(this).html('failed?!?').addClass('ipfnd').removeClass('nomatch').attr('data-org', 'Geolocate failed...')
-		})	
+		})
 	})
 	$('#ip-sync').click(function (e) {
 		if ((g_Settings['useHTTPS']) || (location.protocol=='https')) domain = 'https://usagemonitoringcom.ipage.com/'
@@ -914,7 +914,7 @@ function setButtonsActions(){
 				if(r=='') return
 				var cv=r.split('~')
 				g_IPii[cv[0]]=JSON.parse(cv[1])
-			 })		
+			 })
 			$('#ip-n').text(vv.length)
 			saveIPs()
 			if ($('#live-tab').hasClass('loaded')) activeConnections()
@@ -1294,7 +1294,7 @@ function setButtonsActions(){
 		t.addClass(sort_order == 1 ? 'sort-a' : 'sort-d')
 		g_Settings['sort-devices']= (sort_order == 1 ? '' : '-')+col
 		saveSettings()
-		if(_unlimited_usage=='1' && col==5) return	
+		if(_unlimited_usage=='1' && col==5) return
 		$('#devicesData tr.odd').removeClass('odd')
 		sortDevices(col,sort_order)
 		$('#devicesData tr:visible:odd').addClass('odd')
@@ -1306,18 +1306,18 @@ function setButtonsActions(){
 	$('#process-isp').click(function(){
 		var isp=$('#isp-format').val()
 		if (!isp||isp==''||isp=='Other'){
-			$('#isp-import-results').addClass('oops').html("You must select an entry from the list of ISPs!<br/>If yours is not in the list, see <a href='http://usage-monitoring.com/help/?t=isp-add' target='_blank'>Can you add my ISP to the list?</a>").fadeIn('slow')		
+			$('#isp-import-results').addClass('oops').html("You must select an entry from the list of ISPs!<br/>If yours is not in the list, see <a href='http://usage-monitoring.com/help/?t=isp-add' target='_blank'>Can you add my ISP to the list?</a>").fadeIn('slow')
 			return
 		}
-		
+
 		var in_txt=$('#isp-in').val()
 		if (in_txt==''){
-			$('#isp-import-results').addClass('oops').html("This field cannot be empty... paste the contents of your ISP totals table into this field.").fadeIn('slow')	
+			$('#isp-import-results').addClass('oops').html("This field cannot be empty... paste the contents of your ISP totals table into this field.").fadeIn('slow')
 			return
 		}
-		
+
 		if (isp=='Bell__Fr_') //change "1,23" to 1.23
-			in_txt=in_txt.replace(/"(\d+),(\d+)"/g,'$1.$2') 
+			in_txt=in_txt.replace(/"(\d+),(\d+)"/g,'$1.$2')
 		else if (isp=='Electronic_Box') //replace G; split on `-`
 			in_txt=in_txt.replace(/G/g,'').replace(/-/g,' ')
 		else if(isp=='GCI') //concatenate date & data lines
@@ -1327,7 +1327,7 @@ function setButtonsActions(){
 		else if (isp=='Sodetel') //change 1,234.56 to 1234.56
 			in_txt=in_txt.replace(/,/g,'')
 
-		
+
 		in_txt=in_txt.replace(/"/g,'').replace(/[ \/,\t]+/g,' ').split('\n').sort()
 
 		var out_txt={},mn, yr, down, up, ml, mo
@@ -1335,7 +1335,7 @@ function setButtonsActions(){
 		var dt=0,ut=0
 		var months=["January","February","March","April","May","June","July","August","September","October","November","December","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"]
 		function splitline(line){
-			
+
 			var factor=g_toGB
 			var fields=line.trim().split(' ')
 			//sio && console.log(isp, fields)
@@ -1353,7 +1353,7 @@ function setButtonsActions(){
 					daf=0, mnf=1, dof=4, upf=5
 					factor=g_toMB
 				break
-				case 'Electronic_Box': 
+				case 'Electronic_Box':
 					yrf=0, mnf=1, daf=2
 				break
 				case 'Rogers':
@@ -1389,7 +1389,7 @@ function setButtonsActions(){
 			out_txt[dd].down+=data.down*1
 			out_txt[dd].up+=data.up*1
 			dt+=data.down*1
-			ut+=data.up*1 
+			ut+=data.up*1
 			if(dd==_ispBillingDay){
 				mn=data.mn
 				yr=data.yr
@@ -1859,7 +1859,7 @@ function ShowDevices(sh){
 }
 
 function DrawInterfacesGraph(){
-	if($('#InterfacesGraph').length==0) return 
+	if($('#InterfacesGraph').length==0) return
 	var odata=new google.visualization.DataTable()
 	odata.addColumn('string','Name');
 	Object.keys(interfaces).forEach(function(ifn){
@@ -1875,7 +1875,7 @@ function DrawInterfacesGraph(){
 		})
 		odata.addRow(od)
 	}
-	
+
 	var ownerchart=new google.visualization.ColumnChart(document.getElementById('InterfacesGraph'))
 	var o_options={width:maxGrWidth,height:400,title:'Hourly Traffic by Interface',legend:{position:'right',textStyle:{fontSize:11}},backgroundColor: { fill:inDarkMode?darkmodeBG:'transparent'},chartArea:{},isStacked:false,hAxis:{title:$(".current-interval").first().text(),slantedText:true,titleTextStyle:{color:'green'},textStyle:{fontSize:7}},vAxis:{title:'Total Usage in MB',titleTextStyle:{color:'green'}},series:{}}
 	ownerchart.draw(odata,o_options)
@@ -2732,7 +2732,7 @@ function formattedDate(d,v){
 	if (typeof(v)=='undefined') v=$('#dateFMT').val()*1
 	var sep=$('#dateSep').val(),ret=''
 	var da=days[d.getDay()],dn=twod(d.getDate()),m=twod(d.getMonth()+1),mn=months[d.getMonth()],y=d.getFullYear(),arr=[]
-	
+
 	switch (v) {
 		case 0:
 			arr=[mn,dn,y]
@@ -2793,7 +2793,7 @@ function updateDashboard(){
 		if(device.name.indexOf('Incomplete')!=-1){
 			continue;
 		}
-		
+
 		if (cd-added == 0) {
 			dv=da[0]
 			tgt='att'
@@ -2811,7 +2811,7 @@ function updateDashboard(){
 			tgt='uti'
 		} */
 		else{}
-		
+
 		var np=$('<p/>')
 		$('<span/>').addClass('w104').text(device.name).appendTo(np)
 		$('<span/>').addClass('upd').text(dv).appendTo(np)
@@ -2857,7 +2857,7 @@ function updateDashboard(){
 	for(var n=0;n<numg;n++){
 		if(!nl[n]) continue
 		var ci=nl[n], wd=names[ci]
-		
+
 		var np=$('<p/>')
 		$('<span/>').addClass('w104 btn').text(wd.group).attr('data-g-n',ci).appendTo(np)
 		$('<span/>').addClass('num tByts i-b').data('value',names[ci].down + names[ci].up).appendTo(np)
@@ -3081,7 +3081,7 @@ function hourlyTable(){
 	var lan_iface=!!monthly_totals.interfaces['br0']?'br0':'br-lan'
 	var tots=$('#hourly-tbody tr').last().clone(false, false).detach().removeClass().removeAttr('data-mac').removeAttr('data-g-n')
 	tots.appendTo('#hourly-tfoot')
-	var rtot=$('#hourly-tfoot tr').last().clone(false, false).detach().attr('title','Traffic measured at the router on '+ lan_iface), 
+	var rtot=$('#hourly-tfoot tr').last().clone(false, false).detach().attr('title','Traffic measured at the router on '+ lan_iface),
 	    diff=$('#hourly-tfoot tr').last().clone(false, false).detach().attr('title','Difference between devices total and router')
 	tots.find('.group').text('')
 	tots.find('.deviceName').text('Total Device Traffic').attr('title',null)
@@ -3117,7 +3117,7 @@ function hourlyTable(){
 	$('[data-interface="'+lan_iface+'"]').addClass('lan_iface')
 	var d = new Date();
 	var hr=d.getHours()
-	$('#hourly-table').attr('data-showing',hr>=12?'PM':'AM') 
+	$('#hourly-table').attr('data-showing',hr>=12?'PM':'AM')
 }
 function sortHourly(){
 	function byDeviceName(a,b) {
@@ -3140,7 +3140,7 @@ function uploadRouterJS(msg){
 	var gm = getMessage(msg,'router: '+_router+' / firmware: '+_firmwareName)
 	gm.done(function () {
 		$('.dismiss').hide()
-		$('[name="shri"]').change(function(){ 
+		$('[name="shri"]').change(function(){
 			$('.dismiss').fadeIn('slow').unbind('click').click(function(){
 				if($('#sh-y').is(':checked')){
 					$.ajax({
@@ -3197,7 +3197,7 @@ function getIntro(){
 		$('.intro-t').first().siblings('.intro-t').hide()
 		$( '#dialog-intro' ).dialog({
 			modal: true,
-			width: 996, 
+			width: 996,
 			position: { my: "center", at: "top" },
 			show: { effect: "blind", duration: 800 },
 			buttons: {

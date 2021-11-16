@@ -39,7 +39,7 @@ AddIPs2MAC2IP(){
 		[ -z "$lastseen" ] && lastseen="$updated"
 		[ -z "$lastseen" ] && lastseen="$added"
 		echo "lastseen({\"id\":\"$mac-$ip\",\"last-seen\":\"$lastseen\"})" >> "$tmpLastSeen"
-		
+
 	done
 	unset IFS
 }
@@ -78,7 +78,7 @@ do
 	[ -n "$ip6" ] && AddIPs2MAC2IP $ip6
 	[ -z "$(cat "$m2g_f" | grep "$mac")" ] && echo "mac2group({ \"mac\":\"$mac\", \"group\":\"$group\" })" >> $m2g_f
 	IFS=$'\n'
-done 
+done
 echo -e "\n\n Done"
 echo -e "$header\n//MAC -> Groups" > $_usersFile
 [ -f "$m2g_f" ] && cat "$m2g_f" >> $_usersFile && rm "$m2g_f"

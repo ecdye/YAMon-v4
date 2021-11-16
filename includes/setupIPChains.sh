@@ -6,7 +6,7 @@
 # functions to define chains in iptables & optionally ip6tables
 #
 # History
-# 2020-03-20: 4.0.7 - added wait option ( -w -W1) to commands that add entries in iptables; 
+# 2020-03-20: 4.0.7 - added wait option ( -w -W1) to commands that add entries in iptables;
 #                   - then added _iptablesWait 'cause not all firmware variants support iptables -w...
 # 2020-01-03: 4.0.6 - added check for _logNoMatchingMac in SetupIPChains
 # 2019-12-23: 4.0.5 - no changes
@@ -29,11 +29,11 @@ SetupIPChains(){
     CheckChains(){
 		local chain="$YAMON_IPTABLES$ch"
         local ce=$(echo "$ipchains" | grep "\b$chain\b")
-		Send2Log "CheckChain: $chain --> '$ce'" 
+		Send2Log "CheckChain: $chain --> '$ce'"
         if [ -z "$ce" ] ; then
             Send2Log "CheckChains: Adding $chain in $cmd" 2
             eval $cmd -N $chain "$_iptablesWait"
-        else 
+        else
             Send2Log "CheckChain: $chain exists in $cmd" 1
         fi
     }
@@ -51,7 +51,7 @@ SetupIPChains(){
 			eval $cmd -I "$tbl" -j "$rule" "$_iptablesWait"
 			return
 		fi
-		
+
 		#its unlikely you should get here... but added defensively
 		Send2Log "CheckTables: Found $foundRuleinChain instances of '$cmd' $rule in chain $tbl... deleting entries individually rather than flushing!" 3
 		local i=1
@@ -62,7 +62,7 @@ SetupIPChains(){
 		done
 		eval $cmd -I "$tbl" -j "$rule" "$_iptablesWait"
 	}
-	
+
     AddPrivateBlocks(){
         $cmd -F "$YAMON_IPTABLES"
         $cmd -F "$ent"
@@ -83,7 +83,7 @@ SetupIPChains(){
         done
         eval $cmd -A "$ent" -j "${YAMON_IPTABLES}" "$_iptablesWait"
 		eval $cmd -I "$loc" -j "RETURN" "$_iptablesWait"
-			
+
 		Send2Log "chains --> $cmd / $YAMON_IPTABLES --> $(IndentList "$($cmd -L -vx | grep $YAMON_IPTABLES | grep Chain)")"
     }
 
@@ -100,7 +100,7 @@ SetupIPChains(){
 			else
 				eval $cmd -I "$ent" -g "$loc" -s $ip "$_iptablesWait"
 				eval $cmd -I "$ent" -g "$loc" -d $ip "$_iptablesWait"
-			fi	
+			fi
         done
     }
 
@@ -110,7 +110,7 @@ SetupIPChains(){
 
 	local chains=",Entry,Local"
 	local tables="FORWARD,INPUT,OUTPUT"
-	
+
 	local loc="${YAMON_IPTABLES}Local"
 	local ent="${YAMON_IPTABLES}Entry"
 
@@ -124,7 +124,7 @@ SetupIPChains(){
 		do
 			CheckChains
 		done
-			
+
 		if [ "$cmd" == 'iptables' ] ; then
 			local ip_blocks="$_PRIVATE_IP4_BLOCKS"
 			local ip_addresses="$_LOCAL_IP4"
@@ -132,21 +132,21 @@ SetupIPChains(){
 			local ip_blocks="$_PRIVATE_IP6_BLOCKS"
 			local ip_addresses="$_LOCAL_IP6"
 		fi
-		
+
 		AddPrivateBlocks
 		AddLocalIPs
-		
+
 		for tbl in $tables
 		do
 			CheckTables
 		done
-		
+
 		if [ "${_logNoMatchingMac:-0}" -eq "1" ] ; then
 			eval $cmd -A "$YAMON_IPTABLES" -j LOG --log-prefix "YAMon: " "$_iptablesWait"
 		else
-			eval $cmd -A "$YAMON_IPTABLES" -j RETURN			
+			eval $cmd -A "$YAMON_IPTABLES" -j RETURN
 		fi
-		
+
 	done
 
 }
@@ -155,7 +155,7 @@ AddNetworkInterfaces(){
 	listofInterfaces=$(ls /sys/class/net)
 	#[ -z "$listofInterfaces" ] && "$(ifconfig | grep HWaddr | awk '{print $1}')"
 	local re_mac='([a-f0-9]{2}:){5}[a-f0-9]{2}'
-	IFS=$'\n' 
+	IFS=$'\n'
 	interfaceList=''
 	for inf in $listofInterfaces
 	do
@@ -163,7 +163,7 @@ AddNetworkInterfaces(){
 		mac=$(echo "$ifc" | grep -o 'HWaddr.*$' | cut -d' ' -f2 | tr "[A-Z]" "[a-z]")
 		[ -z "$mac" ] && continue
 		if [ -z "$(echo "$mac" | grep -Ei "$re_mac")" ] ; then
-			Send2Log "AddNetworkInterfaces: bad mac --> $mac from $ifc" 1 
+			Send2Log "AddNetworkInterfaces: bad mac --> $mac from $ifc" 1
 			continue
 		fi
 		inet4=$(echo "$ifc" | grep 'inet addr' | cut -d: -f2 | awk '{print $1}')
@@ -182,7 +182,7 @@ AddNetworkInterfaces(){
 	done
 	interfaceList=${interfaceList#,}
 	AddEntry "_interfaces" "$interfaceList"
-	
+
 	IFS=$'\n'
 	pnd=$(cat "/proc/net/dev" | grep -E "${interfaceList//,/|}")
 	for line in $pnd

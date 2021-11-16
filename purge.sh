@@ -8,7 +8,7 @@
 # Purges old files from logs and daily-bu folders
 # Run - manually on demand or one per billing interval
 # parameters: optional #_of_days
-# e.g., `/opt/YAMon3/purge.sh 14` to delete all logs & backups create more 
+# e.g., `/opt/YAMon3/purge.sh 14` to delete all logs & backups create more
 # that 2 weeks ago. If null; defaults to 30 days
 #
 # History
@@ -30,14 +30,14 @@ PurgeFromFolder(){
 	local extension="${2:-html}"
 	local fl=$(find "${purgePath}" -name "*.$extension" -mtime +$days)
 	if [ -z "$fl" ] ; then
-		Send2Log "Purge: nothing to delete in `$purgePath` (days: $days)" 1 
+		Send2Log "Purge: nothing to delete in `$purgePath` (days: $days)" 1
 		return
 	fi
-	
+
 	Send2Log "Purge: deleted `*.$extension` from `$purgePath` (days: $days) $(IndentList "$fl")" 2
 
 	IFS=$'\n'
-	for ofp in $fl 
+	for ofp in $fl
 	do
 		Send2Log "Purge: deleted `$ofp`" 1
 		rm -f "$ofp"

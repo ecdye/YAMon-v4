@@ -10,7 +10,7 @@
 # History
 # 2020-01-26: 4.0.7 - no changes
 # 2020-01-03: 4.0.6 - no changes
-# 2019-12-23: 4.0.5 - no changes 
+# 2019-12-23: 4.0.5 - no changes
 # 2019-11-24: 4.0.4 - no changes (yet)
 # 2019-06-18: development starts on initial v4 release
 #

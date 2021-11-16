@@ -34,14 +34,14 @@ ipList=$(echo "$ipResults" | grep -Ev "(${excluding//,/|})" | awk '{ print $5,$1
 
 
 Check4NewDevices(){
-	
+
 	FindRefMAC(){
 		Send2Log "FindRefMAC: $i $m"
-		
+
 		local fm=$(echo "$macIPList" | grep "\b${i//\./\\.}\b")
 		local nm=$(echo "$fm" | wc -l)
-		[ -z "$fm" ] && nm=0 
-		if [ "$nm" -eq "1" ] ; then 
+		[ -z "$fm" ] && nm=0
+		if [ "$nm" -eq "1" ] ; then
 			local rm=$(echo "$fm" | cut -d' ' -f1)
 			Send2Log "FindRefMAC: MAC changed from $m to $rm" 1
 			echo "$rm"
@@ -51,21 +51,21 @@ Check4NewDevices(){
 			local fm=''
 			[ -f "$tmpLastSeen" ] && fm=$(cat "$tmpLastSeen" | grep -e "^lastseen({.*})$" | grep "\b${i//\./\\.}\b" | grep -v "$_generic_mac")
 			local nm=$(echo "$fm" | wc -l)
-			[ -z "$fm" ] && nm=0 
-			if [ "$nm" -eq "1" ] ; then 
+			[ -z "$fm" ] && nm=0
+			if [ "$nm" -eq "1" ] ; then
 				local rm=$(echo "$(GetField "$fm" 'id')" | cut -d'-' -f1)
 				Send2Log "FindRefMAC: MAC changed from $m to $rm in $tmpLastSeen" 1
 				echo "$rm"
 				return
 			fi
 		fi
-		
+
 		Send2Log "FindRefMAC: $nm matching entries for $i / $m in $macIPFile & $tmpLastSeen... replaced $m with $_generic_mac" 2
 		echo "$_generic_mac"
 
 		echo -e "$_ts: $nd\n\tIP: $(echo "$arpResults" | grep "\b$i\b") \n\tarp: $(echo "$ipResults" | grep "\b$i\b" )" >> "${tmplog}bad-mac.txt"
 	}
-	
+
 	local macIPList=$(cat "$macIPFile" | grep -Ev "^\s{0,}$")
 
 	#Send2Log "Check4NewDevices: starting macIPList--> $(IndentList "$macIPList")"
@@ -76,7 +76,7 @@ Check4NewDevices(){
 	[ -z "$currentIPList" ] && newIPList=$combinedIPArp
 
 	#Send2Log "Check4NewDevices: currentIPList: $(IndentList "$currentIPList")"
-	
+
 	# add the YAMon entries of dmesg into the logs to see where the unmatched data is coming from (and then clear dmesg)
 	[ "${_logNoMatchingMac:-0}" -eq "1" ] && local dmsg=$(dmesg -c | grep YAMon)
 	if [ -z "$newIPList" ] ; then
@@ -94,7 +94,7 @@ Check4NewDevices(){
 			Send2Log "Check4NewDevices: $nip ($mac / $groupName) is missing in iptables" 2
 			CheckIPTableEntry "$nip" "$groupName"
 		done
-				
+
 		[ -n "$dmsg" ] && Send2Log "Check4NewDevices: Found YAMon entries in dmesg" 2
 		IFS=$'\n'
 		for line in $dmsg
@@ -113,7 +113,7 @@ Check4NewDevices(){
 			local m=$(echo $nd | cut -d' ' -f1)
 			local i=$(echo $nd | cut -d' ' -f2)
 			Send2Log "check-network: new device=$nd  ;  ip=$i  ; mac=$m" 1
-			if [ -z "$(echo "$m" | grep -Ei "$re_mac")" ] ; then 
+			if [ -z "$(echo "$m" | grep -Ei "$re_mac")" ] ; then
 				Send2Log "Check4NewDevices: Bad MAC --> \n\tIP: $(echo "$arpResults" | grep "\b$i\b") \n\tarp: $(echo "$ipResults" | grep "\b$i\b" )" 2
 				local rm=$(FindRefMAC)
 				newIPList=$(echo "$newIPList" | sed -e "s~$nd~$rm $i~g" | grep -Ev "$currentIPList")
@@ -127,7 +127,7 @@ Check4NewDevices(){
 		done
 
 		[ -z "$newIPList" ] && return
-		
+
 		Send2Log "Check4NewDevices: the following new devices were found: $(IndentList "$newIPList")" 1
 		echo -e "$macIPList\n$newIPList" | grep -Ev "^\s{0,}$" > "$macIPFile"
 
@@ -145,7 +145,7 @@ CheckMacIP4Duplicates(){
 		Send2Log "CheckMacIP4Duplicates: $ip has duplicate entries in $macIPFile" 2
 		macIPList=$(echo -e "$macIPList" | grep -v "${ip//\./\\.}")
 		local activeID=$(echo "$combinedIPArp" | grep "${ip//\./\\.}")
-		if [ -n "$activeID" ] ; then 
+		if [ -n "$activeID" ] ; then
 			Send2Log "CheckMacIP4Duplicates: re-added activeID \`$activeID\`" 2
 			macIPList="$macIPList\n$activeID"
 		else

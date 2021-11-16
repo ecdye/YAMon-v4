@@ -71,7 +71,7 @@ echo "<html lang='en'>
 " > "$tmplogFile"
 
 Send2Log "End of hour: remove \`$rawtraffic_hr\`"
-rm "$rawtraffic_hr" 
+rm "$rawtraffic_hr"
 
 Send2Log "Processes: $(IndentList "$(ps | grep -v grep | grep $d_baseDir)")"
 

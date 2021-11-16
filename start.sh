@@ -27,7 +27,7 @@ var users_created=\"$_ds $_ts\"
 var users_updated=\"\"
 //MAC -> Groups
 
-//MAC -> IP	
+//MAC -> IP
 	" > $_usersFile
 }
 
@@ -39,7 +39,7 @@ SetWebDirectories()
 		local configVars='_installed,_updated,_router,_firmwareName,_version,_firmware,_dbkey,_updateTraffic,_ispBillingDay,_wwwData'
 
 		>$cfgPath #empty the file
-		
+
 		IFS=$','
 		for vn in $configVars ; do
 			eval vv=\"\$$vn\"
@@ -67,7 +67,7 @@ SetWebDirectories()
 	AddSoftLink "$tmplogFile" "${_wwwPath}logs/latest-log.html"
 	AddSoftLink "${_path2logs%/}/${_ds}.html" "${_wwwPath}logs/day-log.html"
 	AddSoftLink "${d_baseDir}/www/yamon${_version%\.*}.html" "${_wwwPath}${_webIndex:-index.html}"
-	
+
 	WriteConfigFile
 }
 
@@ -103,10 +103,10 @@ echo -E "$_s_title" # echo the title again so it appears in the log file too :-)
 ln -sf $tmplog $d_baseDir
 > "$macIPFile" # create and/or empty the MAC IP list files
 
-[ ! -f "$hourlyDataFile" ] &&  [ ! -f "${_path2CurrentMonth}hourly_${_ds}.js" ] && cp "${_path2CurrentMonth}hourly_${_ds}.js" "$hourlyDataFile" 
+[ ! -f "$hourlyDataFile" ] &&  [ ! -f "${_path2CurrentMonth}hourly_${_ds}.js" ] && cp "${_path2CurrentMonth}hourly_${_ds}.js" "$hourlyDataFile"
 
-if [ -f "$_lastSeenFile" ] ; then 
-	cp "${_lastSeenFile}" "$tmpLastSeen" 
+if [ -f "$_lastSeenFile" ] ; then
+	cp "${_lastSeenFile}" "$tmpLastSeen"
 	cp "$_lastSeenFile" "${_lastSeenFile/.js/-${_ds}-${_ts}.js}"
 fi
 

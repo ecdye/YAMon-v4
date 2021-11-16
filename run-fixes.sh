@@ -9,7 +9,7 @@
 # run: manually and by install
 # History
 # 2020-01-26: 4.0.7 - no changes
-# 2020-01-03: 4.0.6 - added... runs includes/fixes.sh 
+# 2020-01-03: 4.0.6 - added... runs includes/fixes.sh
 #                     (corrects interfaces totals in monthly data file)
 ##########################################################################
 

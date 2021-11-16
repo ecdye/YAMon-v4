@@ -26,7 +26,7 @@ CalculateDailyTotals(){
 		#To-do: check value of $_interfaces
 		IFS=$','
 		for ifn in $_interfaces
-		do	
+		do
 			local vn=$(echo $ifn | sed "s~[^a-z0-9]~_~ig")
 			eval "${vn}_down=0"
 			eval "${vn}_up=0"
@@ -57,8 +57,8 @@ CalculateDailyTotals(){
 		IFS=$','
 		local retstr=""
 		local retstr=""
-		for ifn in $_interfaces 	
-		do	
+		for ifn in $_interfaces
+		do
 			local vn=$(echo $ifn | sed "s~[^a-z0-9]~_~ig")
 			retstr=$(echo "$retstr{\"n\":\"$vn\",\"t\":\"$(eval echo "\$${vn}_down"),$(eval echo "\$${vn}_up")\"},")
 		done
@@ -72,12 +72,12 @@ CalculateDailyTotals(){
 		_intervalDataFile="$2"
 		_path2CurrentMonth="$(dirname "$_intervalDataFile")/"
 	fi
-	
+
 	if [ ! -f "$_intervalDataFile" ] ; then
 		Send2Log "CalculateDailyTotals: couldn't find \`$_intervalDataFile\`?!?" 3
 		CheckIntervalFiles
-	fi 
-	
+	fi
+
 	[ -z "$totalsDate" ] && totalsDate="$_ds"
 
 	echo -e "\n//Totals for $totalsDate"  >> "$_intervalDataFile"
@@ -90,7 +90,7 @@ CalculateDailyTotals(){
 		Send2Log "CalculateDailyTotals: couldn't find \`$file2Total\`?!?" 3
 		echo "// couldn't find \`$file2Total\`?!?" >> "$_intervalDataFile"
 		exit
-	fi 
+	fi
 	hourlyData=$(cat "$file2Total" | grep -e "^hourlyData4({.*})$")
 	IFS=$'\n'
 
@@ -106,7 +106,7 @@ CalculateDailyTotals(){
 		local total_unlimited_down=0
 		local total_unlimited_up=0
 		#Send2Log "CalculateDailyTotals: entries4id:$(IndentList "$entries4id")"
-		for line in $entries4id 
+		for line in $entries4id
 		do
 			[ -z "$line" ] && break
 			Send2Log "CalculateDailyTotals: line:$line"
@@ -119,7 +119,7 @@ CalculateDailyTotals(){
 			total_up=$(DigitAdd ${total_up:-0} ${up:-0} )
 			total_unlimited_down=$(DigitAdd ${total_unlimited_down:-0} ${unlimited_down:-0} )
 			total_unlimited_up=$(DigitAdd ${total_unlimited_up:-0} ${unlimited_up:-0} )
-		done	
+		done
 
 		deviceTotals="totalDaily({ \"day\":\"$day\", \"id\":\"$id\", \"traffic\":\"$total_down,$total_up,$total_unlimited_down,$total_unlimited_up\" })"
 		echo "${deviceTotals/,0,0\"/\"}" >> "$_intervalDataFile"
@@ -131,9 +131,9 @@ CalculateDailyTotals(){
 	done
 	local interfaceTotals=$(CalculateInterfaceTotals)
 	grandTotals="GrandTotalDaily({ \"day\":\"$day\", \"traffic\":\"${grand_total_down:-0},${grand_total_up:-0},${grand_total_unlimited_down:-0},${grand_total_unlimited_up:-0}\", $interfaceTotals })"
-	
+
 	echo "${grandTotals/,0,0\"/\"}" >> "$_intervalDataFile"
-	
+
 	sed -i "s~var monthly_updated.\{0,\}$~var monthly_updated=\"$_ds $(date +"%T")\"~" "$_intervalDataFile"
 
 }

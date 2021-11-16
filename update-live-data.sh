@@ -10,7 +10,7 @@
 # History
 # 2020-01-26: 4.0.7 - no changes
 # 2020-01-03: 4.0.6 - added current traffic to the output file
-# 2019-12-23: 4.0.5 - no changes 
+# 2019-12-23: 4.0.5 - no changes
 # 2019-11-24: 4.0.4 - no changes (yet)
 # 2019-06-18: development starts on initial v4 release
 #
@@ -54,14 +54,14 @@ CurrentConnections_1()
 			Send2Log "ArchiveLiveUpdates_: skipped because of low disk space: $dpct" 3
 		fi
 	}
-	
+
 	#to-do - grab the iptables data and send along with the live data
 	local vnx='-vnx'
 	local ip4t=$(iptables -L "$YAMON_IPTABLES" "$vnx" | grep -v RETURN | awk '{ print $2,$8,$9 }' | grep "^[1-9]")
 	local ip6t="$ip6tablesFn"
 	local ipt="$ip4t\n$ip6"
 	local macIP=$(cat "$macIPFile")
-	
+
 	echo -e "\n/*current traffio by device:*/" >> $_liveFilePath
 	while [ 1 ] ;
 	do
@@ -84,7 +84,7 @@ CurrentConnections_1()
 			ipt=$(echo -e "$ipt" | grep -v "$tip")
 		fi
 	done
-	
+
 	local ddd=$(awk "$_conntrack_awk" "$_conntrack")
 	echo -e "\n/*current connections by ip:*/" >> $_liveFilePath
 	local err=$(echo "${ddd%,}]" 2>&1 1>> $_liveFilePath)

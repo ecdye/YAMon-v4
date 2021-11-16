@@ -54,7 +54,7 @@ block(){
 Syntax: block <group> [<duration>]
  - <group>: group name as defined in the YAMon reports (see below)
  - <duration> [optional]: length of time (in minutes) to restrict access
-    (if null, access will be blocked indefinitely or until the end of 
+    (if null, access will be blocked indefinitely or until the end of
      the next scheduled blockage)
 
 Currently defined groups: "
@@ -71,7 +71,7 @@ Currently defined groups: "
 --> ${gpl// /, }"
 		return
 	fi
-	
+
 	${d_baseDir}/block.sh "$chainName" "$status" "$duration"
 	iptables -L YAMONv40_$1 | grep -v "^target"
 }
@@ -88,7 +88,7 @@ unblock(){
 Syntax: unblock <group> [<duration>]
  - <group>: group name as defined in the YAMon reports (see below)
  - <duration> [optional]: length of time (in minutes) to allow access
-    (if null, access will be allowed indefinitely or until the start of 
+    (if null, access will be allowed indefinitely or until the start of
      the next scheduled blockage)
 
 Currently defined groups: "
@@ -98,7 +98,7 @@ Currently defined groups: "
 	fi
 
 	echo "Unblocking: $chainName"
-	
+
 	if [ -z "$(echo $gpl | grep "\b$chainName\b")" ] ; then
 		echo "Uh oh!!!! \`$chainName\` does not appear in the current list of groups
 --> ${gpl// /, }"
@@ -107,10 +107,10 @@ Currently defined groups: "
 
 	${d_baseDir}/block.sh "$chainName" "$status" "$duration"
 	iptables -L YAMONv40_$1 | grep -v "^target"
-	
+
 }
 echo "************************************************
 ************* Bash Aliases loaded **************
-************************************************ 
+************************************************
 
 "

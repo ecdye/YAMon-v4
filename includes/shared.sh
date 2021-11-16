@@ -42,7 +42,7 @@ Send2Log(){
 
 IndentList(){
 	echo '<ul>'
-	echo -e "$1" | grep -Ev "^\s{0,}$" | sed -e "s~^\s\{0,\}~<li>~Ig" 
+	echo -e "$1" | grep -Ev "^\s{0,}$" | sed -e "s~^\s\{0,\}~<li>~Ig"
 	echo '</ul>'
 }
 
@@ -101,10 +101,10 @@ GetMACbyIP(){
 
 	local mip=$(cat /proc/net/arp | grep "$tip" | awk '{print $4}')
 	if [ -n "$mip" ] ; then
-		echo "$mip" 
+		echo "$mip"
 		return
 	fi
-	
+
 	# then check users.js
 	local dd=$(echo "$_currentUsers" | grep -e "^mac2ip({.*})$" | grep "$tip")
 	if [ -z "$dd" ] ; then
@@ -126,21 +126,21 @@ GetDeviceGroup(){
 		return
 	fi
 	local group=$(GetField "$dd" 'group')
-		
-	Send2Log "GetDeviceGroup - $1 / $2 --> $dd --> $group" 
-	echo "$group"	
+
+	Send2Log "GetDeviceGroup - $1 / $2 --> $dd --> $group"
+	echo "$group"
 }
- 
+
 CheckIPTableEntry(){
 
 	Send2Log "CheckIPTableEntry: $1 /  $2 " 0
-	
+
 	local ip=$1
 	local groupName=${2:-Unknown}
 	local chain="$YAMON_IPTABLES"
 	Send2Log "CheckIPTableEntry: ip=$ip / cmd=$cmd / chain=$YAMON_IPTABLES " 0
-	
-	re_ip4="([0-9]{1,3}\.){3}[0-9]{1,3}"	
+
+	re_ip4="([0-9]{1,3}\.){3}[0-9]{1,3}"
 	#if [ -n "$(echo $ip | egrep "$re_ip4")" ] ; then # simplistically matches IPv4
 	if [ -n "$(echo $ip | grep -E "$re_ip4")" ] ; then # simplistically matches IPv4
 		local cmd='iptables'
@@ -151,7 +151,7 @@ CheckIPTableEntry(){
 		local g_ip='::/0'
 	fi
 	Send2Log "CheckIPTableEntry: checking $cmd for $ip"
-	
+
 	ClearDuplicateRules(){
 		local n=1
 		while [ true ]; do
@@ -162,7 +162,7 @@ CheckIPTableEntry(){
 			n=$(( $n + 1 ))
 		done
 		Send2Log "ClearDuplicateRules: removed $n duplicate entries for $ip" 0
-	} 
+	}
 	AddIP(){
 		local groupChain="${YAMON_IPTABLES}_$(echo $groupName | sed "s~[^a-z0-9]~~ig")"
 		Send2Log "AddIP: $cmd $YAMON_IPTABLES $ip --> $groupChain (firmware: $_firmware)" 0
@@ -177,18 +177,18 @@ CheckIPTableEntry(){
 			Send2Log "AddIP: $cmd -I "$YAMON_IPTABLES" -g "$groupChain" -s $ip"
 		fi
 	}
-	
+
 	[ "$ip" == "$g_ip" ] && return
 	local tip="\b${ip//\./\\.}\b"
 	local nm=$($cmd -L "$YAMON_IPTABLES" -n | grep -ic "$tip")
-		
+
 	if [ "$nm" -eq "2" ] || [ "$nm" -eq "4" ] ; then  #correct number of entries
-		Send2Log "CheckIPTableEntry: $nm matches for $ip in $cmd / $YAMON_IPTABLES" 
+		Send2Log "CheckIPTableEntry: $nm matches for $ip in $cmd / $YAMON_IPTABLES"
 		return
 	fi
-	
+
 	CheckGroupChain $cmd $groupName
-	
+
 	if [ "$nm" -eq "0" ]; then
 		Send2Log "CheckIPTableEntry: no match for $ip in $cmd / $YAMON_IPTABLES"
 	else
@@ -285,35 +285,35 @@ GetDeviceName(){
 		Send2Log "StaticLeases_Merlin_Tomato: result=$result " 0
 		echo "$result"
 	}
-	
+
 	Send2Log "GetDeviceName: $1 $2" 0
 	#check first in static leases
 	local dn=`$nameFromStaticLeases "$mac"`
 	if [ -n "${dn/$/}" ] ; then
-		Send2Log "GetDeviceName: found device name $dn for $mac in static leases ($nameFromStaticLeases)" 0 
-		echo "$dn" 
+		Send2Log "GetDeviceName: found device name $dn for $mac in static leases ($nameFromStaticLeases)" 0
+		echo "$dn"
 		return
 	fi
 	Send2Log "GetDeviceName: No device name for $mac in static leases ($nameFromStaticLeases)" 0
-	
+
 	#then in DNSMasqConf
 	dn=`$nameFromDNSMasqConf "$mac"`
 	if [ -n "${dn/$/}" ] ; then
-		Send2Log "GetDeviceName: found device name $dn for $mac in $_dnsmasq_conf" 0 
-		echo "$dn" 
+		Send2Log "GetDeviceName: found device name $dn for $mac in $_dnsmasq_conf" 0
+		echo "$dn"
 		return
 	fi
 	Send2Log "GetDeviceName: No device name for $mac in in $_dnsmasq_conf ($nameFromDNSMasqConf)" 0
-	
+
 	#finally in DNSMasqLease
 	dn=`$nameFromDNSMasqLease "$mac"`
 	if [ -n "${dn/$/}" ] ; then
-		Send2Log "GetDeviceName: found device name $dn for $mac in $_dnsmasq_leases" 0 
-		echo "$dn" 
+		Send2Log "GetDeviceName: found device name $dn for $mac in $_dnsmasq_leases" 0
+		echo "$dn"
 		return
 	fi
 	Send2Log "GetDeviceName: No device name for $mac in in $_dnsmasq_leases ($nameFromDNSMasqLease)" 0
-	
+
 	#Dang... no matches
 	local big=$(cat "$_usersFile" | grep -e "^mac2ip({.*})$" | grep -o "\"$_defaultDeviceName-[^\"]\{0,\}\"" | sort | tail -1 | tr -d '"' | cut -d- -f2)
 	local nextnum=$(printf %02d $(( $(echo "${big#0} ")+ 1 )))
@@ -342,7 +342,7 @@ CheckMAC2GroupinUserJS(){
 			local mm=$(echo "$id" | cut -d'-' -f1)
 			local ii=$(echo "$id" | cut -d'-' -f2)
 
-			re_ip4="([0-9]{1,3}\.){3}[0-9]{1,3}"	
+			re_ip4="([0-9]{1,3}\.){3}[0-9]{1,3}"
 			if [ -n "$(echo $ip | grep -E "$re_ip4")" ] ; then # simplistically matches IPv4
 				local cmd='iptables'
 			else
@@ -360,7 +360,7 @@ CheckMAC2GroupinUserJS(){
 		done
 		UsersJSUpdated
 	}
-	
+
 	AddNewMACGroup(){
 		Send2Log "AddNewMACGroup: adding mac2group entry for $m & $gn" 2
 		local newentry="mac2group({ \"mac\":\"$m\", \"group\":\"$gn\" })"
@@ -369,7 +369,7 @@ CheckMAC2GroupinUserJS(){
 	}
 
 	local matchesMACGroup=$(cat "$_usersFile" | grep -e "^mac2group({.*})$" | grep "\"mac\":\"$m\"")
-	
+
 	if [ -z "$matchesMACGroup" ] ; then
 		AddNewMACGroup
 	elif [ "$(echo $matchesMACGroup | wc -l)" -eq 1 ] ; then
@@ -389,7 +389,7 @@ CheckMAC2IPinUserJS(){
 		Send2Log "DeactivatebyIP:  $i" 0
 		local otherswithIP=$(cat "$_usersFile" | grep -e "^mac2ip({.*})$" | grep "\b${i//\./\\.}\b" | grep "\"active\":\"1\"")
 		if [ -z "$otherswithIP" ] ; then
-			Send2Log "DeactivatebyIP: no active duplicates of $i in $_usersFile" 0 
+			Send2Log "DeactivatebyIP: no active duplicates of $i in $_usersFile" 0
 			return
 		fi
 		Send2Log "DeactivatebyIP: $(echo "$otherswithIP" | wc -l) active duplicates of $i in $_usersFile" 0
@@ -425,7 +425,7 @@ CheckMAC2IPinUserJS(){
 		UpdateLastSeen "$m-$i" "$(date +"%T")"
 		UsersJSUpdated
 	}
-	
+
 	local matchesMACIP=$(cat "$_usersFile" | grep -e "^mac2ip({.*})$" | grep "\"id\":\"$m-$i\"")
 	if [ -z "$matchesMACIP" ] ; then
 		AddNewMACIP
@@ -445,7 +445,7 @@ AddActiveDevices(){
 	local currentMacIP=$(cat "$macIPFile")
 	local adl=$(echo "$_currentUsers" | grep '"active":"1"')
 	IFS=$'\n'
-	for device in $_ActiveIPs 
+	for device in $_ActiveIPs
 	do
 		local id=$(GetField $device 'id')
 		local ip=$(echo "$id" | cut -d'-' -f2)
@@ -453,7 +453,7 @@ AddActiveDevices(){
 		[ "$_generic_ipv4" == "$ip" ] || [ "$_generic_ipv6" == "$ip" ] && continue
 		local mac=$(echo "$id" | cut -d'-' -f1)
 		local group=$(GetField "$(echo "$_MACGroups" | grep "$mac")" 'group')
-		
+
 		Send2Log "AddActiveDevices --> $id / $mac / $ip / ${group:-Unknown} "
 		if [ -z "$(echo "$currentMacIP" | grep "${ip//\./\\.}" )" ] ; then
 			Send2Log "AddActiveDevices --> IP $ip does not exist in $macIPFile... added to the list" 0
@@ -463,7 +463,7 @@ AddActiveDevices(){
 		fi
 		Send2Log "AddActiveDevices --> $id added to $macIPFile" 1
 		echo "$mac $ip" >> "$macIPFile"
-	
+
 		CheckIPTableEntry "$ip" "${group:-Unknown}"
 	done
 	Send2Log "AddActiveDevices: macipList --> $(IndentList "$(cat "$macIPFile")")"

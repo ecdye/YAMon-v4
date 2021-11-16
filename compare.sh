@@ -42,7 +42,7 @@ getlatest()
 		sed -i -e 's/\r$//' "$dst" #change windows linefeeds to unix
 		local ext=$(echo -n "$dst" | tail -c 2)
 		[ "$ext" == 'sh' ] && chmod 770 "$dst"
-		
+
 	else
 		echo "   --> download failed?!?"
 	fi
@@ -168,12 +168,12 @@ elif [ -n "$allMatch" ] && [ "$param" == 'verify' ] ; then
   \`https://usage-monitoring.com/installv4.php\` to update the
   file(s) manually.
 
-  NB - I recently learned that some firmware variants include a buggy version 
+  NB - I recently learned that some firmware variants include a buggy version
   of the wget function... If the compare results show that just certain files
-  differ, you could have the affected firmware.  
+  differ, you could have the affected firmware.
   Use the manual install process instead at  \`https://usage-monitoring.com/installv4.php\`
   Sorry - the fix to wget is beyond my control!
-  
+
   Send any questions or comments to install@usage-monitoring.com
 
   Exiting install.sh....
@@ -186,10 +186,10 @@ elif [ -n "$allMatch" ] ; then
 	echo "One or more of your files is out-of-date and should be updated.
   Either re-run this script and hit \`s\` to sync all files, or
   visit \`https://usage-monitoring.com/installv4.php\` to update selectively.
-  
-  NB - I recently learned that some firmware variants include a buggy version 
+
+  NB - I recently learned that some firmware variants include a buggy version
   of the wget function... If the compare results show that just certain files
-  differ, you could have the affected firmware.  
+  differ, you could have the affected firmware.
   Use the manual install process instead at  \`https://usage-monitoring.com/installv4.php\`
   Sorry - the fix to wget is beyond my control!
 "

@@ -5,12 +5,12 @@ echo -en "\nFind in File:  "
 [ -z "$1" ] && echo -e " Error - must include one or two parameter(s)\n\tRun fif.sh -h for help\n" && exit 0
 [ "$1" == '-h' ] && echo " fif '<pattern>' -or- fif '<path>' '<pattern>'
  - fif '<pattern>': the text to search for within \`${d_baseDir}\`
- - fif '<pattern>' '<excluding>': the text to search for within \`${d_baseDir}\` excluding the specified pattner 
+ - fif '<pattern>' '<excluding>': the text to search for within \`${d_baseDir}\` excluding the specified pattner
  - fif '<pattern>' '<excluding>' '<path>': the text to search for within the specified path with the excluded pattern
  NB - add quotes if the path or pattern includes spaces
  " && exit 0
  #echo $1 / $2 / $3
- 
+
 pattern="$1"
 excluding="${2:-\.log|\.js|\.html|\.gz}"
 path="${3:-$d_baseDir}"

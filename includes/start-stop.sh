@@ -15,7 +15,7 @@
 # 2019-06-18: development starts on initial v4 release
 #
 ##########################################################################
- 
+
 Send2Log "start-stop" 1
 
 if [ "$_firmware" -eq "0" ] ; then
@@ -65,14 +65,14 @@ StartScheduledJobs(){
 			inUnlimited="${tmplog}inUnlimited"
 			newjobs="${newjobs}\n${sm} ${sh} * * * $user ${d_baseDir}/in-unlimited.sh start"
 			newjobs="${newjobs}\n${em} ${eh} * * * $user ${d_baseDir}/in-unlimited.sh end"
-		fi	
+		fi
 		newjobs="${newjobs}\n0 * * * * $user ${d_baseDir}/new-hour.sh"
 		[ "$_doLiveUpdates" -eq "1" ] && newjobs="${newjobs}\n* * * * * $user ${d_baseDir}/update-live-data.sh"
 		local udt=${_updateTraffic:-4}
 		newjobs="${newjobs}\n$udt-$((60 - $udt))/$udt * * * * $user ${d_baseDir}/update-reports.sh"
 		# line below is seemingly not a reliable as the one above?!?
 		#newjobs="${newjobs}\n*${networkChecks} * * * * $user ${d_baseDir}/check-network.sh"
-		
+
 		echo -e "$newjobs" > "$cronJobsFile"
 		Send2Log "SetCronEntries: updating \`$cronJobsFile\` --> $(IndentList "$newjobs")" 1
 	}
@@ -92,7 +92,7 @@ StartScheduledJobs(){
 			inUnlimited="${tmplog}inUnlimited"
 			cru a yamon5 "${sm} ${sh} * * * ${d_baseDir}/in-unlimited.sh start"
 			cru a yamon6 "${em} ${eh} * * * ${d_baseDir}/in-unlimited.sh end"
-		fi	
+		fi
 		cru a yamon7 "0 * * * * ${d_baseDir}/new-hour.sh"
 		[ "$_doLiveUpdates" -eq "1" ] && cru a yamon8 "* * * * * ${d_baseDir}/update-live-data.sh"
 		local udt=${_updateTraffic:-4}
@@ -140,7 +140,7 @@ StopScheduledJobs(){
 		unset $IFS
 		Send2Log "StopCruJobs: $(IndentList "$(cru l | grep 'yamon')")" 1
 	}
-	
+
 	if [ "$_firmware" -eq "3" ] || [ "$_firmware" -eq "2" ] || [ "$_firmware" -eq "5" ]; then
 		local scheduler='cru'
 		StopCruJobs
@@ -153,13 +153,13 @@ StopScheduledJobs(){
 SetAccessRestrictions(){
 	local fileContents=$(cat "$cronJobsFile")
 	local otherjobs=$(echo "$fileContents" | grep -v "#Access Restriction" | grep -v "block.sh")
-	
+
 	local user=''
 	local security_protocol=''
 	local protocol='http://'
 	local fts=$(date +"%s")
 	local url="www.usage-monitoring.com/current/GetAccessRules.php?db=$_dbkey&$fts"
-	
+
 	if [ "$_firmware" -eq "0" ] ; then
 		user='root'
 		security_protocol='--secure-protocol=auto'
@@ -176,7 +176,7 @@ SetAccessRestrictions(){
 		echo -e "$otherjobs\n$ac_jobs" > "$cronJobsFile"
 		Send2Log "SetAccessRestrictions: adding access rules to \`$cronJobsFile\` --> $(IndentList "$ac_jobs")" 1
 	fi
-	
+
 	IFS=$'\n'
 	local cm=$(date +"%m")
 	local cd=$(date +"%u")

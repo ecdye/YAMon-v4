@@ -8,10 +8,10 @@
 # Run - by cron jobs (update-reports & end-of-hour)
 #
 # History
-# 2020-01-26: 4.0.7 - moved GetMACbyIP to shared.sh; allowed RETURN in iptables results 
+# 2020-01-26: 4.0.7 - moved GetMACbyIP to shared.sh; allowed RETURN in iptables results
 #                   - check for missing entries in mac-ip file; fixed LOG vs RETURN for final entry in YAMONv40
 # 2020-01-03: 4.0.6 - no changes
-# 2019-12-23: 4.0.5 - minor tweak to loglevel of traffic at the end of the hour; 
+# 2019-12-23: 4.0.5 - minor tweak to loglevel of traffic at the end of the hour;
 #                     removed brace brackets around memory in Totals
 #					  changed lastCheckinHour to gt rather than ge (and fixed a big issue with this)
 # 2019-11-24: 4.0.4 - no changes (yet)
@@ -83,12 +83,12 @@ GetTraffic(){
 	local ltrl=0
 	[ "$vnx" == '-vnxZ' ] && ltrl=1
 	Send2Log "GetTraffic - $vnx ($ltrl)" 0
-	
+
 	local macIPList=$(cat "$macIPFile")
-	
+
 	local ip4t=$(iptables -L "$YAMON_IPTABLES" "$vnx" | awk '{ print $2,$8,$9 }' | grep "^[1-9]")
 	local ip6t="$ip6tablesFn"
-	
+
 	[ -z "$ip4t" ] && Send2Log "GetTraffic - No IPv4 traffic"
 	[ -z "$ip6t" ] && Send2Log "GetTraffic - No IPv6 traffic"
 	if [ -z "$ip4t" ] && [ -z "$ip4t" ] ; then
@@ -99,7 +99,7 @@ GetTraffic(){
 		return
 	fi
 	local ipt="$ip4t\n$ip6"
-	
+
 	tls=$(date +"%H:%M:%S")
 	local intervalTraffic=''
 	local total_down=0
@@ -107,18 +107,18 @@ GetTraffic(){
 	while [ 1 ] ;
 	do
 		[ -z "$ipt" ] && break
-		
+
 		fl=$(echo -e "$ipt" | head -n 1)
 		[ -z "$fl" ] && break
 		local ip=$(echo "$fl" | cut -d' ' -f2)
-		
+
 		if [ "$_generic_ipv4" == "$ip" ] || [ "$_generic_ipv6" == "$ip" ] ; then
 			ip=$(echo "$fl" | cut -d' ' -f3)
 		fi
 		local tip="\b${ip//\./\\.}\b"
-		
+
 		Send2Log "GetTraffic: $fl / $ip)" 0
-		
+
 		if [ "$_generic_ipv4" == "$ip" ] || [ "$_generic_ipv6" == "$ip" ] ; then
 			#unmatched traffic
 			Send2Log "GetTraffic: Unmatched traffic $(IndentList "$fl")" 2
@@ -130,13 +130,13 @@ GetTraffic(){
 			total_down=$(( $total_down + ${do:-0} )) #assuming total_up is zero because all traffic goes to a single iptable rule
 			local newLine="hourlyData4({ \"id\":\"$_generic_mac-$ip\", \"hour\":\"$hr\", \"traffic\":\"${do:-0},0,$(( ${do:-0} * $currentlyUnlimited )),0\" })"
 			intervalTraffic="$intervalTraffic\n$newLine"
-			
-			#delete the final RETURN/LOG entry in YAMONv40 to reset the totals to zero 
+
+			#delete the final RETURN/LOG entry in YAMONv40 to reset the totals to zero
 			local wl=$(iptables -L "$YAMON_IPTABLES" -n --line-numbers | grep LOG | awk '{ print $1 }')
 			[ -n "$wl" ] && iptables -D "$YAMON_IPTABLES" "$wl"
 			wr=$(iptables -L "$YAMON_IPTABLES" -n --line-numbers | grep RETURN | awk '{ print $1 }')
 			[ -n "$wr" ] && iptables -D "$YAMON_IPTABLES" "$wr"
-			
+
 			if [ "$_logNoMatchingMac" -eq "1" ] ; then
 				iptables -A "$YAMON_IPTABLES" -j LOG --log-prefix "YAMon: "
 				Send2Log "GetTraffic: re-zeroed LOG rule in $YAMON_IPTABLES (entry #$wo)" 2
@@ -144,7 +144,7 @@ GetTraffic(){
 				iptables -A "$YAMON_IPTABLES" -j RETURN
 				Send2Log "GetTraffic: re-zeroed RETURN rule in $YAMON_IPTABLES (entry #$wo)" 2
 			fi
-			
+
 			ipt=$(echo -e "$ipt" | grep -v "$fl") #delete just the first entry from the list of IPs
 		else
 			local mac=$(echo "$macIPList" | grep "$tip" | cut -d' ' -f1)
@@ -174,9 +174,9 @@ GetTraffic(){
 		fi
 	done
 	intervalTraffic=$(echo -e "$intervalTraffic" | grep -e "^hourlyData4({ .* })$")
-	
+
 	local hrlyData=$(cat "$hourlyDataFile")
-	
+
 	local currentUptime=$(cat /proc/uptime | cut -d' ' -f1)
 	[ -z "$currentUptime" ] && Send2Log "GetTraffic: currentUptime is null?!?" 2
 
@@ -187,7 +187,7 @@ GetTraffic(){
 		echo "$hrlyData" | grep "\"hour\":\"$hr\"" >> "$rebootFile"
 		cp "$rebootFile" "$_path2CurrentMonth"
 	fi
-	
+
 	local interfaceTotals=$(GetInterfaceTraffic)
 	local memoryTotals=$(GetMemory)
 	local disk_utilization=$(df "${d_baseDir}" | tail -n 1 | awk '{print $5}')
@@ -209,6 +209,6 @@ GetTraffic(){
 	sed -i "s~var serverUptime.\{0,\}$~var serverUptime=\"$currentUptime\"~" "$hourlyDataFile"
 
 	cp "$hourlyDataFile" "$_path2CurrentMonth"
-	cp "$tmpLastSeen" "${_lastSeenFile}" 
+	cp "$tmpLastSeen" "${_lastSeenFile}"
 	ChangePath '_uptime' "$currentUptime"
 }

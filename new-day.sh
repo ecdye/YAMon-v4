@@ -10,7 +10,7 @@
 # History
 # 2020-01-26: 4.0.7 - no changes
 # 2020-01-03: 4.0.6 - no changes
-# 2019-12-23: 4.0.5 - added symlinks for day and hour logs 
+# 2019-12-23: 4.0.5 - added symlinks for day and hour logs
 # 2019-11-24: 4.0.4 - no changes (yet)
 # 2019-06-18: development starts on initial v4 release
 #
@@ -48,7 +48,7 @@ Send2Log "new-day: $_ds / $hourlyDataFile" 1
 " > "$dailyLogFile"
 
 #update the day-log symlink
-nll="${_path2logs%/}/${_ds}.html" 
+nll="${_path2logs%/}/${_ds}.html"
 oll="${_wwwPath}logs/day-log.html"
 [ -h "$oll" ] && rm -fv "$oll"
 ln -s "$nll" "$oll"

@@ -15,7 +15,7 @@
 #\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\#
 
 # History
-# 2019-06-18: development starts on initial v4 release... 
+# 2019-06-18: development starts on initial v4 release...
 #             see https://usage-monitoring.com/whatsnew.php for a list of the changes in this file
 
 #values determined by setup.sh
@@ -26,7 +26,7 @@ _firmwareName=''                             #full text of router firmware (if i
 
 _firmware='0'                                # which firmware is running on the router: permitted values: 0->DD-WRT(*) || 1->OpenWrt || 2->Asuswrt-Merlin || 3->Tomato || 4->LEDE || 5->Xwrt-Vortex || 6->Turris || 7->Padavan
 _lang=''                                     # currently only 'en' is available... (* if null, defaults to `en`)
-_dbkey=''                                    # if not null, this option will sync settings across all of your devices... 
+_dbkey=''                                    # if not null, this option will sync settings across all of your devices...
 _updateTraffic=''                            # number of minutes between traffic updates (* if null, defaults to `4`)
 _ispBillingDay=''                            # day of the month for ISP billing roll-over  (* if null, defaults to `1`) - i.e., when traffic totals reset to 0
 _doDailyBU='1'                               # whether or not to make daily backups of user & usage data - values: 1-->Yes(*) || 0->No
@@ -62,8 +62,8 @@ _doLocalFiles='0'                            # make a local copy of JS, CSS and 
                                              #   NB - get the value for this parameter from the settings tab
 _ignoreGateway='1'                           # whether or not to exclude any updates involving your gateway: 0->no(*) || 1->yes
 _gatewayMAC=''                               # MAC address in form XX:XX:XX:XX:XX:XX for the gateway
-_sendAlerts='0'                              # whether or not to send alerts 0->no(*) || 1->yes (via usage-monitoring.com) || 2->via msmtp 
-                                             #   NB - currently only when a new entry is added to users.js or if iptables is corrupted		 
+_sendAlerts='0'                              # whether or not to send alerts 0->no(*) || 1->yes (via usage-monitoring.com) || 2->via msmtp
+                                             #   NB - currently only when a new entry is added to users.js or if iptables is corrupted
 _logNoMatchingMac=0                          # add an iptables entry to log unknown traffic: 0->no(*) || 1->yes
 _sendAlertTo=''                              #   NB - only required if _sendAlerts == 1
 _path2MSMTP='/opt/usr/bin/msmtp'             #   NB - only required if _sendAlerts == 2

@@ -18,7 +18,7 @@
 # 2019-10-09: 4.0.0 - first update for v 4.0
 
 IndentListS(){
-	echo -e "$1" | grep -Ev "^\s{0,}$" | sed -e "s~^\s\{0,\}~    ~Ig" 
+	echo -e "$1" | grep -Ev "^\s{0,}$" | sed -e "s~^\s\{0,\}~    ~Ig"
 }
 _canClear=$(which clear)
 [ -n "$_canClear" ] && clear
@@ -52,7 +52,7 @@ CheckDataPath(){
 		   to:   $nd"
 
 		[ -d $nd ] || mkdir $nd
-		
+
 		cp "$rp/users.js" "$nd/users.js"
 		fl=$(find "$rp" | grep 'mac_data.js')
 		IFS=$'\n'
@@ -60,7 +60,7 @@ CheckDataPath(){
 		for fp in $fl ; do
 			p=${fp/$rp}
 			fn=${p##*/}
-			fd=${p%$fn} 
+			fd=${p%$fn}
 			np=${nd}${fd}${fn/data/usage}
 			[ -d ${nd}${fd} ] || mkdir -p ${nd}${fd}
 			[ -f "$np" ] || cp "$fp" "$np"
@@ -76,7 +76,7 @@ CheckDataPath(){
 			p=${fp/$rp}
 			fn=${p##*/}
 			nfn="hourly_${fn/-hourly_data/}"
-			fd=${p%$fn} 
+			fd=${p%$fn}
 			np=${nd}${fd}${nfn}
 			[ -f "$np" ] || cp "$fp" "$np"
 			n=$((n+1))
@@ -128,11 +128,11 @@ CheckDataPath(){
 		else
 			Prompt 't_cpd' "Do you want to copy your data directory from your prior installation? " "$yn_y" '1' $zo_r
 			local ddn=${path2data##*/}
-			
+
 			if [ "$t_cpd" -eq 0 ] ; then
 				SetupLog "CheckDataPath: Chose to not copy existing data from $oldDataDir... adding an empty folder" 1
 				mkdir -p "$path2data"
-			else 
+			else
 				if [ "$(echo "$oldDataDir" | wc -l)" -eq "1" ] ; then
 					local dp=$(echo "$oldDataDir" | cut -d':' -f2)
 				else
@@ -143,8 +143,8 @@ CheckDataPath(){
 				fi
 				SetupLog "CheckDataPath: Copying existing data from ${dp}/$ddn" 1
 				echo -e "\n    Copying from '${dp}/$ddn' to '$path2data'\n    This could take a little while\n"
-				CopyDataFiles "${dp}/$ddn" "$path2data" 
-				
+				CopyDataFiles "${dp}/$ddn" "$path2data"
+
 				if [ -z "$(cat "$path2data/users.js" | grep "^var users_version")" ] ;  then
 					SetupLog "CheckDataPath: missing users_version... running up-rev-users-js.sh"
 					echo -e "\n    Updating your old version of users.js to the new v4 format.  Once again, this could take a little while\n"
@@ -159,7 +159,7 @@ yn_y="Options:
       \`0\` / \`n\` -> No
       \`1\` / \`y\` -> Yes (*)"
 yn_n="Options
-      \`0\` / \`n\` -> No (*) 
+      \`0\` / \`n\` -> No (*)
       \`1\` / \`y\` -> Yes"
 zo_r=^[01nNyY]$
 zot_r=^[012]$
@@ -191,9 +191,9 @@ setupLogFile="/tmp/yamon/setup ($_ds $_ts).log"
 echo -e "${_nl}This script will guide you through the process of setting up the${_nl}basic parameters in your \`config.file\` for YAMon$_version.${_nl}${_nl}See https://usage-monitoring.com/download.php for more detailed instructions${_nl}regarding the setup process.${_nl}NB - a number of the advanced (aka less commonly used) settings${_nlsp}are not currently addressed in this script.${_nl}${_nlsp}If you want to use any of those features, you can edit your${_nlsp}\`config.file\` directly.${_nl}${los}${_nl}"
 echo -e "A log file will be created showing of the selections you make in the${_nl}upcoming prompts.  The name of the log file is:${_nlsp}\`$setupLogFile\`${_nl}If you encounter any issues during the setup process, please send ${_nl}your log, screen shots and as much additional info as ${_nl}possible to install@usage-monitoring.com.${_nl}"
 echo -e "
-NB - If you are updating from a previous version of YAMon, back up 
-everything *before* proceeding!  This includes any customizations 
-you've made to devices in the reports - see 
+NB - If you are updating from a previous version of YAMon, back up
+everything *before* proceeding!  This includes any customizations
+you've made to devices in the reports - see
 https://usage-monitoring.com/help/?t=export-users
 
 For more help with the installation process, see
@@ -202,7 +202,7 @@ For more help with the installation process, see
 sleep $delay
 [ -n "$_canClear" ] && clear
 
-echo -e "${los}${_nl}One last thing before starting, in the upcoming prompts,  
+echo -e "${los}${_nl}One last thing before starting, in the upcoming prompts,
 the recommended (or default) values will be highlighted with an asterisk (*).
 To accept the default, simply hit <return>; otherwise, enter your preferred value
 and then hit <return>.
@@ -267,7 +267,7 @@ if [ -f "/etc/openwrt_release" ] ; then
 	else
 		tu_str='Turris (*)'
 		_firmware=6
-	
+
 	fi
 elif [ "$_has_nvram" == "1" ] ; then
 	installedfirmware=$(uname -o)
@@ -281,7 +281,7 @@ elif [ "$_has_nvram" == "1" ] ; then
 		am_str='ASUSWRT-Merlin (*)'
 		_firmware=2
 	elif [ "$installedfirmware" == "Tomato" ] ; then
-		_firmware=3	
+		_firmware=3
 	fi
 	if [ $_firmware == 2 ] ; then
 		routermodel=$(nvram get model)
@@ -318,7 +318,7 @@ t_installmode='b'
 Prompt 't_installmode' "Do you want run setup in Basic(*) or Advanced mode?" "Options:
       \`b\` -> Basic mode: fewer prompts; most default settings will be selected automatically (*)
       \`a\` -> Advanced mode: more prompts to better tailor your settings" "$t_installmode" "^[aAbB]$" 'running-setup'
-	
+
 SetupLog "Install mode: $t_installmode" 2
 
 echo -e "${_nl}${_nl}NB - You can always fine-tune your settings later on by manually editing${_nlsp}\`config.file\` (in \`${d_baseDir}/config.file\`)."
@@ -435,7 +435,7 @@ if [ "$_firmware" == "0" ] ; then
 	#to-do - add flags to config.file
 fi
 [ "$t_installmode" == 'b' ] && CheckDataPath
-Prompt '_ispBillingDay' 'What is your ISP bill roll-over date? 
+Prompt '_ispBillingDay' 'What is your ISP bill roll-over date?
     (i.e., on what day of the month does your usage reset to zero)' 'Enter the day number [1-31]:' '1' "^([1-9]|[12][0-9]|[3][01])$"
 Prompt '_monthlyDataCap' 'Does your plan with your ISP have a data usage cap?' "Options:
       \`0\` -> No, I have an unlimited data plan (*)
@@ -464,38 +464,38 @@ Before getting to the next prompt, please read the following carefully!
 
 A number of settings and customizations in the YAMon reports are, by default, retained
 from one session to the next in a \`LocalStorage\` variable.  By design, a LocalStorage
-variable is available only to the device (and browser) where it was created.  In the 
+variable is available only to the device (and browser) where it was created.  In the
 context of the YAMon reports, this means that customized names and groupings for the
-devices on your network which you create on your PC will not automatically appear when 
-you view the reports on your tablet... worse yet, you'll have to manually transfer 
-or recreate them!   
-The short reason for this is that for security reasons, the web server on your router  
+devices on your network which you create on your PC will not automatically appear when
+you view the reports on your tablet... worse yet, you'll have to manually transfer
+or recreate them!
+The short reason for this is that for security reasons, the web server on your router
 does not provide support for 'cgi/bin' so I cannot save your changes back to the router.
-The next best option is the LocalStorage variable but with the limitations as stated above.  
+The next best option is the LocalStorage variable but with the limitations as stated above.
 See http://usage-monitoring.com/help/?t=settings for a more detailed explanation...
 
-As an alternative to the manual synchronization, there's a database intregation feature.  
-When this *optional* setting is enabled, your settings and customizations will be saved 
-to a database at usage-monitoring.com and any devices that you use to view the reports 
+As an alternative to the manual synchronization, there's a database intregation feature.
+When this *optional* setting is enabled, your settings and customizations will be saved
+to a database at usage-monitoring.com and any devices that you use to view the reports
 will see things exactly the same way.
 
 If you want to use the new access restriction feature, you must enable the database integration.
 
-Some users have expressed concerns that this means that your settings will get save to 
+Some users have expressed concerns that this means that your settings will get save to
 'my' database.  I sympathize entirely with this!  To help address those concerns, I save the
-settings into separate database tables that have randomly generated names; so, in short, I do 
+settings into separate database tables that have randomly generated names; so, in short, I do
 not know who belongs to what settings. Further, the most sensitive info in the settings,
-as far as I know, would be the the MAC addresses (of just those devices associated 
-with customized names). 
+as far as I know, would be the the MAC addresses (of just those devices associated
+with customized names).
 See also https://usage-monitoring.com/privacy.php
 
 "
 	Prompt 't_dbkey' 'Do you want to enable the database integration feature?
-    If you do not trust my emphatic assertions that I 
+    If you do not trust my emphatic assertions that I
       1. provide this option as a convenience only, and
       2. have no interest whatsoever in your settings,
     then do *NOT* enable this option.
-    OTOH, if you want to use the access restrictions feature, 
+    OTOH, if you want to use the access restrictions feature,
     you must enable this option... Your call!' "$yn_n" '0' $zo_r
 	if [ "$t_dbkey" -eq "1" ] ; then
 		wget http://usage-monitoring.com/db/createdb.php -U "YAMon-Setup" -qO /tmp/yamon/dbkey.txt
@@ -505,14 +505,14 @@ See also https://usage-monitoring.com/privacy.php
 fi
 
 if [ "$t_installmode" == 'b' ] ; then
-	
+
 	if [ "$_firmware" == "1" ] || [ "$_firmware" == "4" ] || [ "$_firmware" == "6" ] || [ "$_firmware" == "7" ] ; then
 		lan_ip=$(uci get network.lan.ipaddr)
 		[ -z "$lan_ip" ] && lan_ip=$(ifconfig br-lan | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}')
 	else
 		lan_ip=$(nvram get lan_ipaddr)
 	fi
-	
+
 else
 
 	Prompt '_updateTraffic' 'How frequently would you like to check the traffic data?' 'Enter the interval in minutes [1-30 min]' '4' "^([1-9]|[12][0-9]|30)$"
@@ -522,7 +522,7 @@ else
 	[ "$t_wid" == "0" ] && Prompt '_dataDir' "Enter the path to your data directory" "Options:${_nls}* a relative path within the install folder - e.g., data/ (*)${_nls}* an absolute path elsewhere on your network - e.g,  /<path>/" "data/" $re_path_slash
 
 	CheckDataPath
-	
+
 	if [ "$_firmware" == "1" ] || [ "$_firmware" == "4" ] || [ "$_firmware" == "6" ] || [ "$_firmware" == "7" ] ; then
 		d_wwwPath='/tmp/www/'
 		lan_ip=$(uci get network.lan.ipaddr)
@@ -535,7 +535,7 @@ else
 	fi
 
 	Prompt '_wwwPath' 'Specify the path to the web directories?' "The path must start and end with a \`/\`" "$d_wwwPath" $re_path_slash
-	Prompt '_wwwURL' "Specify the URL path to the reports - e.g. $lan_ip\`<path>\`?" "  \`<path>\` must start and end with a \`/\`.  
+	Prompt '_wwwURL' "Specify the URL path to the reports - e.g. $lan_ip\`<path>\`?" "  \`<path>\` must start and end with a \`/\`.
       NB - enter just the path & do *NOT* include the IP address!" "$d_wwwURL" $re_path_slash
 
 	Prompt '_includeBridge' "Do you have a bridge on your network?${_nlsp}(i.e., a second router or other device to extend the wireless range)" "$yn_n" '0' $zo_r
@@ -626,7 +626,7 @@ boot() {
 	else
 		SetupLog "Did not create start/stop entries in $etc_init?!?" 2
 	fi
-elif [ "$_firmware" == "2" ] || [ "$_firmware" == "3" ] || [ "$_firmware" -eq "5" ]; then # Tomato, AsusMerlin & variants 
+elif [ "$_firmware" == "2" ] || [ "$_firmware" == "3" ] || [ "$_firmware" -eq "5" ]; then # Tomato, AsusMerlin & variants
 
 	cnsu=$(nvram get script_usbmount)
 	if [ -n "$cnsu" ] && [ -n "$(echo $cnsu | grep "$su")" ] ; then
@@ -653,7 +653,7 @@ $sd"
 		SetupLog "Did not create stop entries in nvram?!?" 2
  	fi
 	nvram commit
-	
+
 elif [ "$_firmware" == "6" ] || [ "$_firmware" == "7" ] ; then
 
 	etc_rc="/etc/rc.local"
@@ -661,7 +661,7 @@ elif [ "$_firmware" == "6" ] || [ "$_firmware" == "7" ] ; then
 		SetupLog "Startup - $su already exists in \`$etc_rc\`" 2
 	elif [ ! -f "$etc_rc" ] || [ -z "$(cat "$etc_rc" | grep -e "$su" )" ] ; then
 		[ "$t_installmode" == 'a' ] && Prompt 'startup_delay' "By default, \`start.sh\` will delay for 10 seconds prior to starting.${_nlsp}Some older/slower routers may require extra time." 'Enter the start-up delay [0-300]' '10' "^([0-9]|[1-9][0-9]|[1-2][0-9][0-9]|300)$"
-		SetupLog "Added $su into startup script in $etc_rc" 2		
+		SetupLog "Added $su into startup script in $etc_rc" 2
 		sed -i "s~exit 0~sleep $startup_delay\n${su} \nexit 0~g" "$etc_rc"
 	else
 		SetupLog "Did not create start/stop entries in $etc_rc?!?" 2
@@ -670,7 +670,7 @@ elif [ "$_firmware" == "6" ] || [ "$_firmware" == "7" ] ; then
 else
 
 	cnsu=$(nvram get rc_startup)
-	
+
 	if [ -n "$cnsu" ] && [ -n "$(echo $cnsu | grep "$su")" ] ; then
 		SetupLog "Startup - $su already exists in \`nvram-->rc_startup\`" 2
 	elif [ -z "$cnsu" ] && [ -z "$(echo $cnsu | grep "$su")" ] ; then
@@ -711,7 +711,7 @@ fi
 
 echo -e "${_nl}${los}${_nl}Setup is (finally) complete!!!
 
-One last thing to do before restarting the new version... 
+One last thing to do before restarting the new version...
 Prior versions of YAMon v4 may have introduced some errors in various
 files."
 

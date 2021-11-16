@@ -49,7 +49,7 @@ $(document).ready(function (){
 	}
 	$('.scriptVersion').text(_version)
 	_organizeData=2 //To-Do - eliminate references to _organizeData
-	
+
 	$( ".report-date" ).slider({
 		slide: function( event,ui ) {
 			var sv=ui['value'],sv_milli=sv*1000*24*60*60,cr_milli=_rs_Date.valueOf()
@@ -129,10 +129,10 @@ $(document).ready(function (){
 	.fail(function(data){
 		console.log(data)
 	})*/
-	
+
 	var d = new Date();
 	var hr=d.getHours()
-	$('#hourly-table').attr('data-showing',hr>=12?'PM':'AM') 
+	$('#hourly-table').attr('data-showing',hr>=12?'PM':'AM')
 	$('#curr-users').append("<tr><td colspan='100%' class='not-ready-yet no-current-users'>Sorry for the inconvenience but this table is currently not being populated... .  In v4, I changed the way that the live data is collected and I haven't gotten around to fixing the JS code to display it properly. <br/> This will be fixed in v4.0.6 which should be available shortly</td></tr>")
 })
 
@@ -144,7 +144,7 @@ $(window).on('beforeunload',function(){
 	return 'You have unsaved changes on the Settings tab.  Leaving now will result in the loss of those changes!'
 });
 function setViews(){
-	
+
 	if(!g_Settings['complete']==1){
 		$('#pop-up, .loading-wrapper').hide()
 		getIntro()
@@ -210,7 +210,7 @@ function loadMonthly(){
 		var md = $.Deferred()
 		monthlyDataCap=null
 		$.getScript(mdatafile)
-		
+
 		.done(function(dlist,textStatus){
 			if(dlist==''){
 				failcount++
@@ -263,7 +263,7 @@ function loadMonthly(){
 			if(sa){
 				ShowAlert("<p>Your <a href='"+mdatafile+"' target='_blank'>monthly data</a> file is missing traffic at the start of the interval the following dates:"+dl+"</p><p>Click the links to see if the files and data do exist.  If they do, see `<a href='http://usage-monitoring.com/help/?t=missing-data' target='_blank'>I have gaps in my monthly reports?!?</a>`</p>",'missing-monthly')
 				showLoading("The monthly data file has gaps?!?",'warning')
-			} 
+			}
 			var nn=_rs_Date, cd, gl=''
 			while (nn<today && nn<=_re_Date){
 				cd=formattedDate(nn)
@@ -280,7 +280,7 @@ function loadMonthly(){
 			if((dg) && (dl!=gl)){
 				ShowAlert("<p>Your <a href='"+mdatafile+"' target='_blank'>monthly data</a> file is missing traffic on the following dates:"+gl+"</p><p>Click the links to see if the files and data do exist.  If they do, see `<a href='http://usage-monitoring.com/help/?t=missing-data' target='_blank'>I have gaps in my monthly reports?!?</a>`</p>",'monthly-gaps')
 				showLoading("The monthly data file has gaps?!?",'warning')
-			} 
+			}
 			md.resolve()
 		})
 		.fail(function(jqxhr,settings,exception){
@@ -304,7 +304,7 @@ function loadMonthly(){
 		})
 		return md.promise()
 	}
-	
+
 	var deferred = $.Deferred()
 	var cm=$('#SystemTotalsTable .currentSummary').attr('id'),cleardata=true
 	$('#myAlert,.alert-icon').fadeOut('slow')
@@ -323,7 +323,7 @@ function loadMonthly(){
 	zeroDevicesTotal()
 	zeroMonthlyTotals()
 	if(cleardata)$('#MonthlyBreakdown,#breakdownFooter').html('')
-		
+
 	showLoading('Monthly data for ' + yr+'-'+rm)
 	var gmd = getMonthlyData(yr, rm)
 	gmd.done(function(){
@@ -341,7 +341,7 @@ function loadHourly(cleardata){
 	hourly_totals.memory=[]
 	hourly_totals.usage={}
 	interfaces=[]
-	
+
 	if ($('.not-viewed').length==0) $('#myAlert,.alert-icon').fadeOut('slow').removeClass('viewed')
 	pnd_data={'start':{'down':0,'up':0},'total':{'down':0,'up':0,'dropped':0,'local':0,'lost':0},'usage':[]}
 	hourlyloads=[]
@@ -394,14 +394,14 @@ function loadHourly(cleardata){
 	hourly_totals.down=0
 	hourly_totals.up=0
 	showLoading('Hourly data for ' + yr+'-'+mo+'-'+da)
-	
+
 	if(!monthly_totals.usage[dn]) monthly_totals.usage[dn]={down:0,up:0,ul_down:0,ul_up:0}
 
 	$.getScript(datafile)
 	.done(function(dlist,textStatus){
 		$('#DailyUsageHeader .icon').attr('title', 'View the contents of the hourly usage data file').data('link', datafile)
 		$('#uptime').text(!serverUptime?'n/a':sec2text(serverUptime))
-		
+
 		if(typeof(users_updated)==='undefined') var users_updated=''
 		$('#sp_users_updated').text(lastmod(users_updated,'')).attr('title',users_updated)
 		$('#sp_hourly_updated').text(lastmod(hourly_updated,'')).attr('title',hourly_updated)
@@ -491,7 +491,7 @@ function loadHourly(cleardata){
 		if(!g_Settings['summaries'])g_Settings['summaries']={}
 		if(!g_Settings['history']){
 			g_Settings['history']={}
-		} 
+		}
 		if(!g_Settings['history'][bill]){
 			g_Settings['history'][bill]={}
 		}
@@ -603,7 +603,7 @@ function loadView(cleardata){
 		return
 	}
 	switch(cvs){
-		case 'summary-tab': 
+		case 'summary-tab':
 			var notdefined='Not defined... rerun setup!'
 			$('.router-brand').text((typeof(_router)==='undefined' || _installed=='')?notdefined:_router)
 			$('.router-firmware').text((typeof(_firmwareName)==='undefined' || _installed=='')?notdefined:_firmwareName)
@@ -717,12 +717,12 @@ function testReportDates(){
 	var n=1, pem
 	console.clear()
 	while(n<365){
-		var da=d.getDate()*1, mo=d.getMonth()*1+1, yr=d.getFullYear() 
+		var da=d.getDate()*1, mo=d.getMonth()*1+1, yr=d.getFullYear()
 		var em=da<_ispBillingDay?mo-1:mo
-		var fdoi1=new Date(yr, em, 1), fdoi2=new Date(yr, em-1, _ispBillingDay) 
-		var fdoi=new Date(Math.min(fdoi1, fdoi2)) 
+		var fdoi1=new Date(yr, em, 1), fdoi2=new Date(yr, em-1, _ispBillingDay)
+		var fdoi=new Date(Math.min(fdoi1, fdoi2))
 
-		var ldoi1=new Date(yr, em+1, 0), ldoi2=new Date(yr, em, _ispBillingDay-1) 
+		var ldoi1=new Date(yr, em+1, 0), ldoi2=new Date(yr, em, _ispBillingDay-1)
 		var ldoi=new Date(Math.min(ldoi1, ldoi2))
 		pem=em
 		n++
@@ -737,10 +737,10 @@ function setReportDates(ri){
 		_cr_Date=new Date(), da=_cr_Date.getDate()*1, mo=_cr_Date.getMonth()*1+1, yr=_cr_Date.getFullYear()
 		var em=da<_ispBillingDay?mo-1:mo
 		var ldom_p=new Date(yr,mo,0).getDate(), ldom_c=new Date(yr,mo+1,0).getDate()
-		var fdoi1=new Date(yr, em, 1), fdoi2=new Date(yr, em-1, _ispBillingDay) 
-		_rs_Date=new Date(Math.min(fdoi1, fdoi2)) 
-		
-		var ldoi1=new Date(yr, em+1, 0), ldoi2=new Date(yr, em, _ispBillingDay-1) 
+		var fdoi1=new Date(yr, em, 1), fdoi2=new Date(yr, em-1, _ispBillingDay)
+		_rs_Date=new Date(Math.min(fdoi1, fdoi2))
+
+		var ldoi1=new Date(yr, em+1, 0), ldoi2=new Date(yr, em, _ispBillingDay-1)
 		_re_Date=new Date(Math.min(ldoi1, ldoi2))
 		//console.log ( _cr_Date, da,_ispBillingDay, mo, em, _rs_Date, ' - ', _re_Date)
 	}
@@ -1537,7 +1537,7 @@ function activeConnections(){
 		var sip = b[1].replace(/\:0/gi, ":"),dip = b[3]
 		if (!dip) return
 		if (filterIP == '' || filterIP == sip || filterIP == dip) {
-			
+
 			var int_s=sip.match(re),int_d=dip.match(re)
 			var slon=!!int_s&&!!int_d?'internal':''
 			var nr = $('#blank-acon-row').clone(true,true).removeAttr('id').removeClass('hidden').addClass(slon+' '+ b[0])
@@ -1571,7 +1571,7 @@ function activeConnections(){
 	})
 
 	$('.legend.internal').attr('data-count',$('.acon-row.internal').length)
-	//$('.ipfnd').unbind('click') 
+	//$('.ipfnd').unbind('click')
 
 	$('#acrc').text($('.acon-row:visible').length)
 	if(filterIP!=''){
@@ -1698,7 +1698,7 @@ function setDevices(){
 		//wd.find('.deviceIP').text()!=dd.ip && wd.find('.deviceIP').addClass('achanged').text(dd.ip)
 		wd.find('.tByts').data('value')!=tot && wd.find('.tByts').addClass('changed').data('value',tot)
 		if(devices[d].updated=='')
-			wd.find('.updated').text(lastmod(dd.added,''))				
+			wd.find('.updated').text(lastmod(dd.added,''))
 		else
 			wd.find('.updated').text(lastmod(dd.updated,dd.added))
 	}
@@ -1736,7 +1736,7 @@ function setDevices(){
 			nr.find('.tByts').attr('data-value',tot)
 			//nr.find('.updated').text(lastmod(devices[d].updated,devices[d].added)).attr('title','updated:'+devices[d].updated+'/ last seen:'+devices[d].last_seen)
 			if(devices[d].updated=='')
-				nr.find('.updated').text(lastmod(devices[d].added,'')).attr('title','added: '+devices[d].added)				
+				nr.find('.updated').text(lastmod(devices[d].added,'')).attr('title','added: '+devices[d].added)
 			else
 				nr.find('.updated').text(lastmod(devices[d].updated,devices[d].added)).attr('title','updated: '+devices[d].updated)
 
@@ -1776,7 +1776,7 @@ function dgt(m){
 
 function mac2group(m){
 	//console.log('mac2group')
-	
+
 	function CheckGroup(group){
 		if (!!names[group]) return
 		var cg=clean(group)
@@ -1823,7 +1823,7 @@ function totalDaily(arr){
 	monthly[mac].ul_up+=1*traff[3]||0
 	monthly[mac].usage[dn]={down:1*traff[0]||0,up:1*traff[1]||0,ul_down:1*traff[2]||0,ul_up:1*traff[3]||0}
 }
-function hourlyData4(arr){ 
+function hourlyData4(arr){
 	//hourlyData4({ "id":"d8:58:d7:00:45:4c-192.168.0.10", "hour":"07", "traffic":"25404,17483" })
 	var id=arr.id.split('-'), mac=id[0].toLowerCase(), ip=id[1], hr=1*arr.hour, traff=arr.traffic.split(',')
 	if (!hourly[mac]) hourly[mac]={down:0,up:0,ul_down:0,ul_up:0,usage:{}}
