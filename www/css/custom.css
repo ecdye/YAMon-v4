@@ -1,3 +1,6 @@
+html {
+	font-family: sans-serif;
+}
 #daily-usage-table td {
 	min-width: 45px;
 }

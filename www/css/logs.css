@@ -1,3 +1,6 @@
+html {
+	font-family: sans-serif;
+}
 #header {
   background: #CCC;
   border-bottom: 3px double #777;
