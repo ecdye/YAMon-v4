@@ -23,11 +23,11 @@
 #
 ##########################################################################
 
-hr=$(echo "$_ts" | cut -d':' -f1)
-mm=$(echo "$_ts" | cut -d':' -f2)
+hr="$(echo "$_ts" | cut -d':' -f1)"
+mm="$(echo "$_ts" | cut -d':' -f2)"
 
-sm=$(printf %02d $(( ${mm#0} - ${_updateTraffic:-4} )))
-Send2Log "traffic.sh: --> $hr:$sm -> $hr:$mm" 1
+sm="$(printf %02d $(( ${mm#0} - ${_updateTraffic:-4} )))"
+Send2Log "traffic.sh: --> ${hr}:${sm} -> ${hr}:${mm}" 1
 
 GetMemory() {
 	local memInfo
@@ -43,28 +43,37 @@ GetMemory() {
 	echo "${freeMem},${availMem},${totMem}"
 }
 
-GetInterfaceTraffic(){
-	#pnd=$(cat "/proc/net/dev" | egrep "${_interfaces//,/|}")
-	pnd=$(cat "/proc/net/dev" | grep -E "${_interfaces//,/|}")
-	local iTotals=""
+GetInterfaceTraffic() {
+	local pnd
+	local iTotals
+	local line
+	local interface
+	local interfaceVar
+	local current_down
+	local current_up
+	local new_down
+	local new_up
+	local interfaceLine
+	local ov
 
+	pnd="$(cat "/proc/net/dev" | grep -E "${_interfaces//,/|}")"
 	IFS=$'\n'
-	for line in $pnd
-	do
-		local interface=$(echo "$line" | awk '{ print $1 }')
-		local interfaceVar="interface_$(echo "$line" | awk '{ print $1 }' | sed -e 's~\.~_~' -e 's~-~_~' -e 's~:~~')"
-		local current_down=$(echo "$line" | awk '{ print $10 }')
-		local current_up=$(echo "$line" | awk '{ print $2 }')
+	for line in $pnd; do
+		interface="$(echo "$line" | awk '{ print $1 }')"
+		interfaceVar="interface_$(echo "$line" | awk '{ print $1 }' | sed -e 's/\./_/' -e 's/-/_/' -e 's/://')"
+		current_down="$(echo "$line" | awk '{ print $10 }')"
+		current_up="$(echo "$line" | awk '{ print $2 }')"
 		eval ov=\"\$$interfaceVar\"
-		local new_down=$(( $current_down - $(echo "$ov" | cut -d',' -f1) ))
-		local new_up=$(( $current_up - $(echo "$ov" | cut -d',' -f2) ))
-		local interfaceLine="{\"n\":\"${interface%:}\", \"t\":\"$new_down,$new_up\"}"
-		Send2Log "GetInterfaceTraffic: interfaceLine=$interfaceLine --> $line ($ov)" 1
-		iTotals="$iTotals, $interfaceLine"
-		if [ "$mm" -gt "$lastCheckinHour" ] ; then
-			ChangePath "$interfaceVar" "$current_down,$current_up"
+		new_down="$(( current_down - $(echo "$ov" | cut -d',' -f1) ))"
+		new_up="$(( current_up - $(echo "$ov" | cut -d',' -f2) ))"
+		interfaceLine="{\"n\":\"${interface%:}\", \"t\":\"${new_down},${new_up}\"}"
+		Send2Log "GetInterfaceTraffic: interfaceLine=$interfaceLine --> $line (${ov})" 1
+		iTotals="${iTotals}, $interfaceLine"
+		if [ "$mm" -gt "$lastCheckinHour" ]; then
+			ChangePath "$interfaceVar" "${current_down},${current_up}"
 		fi
 	done
+	unset IFS
 	Send2Log "GetInterfaceTraffic - traffic by interface --> ${iTotals#,}"
 	echo "${iTotals#,}"
 }
