@@ -87,13 +87,15 @@ ChangePath() {
 	AddEntry "$1" "$2" "$3"
 }
 
-CheckGroupChain(){
-	Send2Log "CheckGroupChain: $1 /  $2 " 0
-	local cmd=$1
-	local groupName=${2:-Unknown}
-	local groupChain="${YAMON_IPTABLES}_$(echo $groupName | sed "s~[^a-z0-9]~~ig")"
-	if [ -z "$($cmd -L | grep '^Chain' | grep "$groupChain\b")" ] ; then
-		Send2Log "CheckGroupChain: Adding group chain to iptables: $groupChain  " 2
+CheckGroupChain() {
+	local cmd="$1"
+	local groupName="${2:-Unknown}"
+	local groupChain
+
+	Send2Log "CheckGroupChain: $cmd /  $groupName" 0
+	groupChain="${YAMON_IPTABLES}_$(echo "$groupName" | sed "s/[^a-z0-9]//ig")"
+	if [ -z "$($cmd -L | grep '^Chain' | grep "${groupChain}\b")" ]; then
+		Send2Log "CheckGroupChain: Adding group chain to iptables: $groupChain" 2
 		eval $cmd -N "$groupChain" "$_iptablesWait"
 		eval $cmd -A "$groupChain" -j "RETURN" "$_iptablesWait"
 	fi
