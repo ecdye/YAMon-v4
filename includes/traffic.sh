@@ -29,19 +29,18 @@ mm=$(echo "$_ts" | cut -d':' -f2)
 sm=$(printf %02d $(( ${mm#0} - ${_updateTraffic:-4} )))
 Send2Log "traffic.sh: --> $hr:$sm -> $hr:$mm" 1
 
-GetMemory(){
-	GetMemoryField()
-	{
-		local result=$(echo "$meminfo" | grep "^$1:" | awk '{print $2}')
-		echo "${result:-0}"
-		Send2Log "GetMemoryField: $1=$result"
-	}
-	local meminfo=$(cat /proc/meminfo)
-	local freeMem=$(GetMemoryField "MemFree")
-	local availMem=$(( $freeMem + $(GetMemoryField "Buffers") + $(GetMemoryField "Cached") ))
-	local totMem=$(GetMemoryField "MemTotal")
-	Send2Log "GetMemoryField: memory --> $freeMem,$availMem,$totMem"
-	echo "$freeMem,$availMem,$totMem"
+GetMemory() {
+	local memInfo
+	local freeMem
+	local availMem
+	local totMem
+
+	memInfo="$(free -k | sed -n '2 p')"
+	totMem="$(echo "$memInfo" | awk '{ print $2 }')"
+	freeMem="$(echo "$memInfo" | awk '{ print $4 }')"
+	availMem="$(echo "$memInfo" | awk '{ print $7 }')"
+	Send2Log "GetMemoryField: memory --> ${freeMem},${availMem},${totMem}"
+	echo "${freeMem},${availMem},${totMem}"
 }
 
 GetInterfaceTraffic(){
