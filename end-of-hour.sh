@@ -56,11 +56,11 @@ echo "<!DOCTYPE html>
 <head>
 <meta http-equiv='cache-control' content='no-cache' />
 <meta http-equiv='Content-Type' content='text/html;charset=utf-8' />
-<link rel='stylesheet' href='https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.min.css'>
+<link rel='stylesheet' href='https://code.jquery.com/ui/1.13.0/themes/smoothness/jquery-ui.min.css'>
 <link rel='stylesheet' type='text/css' href='../css/normalize.min.css'>
 <link rel='stylesheet' type='text/css' href='../css/logs.css'>
-<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js'></script>
-<script src='https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js'></script>
+<script src='https://code.jquery.com/jquery-3.6.0.min.js'></script>
+<script src='https://code.jquery.com/ui/1.13.0/jquery-ui.min.js'></script>
 <script src='../js/logs.js'></script>
 </head>
 <body>
