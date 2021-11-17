@@ -253,100 +253,114 @@ UpdateField(){
 	echo "$result"
 }
 
-GetDeviceName(){
+GetDeviceName() {
 	local mac="$1"
-	NullFunction(){ #do nothing
-		echo ''
-	}
+	local dn
+	local big
+	local nextnum
 
-	DNSMasqConf(){
+	NullFunction() { # do nothing
+		echo
+	}
+	DNSMasqConf() {
 		local mac="$1"
-		local result=$(echo "$(cat $_dnsmasq_conf | grep -i "dhcp-host=")" | grep -i "$mac" | cut -d, -f$deviceNameField)
+		local result
+
+		result="$(echo "$(cat $_dnsmasq_conf | grep -i "dhcp-host=")" | grep -i "$mac" | cut -d',' -f"$deviceNameField")"
 		Send2Log "DNSMasqConf: result=$result" 0
 		echo "$result"
 	}
-	DNSMasqLease(){
+	DNSMasqLease() {
 		local mac="$1"
-		local dnsmasq=''
-		[ -f "$_dnsmasq_leases" ] && local dnsmasq=$(cat "$_dnsmasq_leases")
-		local result=$(echo "$dnsmasq" | grep -i "$mac" | tr '\n' ' / ' | cut -d' ' -f4)
+		local dnsmasq
+		local result
+
+		[ -f "$_dnsmasq_leases" ] && dnsmasq="$(cat "$_dnsmasq_leases")"
+		result="$(echo "$dnsmasq" | grep -i "$mac" | tr '\n' ' / ' | cut -d' ' -f4)"
 		Send2Log "DNSMasqLease: result=$result" 0
 		echo "$result"
 	}
-	StaticLeases_DDWRT(){
+	StaticLeases_DDWRT() {
 		local mac="$1"
-		local nvr=$(nvram show 2>&1 | grep -i "static_leases=")
-		local result=$(echo "$nvr" | grep -io "$mac[^=]*=.\{1,\}=.\{1,\}=" | cut -d= -f2)
+		local nvr
+		local result
+
+		nvr="$(nvram show 2>&1 | grep -i "static_leases=")"
+		result="$(echo "$nvr" | grep -io "${mac}[^=]*=.\{1,\}=.\{1,\}=" | cut -d'=' -f2)"
 		Send2Log "StaticLeases_DDWRT: result=$result" 0
 		echo "$result"
 	}
-	StaticLeases_OpenWRT(){
+	StaticLeases_OpenWRT() { # thanks to Robert Micsutka for providing this code & easywinclan for suggesting & testing improvements!
 		local mac="$1"
-		# thanks to Robert Micsutka for providing this code & easywinclan for suggesting & testing improvements!
-		local result=''
-		local ucihostid=$(uci show dhcp | grep -i $mac | cut -d. -f2)
-		[ -n "$ucihostid" ] && local result=$(uci get dhcp.$ucihostid.name)
-		Send2Log "StaticLeases_OpenWRT: result=$result " 0
+		local result
+		local ucihostid
+
+		ucihostid="$(uci show dhcp | grep -i "$mac" | cut -d'.' -f2)"
+		[ -n "$ucihostid" ] && result="$(uci get "dhcp.${ucihostid}.name")"
+		Send2Log "StaticLeases_OpenWRT: result=$result" 0
 		echo "$result"
 	}
-	StaticLeases_Merlin_Tomato(){
+	StaticLeases_Merlin_Tomato() { #thanks to Chris Dougherty for providing Merlin code, and to Tvlz for providing Tomato Nvram settings
 		local mac="$1"
-		if [ "$_firmware" -eq "3" ] ; then
-			local dhcp_str='dhcpd_static'
+		local dhcp_str
+		local nvr
+		local nvrt
+		local nvrfix
+		local iter
+		local result
+
+		if [ "$_firmware" -eq "3" ]; then
+			dhcp_str='dhcpd_static'
 		else
-			local dhcp_str='dhcp_staticlist'
+			dhcp_str='dhcp_staticlist'
 		fi
-		#thanks to Chris Dougherty for providing Merlin code, and
-		#to Tvlz for providing Tomato Nvram settings
-		local nvr=$(nvram show 2>&1 | grep -i "${dhcp_str}=")
-		local nvrt=$nvr
-		local nvrfix=''
-		while [ "$nvrt" ] ;do
-			iter=${nvrt%%<*}
-			nvrfix="$nvrfix$iter="
-			[ "$nvrt" = "$iter" ] && \
-				nvrt='' || \
-				nvrt="${nvrt#*<}"
+		nvr="$(nvram show 2>&1 | grep -i "${dhcp_str}=")"
+		nvrt="$nvr"
+		while [ "$nvrt" ]; do
+			iter="${nvrt%%<*}"
+			nvrfix="${nvrfix}${iter}="
+			[ "$nvrt" == "$iter" ] && nvrt='' || nvrt="${nvrt#*<}"
 		done
-		nvr=${nvrfix//>/=}
-		local result=$(echo "$nvr" | grep -io "$mac[^=]*=.\{1,\}=.\{1,\}=" | cut -d= -f3)
-		Send2Log "StaticLeases_Merlin_Tomato: result=$result " 0
+		nvr="${nvrfix//>/=}"
+		result=$(echo "$nvr" | grep -io "${mac}[^=]*=.\{1,\}=.\{1,\}=" | cut -d'=' -f3)
+		Send2Log "StaticLeases_Merlin_Tomato: result=$result" 0
 		echo "$result"
 	}
 
-	Send2Log "GetDeviceName: $1 $2" 0
-	#check first in static leases
-	local dn=`$nameFromStaticLeases "$mac"`
-	if [ -n "${dn/$/}" ] ; then
-		Send2Log "GetDeviceName: found device name $dn for $mac in static leases ($nameFromStaticLeases)" 0
+	Send2Log "GetDeviceName: $mac $2" 0
+
+	# check first in static leases
+	dn="$($nameFromStaticLeases "$mac")"
+	if [ -n "${dn/$/}" ]; then
+		Send2Log "GetDeviceName: found device name $dn for $mac in static leases (${nameFromStaticLeases})" 0
 		echo "$dn"
 		return
 	fi
-	Send2Log "GetDeviceName: No device name for $mac in static leases ($nameFromStaticLeases)" 0
+	Send2Log "GetDeviceName: No device name for $mac in static leases (${nameFromStaticLeases})" 0
 
-	#then in DNSMasqConf
-	dn=`$nameFromDNSMasqConf "$mac"`
-	if [ -n "${dn/$/}" ] ; then
+	# then in DNSMasqConf
+	dn="$($nameFromDNSMasqConf "$mac")"
+	if [ -n "${dn/$/}" ]; then
 		Send2Log "GetDeviceName: found device name $dn for $mac in $_dnsmasq_conf" 0
 		echo "$dn"
 		return
 	fi
-	Send2Log "GetDeviceName: No device name for $mac in in $_dnsmasq_conf ($nameFromDNSMasqConf)" 0
+	Send2Log "GetDeviceName: No device name for $mac in in $_dnsmasq_conf (${nameFromDNSMasqConf})" 0
 
-	#finally in DNSMasqLease
-	dn=`$nameFromDNSMasqLease "$mac"`
-	if [ -n "${dn/$/}" ] ; then
+	# finally in DNSMasqLease
+	dn="$($nameFromDNSMasqLease "$mac")"
+	if [ -n "${dn/$/}" ]; then
 		Send2Log "GetDeviceName: found device name $dn for $mac in $_dnsmasq_leases" 0
 		echo "$dn"
 		return
 	fi
-	Send2Log "GetDeviceName: No device name for $mac in in $_dnsmasq_leases ($nameFromDNSMasqLease)" 0
+	Send2Log "GetDeviceName: No device name for $mac in in $_dnsmasq_leases (${nameFromDNSMasqLease})" 0
 
-	#Dang... no matches
-	local big=$(cat "$_usersFile" | grep -e "^mac2ip({.*})$" | grep -o "\"$_defaultDeviceName-[^\"]\{0,\}\"" | sort | tail -1 | tr -d '"' | cut -d- -f2)
-	local nextnum=$(printf %02d $(( $(echo "${big#0} ")+ 1 )))
-	echo "$_defaultDeviceName-$nextnum"
-	Send2Log "GetDeviceName: did not find name for  $mac... defaulting to $_defaultDeviceName-$nextnum" 0
+	# Dang... no matches
+	big="$(cat "$_usersFile" | grep -e '^mac2ip({.*})$' | grep -o "\"${_defaultDeviceName}-[^\"]\{0,\}\"" | sort | tail -1 | tr -d '"' | cut -d'-' -f2)"
+	nextnum="$(printf %02d $(( $(echo "${big#0} ") + 1 )))"
+	echo "${_defaultDeviceName}-${nextnum}"
+	Send2Log "GetDeviceName: did not find name for ${mac}... defaulting to ${_defaultDeviceName}-${nextnum}" 0
 }
 
 CheckMAC2GroupinUserJS(){
