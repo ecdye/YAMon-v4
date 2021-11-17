@@ -18,7 +18,7 @@
 #        in h2m.sh
 ##########################################################################
 
-d_baseDir=$(cd "$(dirname "$0")" && pwd)
+d_baseDir="$(cd "$(dirname "$0")" && pwd)"
 
 source "${d_baseDir}/includes/shared.sh"
 source "${d_baseDir}/includes/dailytotals.sh"
@@ -27,7 +27,7 @@ source "${d_baseDir}/includes/dailytotals.sh"
 [ -z "$totalsDate" ] && totalsDate="$_ds"
 _intervalDataFile="${_intervalDataFile/.js/2.js}"
 
-Send2Log "calculate-daily-totals,sh: start --> $_intervalDataFile (totalsDate: $totalsDate)" 1
+Send2Log "calculate-daily-totals,sh: start --> ${_intervalDataFile} (totalsDate: ${totalsDate})" 1
 
 CalculateDailyTotals "$totalsDate"
 
