@@ -50,13 +50,13 @@ Send2Log "${0##$d_baseDir/} - start" 0
 
 SetRenice() {
 	# if firmware supports renice, set the value
-	Send2Log "SetRenice: renice 10 $$" 1
+	Send2Log "SetRenice: renice 10 $$" 0
 	renice 10 $$
 }
 
 NoRenice() {
 	# if firmware doesn't support renice
-	Send2Log "NoRenice" 1
+	Send2Log "NoRenice" 0
 	return
 }
 
