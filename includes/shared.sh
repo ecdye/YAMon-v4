@@ -78,7 +78,7 @@ AddEntry() {
 		echo "${param}='${value}'" >> "${d_baseDir}/includes/paths.sh"
 	else
 		Send2Log "ChangePath: changing value of \`${param}\` to $value (prior ${existingValue}) in $pathsFile" 1
-		sed -i "s/^${existingValue}/${param}='${value}'/" "$pathsFile"
+		sed -i "s~^${existingValue}~${param}='${value}'~" "$pathsFile"
 	fi
 }
 

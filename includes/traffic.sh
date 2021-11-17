@@ -60,7 +60,7 @@ GetInterfaceTraffic() {
 	IFS=$'\n'
 	for line in $pnd; do
 		interface="$(echo "$line" | awk '{ print $1 }')"
-		interfaceVar="interface_$(echo "$line" | awk '{ print $1 }' | sed -e 's/\./_/' -e 's/-/_/' -e 's/://')"
+		interfaceVar="interface_$(echo "$line" | awk '{ print $1 }' | sed -e 's~\.~_~' -e 's~-~_~' -e 's~:~~')"
 		current_down="$(echo "$line" | awk '{ print $10 }')"
 		current_up="$(echo "$line" | awk '{ print $2 }')"
 		eval ov=\"\$$interfaceVar\"
