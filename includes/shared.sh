@@ -66,20 +66,22 @@ LogEndOfFunction() {
 	Send2Log "${0##$d_baseDir/} - end" $1
 }
 
-AddEntry(){
+AddEntry() {
 	local param="${1//./_}"
 	local value="$2"
-
 	local pathsFile="${3:-${d_baseDir}/includes/paths.sh}"
-	local existingValue=$(cat "$pathsFile" | grep "$param=.\{0,\}$")
+	local existingValue
+
+	existingValue="$(cat "$pathsFile" | grep "${param}=.\{0,\}\$")"
 	if [ -z "$existingValue" ] ; then
-		Send2Log "AddEntry: adding value --> \`$param\`='$value' in$pathsFile " 1
-		echo $param=\'$value\' >> "${d_baseDir}/includes/paths.sh"
+		Send2Log "AddEntry: adding value --> \`${param}\`='${value}' in $pathsFile" 1
+		echo "${param}='${value}'" >> "${d_baseDir}/includes/paths.sh"
 	else
-		Send2Log "ChangePath: changing value of \`$param\` to $value (prior $existingValue) in $pathsFile" 1
-		sed -i "s~^$existingValue~$param='$value'~" "$pathsFile"
+		Send2Log "ChangePath: changing value of \`${param}\` to $value (prior ${existingValue}) in $pathsFile" 1
+		sed -i "s/^${existingValue}/${param}='${value}'/" "$pathsFile"
 	fi
 }
+
 ChangePath(){
 	#changes a value in /includes/paths.sh
 	AddEntry "$1" "$2" "$3"
