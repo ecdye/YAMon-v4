@@ -1639,8 +1639,8 @@ function curr_users_totals(tt){
 }
 function serverload(l1,l5,l15){
 	var _processors=1
-	$('#sp_1minSL').text(l5.toFixed(2)).css('left','calc('+(Math.min(100,$('#sp_1minSL').text()*100))+'% - 6px)')
-	$('#sp_5minSL').text(l1.toFixed(2)).css('left','calc('+(Math.min(100,$('#sp_5minSL').text()*100))+'% - 1.25px)')
+	$('#sp_1minSL').text(l1.toFixed(2)).css('left','calc('+(Math.min(100,$('#sp_1minSL').text()*100))+'% - 6px)')
+	$('#sp_5minSL').text(l5.toFixed(2)).css('left','calc('+(Math.min(100,$('#sp_5minSL').text()*100))+'% - 1.25px)')
 	$('#sp_15minSL').text(l15.toFixed(2)).css('left','calc('+(Math.min(100,$('#sp_15minSL').text()*100))+'% - 6px)')
 	var speed=1000,easing='swing'
 	var tt=last_update.split(' ')[1]
