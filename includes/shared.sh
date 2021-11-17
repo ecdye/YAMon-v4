@@ -218,14 +218,15 @@ CheckIPTableEntry() {
 	AddIP
 }
 
-UpdateLastSeen(){
+UpdateLastSeen() {
 	local id="$1"
 	local tls="$2"
-
 	local lsd="$_ds $tls"
-	Send2Log "UpdateLastSeen:  Updating last seen for '$id' to '$lsd'" 0
-	echo -e "lastseen({ \"id\":\"$id\", \"last-seen\":\"$lsd\" })\n$(cat "$tmpLastSeen" | grep -e "^lastseen({.*})$" | grep -v "$id")" > "$tmpLastSeen"
+
+	Send2Log "UpdateLastSeen:  Updating last seen for '${id}' to '${lsd}'" 0
+	echo -e "lastseen({ \"id\":\"${id}\", \"last-seen\":\"${lsd}\" })\n$(cat "$tmpLastSeen" | grep -e '^lastseen({.*})$' | grep -v "$id")" > "$tmpLastSeen"
 }
+
 GetField()
 {	#returns just the first match... duplicates are ignored
 	local result=$(echo "$1" | grep -io -m1 "$2\":\"[^\"]\{1,\}" | cut -d\" -f3)
