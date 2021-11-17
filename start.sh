@@ -18,36 +18,36 @@
 #
 ##########################################################################
 
-CreateUsersFile()
-{
-	#wget http://usage-monitoring.com/current/getDevices.php?k=29e315558d333f4ae3845f02a7edd8d0 -U "YAMon-Setup" -Oq "${tmplog}devices.txt"
+CreateUsersFile() {
 	Send2Log "CreateUsersFile: Creating empty users file: $_usersFile" 2
-	echo "var users_version=\"$_version\"
-var users_created=\"$_ds $_ts\"
+	echo "var users_version=\"${_version}\"
+var users_created=\"${_ds} ${_ts}\"
 var users_updated=\"\"
-//MAC -> Groups
+// MAC -> Groups
 
-//MAC -> IP
-	" > $_usersFile
+// MAC -> IP
+" > $_usersFile
 }
 
-SetWebDirectories()
-{
-	WriteConfigFile(){
+SetWebDirectories() {
+	WriteConfigFile() {
+		local vn
+		local vv
 		local cfgPath="${_wwwPath}js/config${_version%\.*}.js"
-		Send2Log "WriteConfigFile: $cfgPath" 1
 		local configVars='_installed,_updated,_router,_firmwareName,_version,_firmware,_dbkey,_updateTraffic,_ispBillingDay,_wwwData'
 
-		>$cfgPath #empty the file
+		Send2Log "WriteConfigFile: $cfgPath" 1
+		true > $cfgPath # empty the file
 
 		IFS=$','
-		for vn in $configVars ; do
+		for vn in $configVars; do
 			eval vv=\"\$$vn\"
 			Send2Log "WriteConfigFile: $vn -> $vv" 1
 			echo "var $vn = \"$vv\"" >> $cfgPath
 		done
+		unset IFS
 	}
-	AddSoftLink(){
+	AddSoftLink() {
 		Send2Log "AddSoftLink: $1 -> $2" 1
 		[ -h "$2" ] && rm -fv "$2"
 		ln -s "$1" "$2"
@@ -58,7 +58,6 @@ SetWebDirectories()
 	chmod -R a+rX "${_wwwPath}"
 	[ ! -h "/www${_wwwURL}" ] && ln -s "/tmp${_wwwURL}" "/www${_wwwURL}"
 
-	#ln -s /tmp/www /www/yamon
 	AddSoftLink "${d_baseDir}/www/css" "${_wwwPath}css"
 	AddSoftLink "${d_baseDir}/www/images" "${_wwwPath}images"
 	AddSoftLink "${d_baseDir}/www/js/yamon4.0.js" "${_wwwPath}js/yamon4.0.js"
@@ -93,8 +92,6 @@ source "${d_baseDir}/includes/paths.sh"
 
 source "${d_baseDir}/includes/start-stop.sh"
 
-echo -E "$_s_title" # echo the title again so it appears in the log file too :-)
-
 [ -d "$_path2logs" ] || mkdir -p "$_path2logs"
 [ -d "$_path2data" ] || mkdir -p "$_path2data"
 [ -d "$_path2bu" ] || mkdir -p "$_path2bu"
@@ -105,24 +102,24 @@ echo -E "$_s_title" # echo the title again so it appears in the log file too :-)
 
 
 ln -sf $tmplog $d_baseDir
-> "$macIPFile" # create and/or empty the MAC IP list files
+true > "$macIPFile" # create and/or empty the MAC IP list files
 
 [ ! -f "$hourlyDataFile" ] &&  [ ! -f "${_path2CurrentMonth}hourly_${_ds}.js" ] && cp "${_path2CurrentMonth}hourly_${_ds}.js" "$hourlyDataFile"
 
-if [ -f "$_lastSeenFile" ] ; then
+if [ -f "$_lastSeenFile" ]; then
 	cp "${_lastSeenFile}" "$tmpLastSeen"
 	cp "$_lastSeenFile" "${_lastSeenFile/.js/-${_ds}-${_ts}.js}"
 fi
 
 [ -z "$1" ] && rebootOrStart='Script Restarted' || rebootOrStart='Server Rebooted'
-echo -e "//$rebootOrStart" >> "$hourlyDataFile"
+echo -e "// $rebootOrStart" >> "$hourlyDataFile"
 Send2Log "YAMon:: $rebootOrStart" 2
 Send2Log "YAMon:: version $_version	_loglevel: $_loglevel" 1
-if [ -f "$_usersFile" ] ; then
-	if [ -z "$(cat "$_usersFile" | grep "^var users_updated")" ] ;  then
+if [ -f "$_usersFile" ]; then
+	if [ -z "$(cat "$_usersFile" | grep "^var users_updated")" ]; then
 		Send2Log "Start: adding users_updated to $_usersFile" 2
-		ucl=$(cat "$_usersFile" | grep "^var users_created")
-		sed -i "s~$ucl~$ucl\nvar users_updated=\"\"~" "$_usersFile"
+		ucl="$(cat "$_usersFile" | grep "^var users_created")"
+		sed -i "s~${ucl}~${ucl}\nvar users_updated=\"\"~" "$_usersFile"
 	fi
 else
 	CreateUsersFile
