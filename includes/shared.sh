@@ -82,10 +82,11 @@ AddEntry() {
 	fi
 }
 
-ChangePath(){
-	#changes a value in /includes/paths.sh
+ChangePath() {
+	# changes a value in /includes/paths.sh
 	AddEntry "$1" "$2" "$3"
 }
+
 CheckGroupChain(){
 	Send2Log "CheckGroupChain: $1 /  $2 " 0
 	local cmd=$1
