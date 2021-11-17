@@ -227,14 +227,16 @@ UpdateLastSeen() {
 	echo -e "lastseen({ \"id\":\"${id}\", \"last-seen\":\"${lsd}\" })\n$(cat "$tmpLastSeen" | grep -e '^lastseen({.*})$' | grep -v "$id")" > "$tmpLastSeen"
 }
 
-GetField()
-{	#returns just the first match... duplicates are ignored
-	local result=$(echo "$1" | grep -io -m1 "$2\":\"[^\"]\{1,\}" | cut -d\" -f3)
+GetField() {	#returns just the first match... duplicates are ignored
+	local result
+
+	result="$(echo "$1" | grep -io -m1 "${2}\":\"[^\"]\{1,\}" | cut -d'"' -f3)"
 	echo "$result"
-	[ -n "$result" ] && Send2Log "GetField: $2='$result' in \`$1\`" && return
-	[ -z "$result" ] && [ -z "$1" ] && Send2Log "GetField: field '$2' not found because the search string was empty (\`$1\`)" 1 && return
-	[ -z "$result" ] && Send2Log "GetField: field '$2' not found in \`$1\`" 1
+	[ -n "$result" ] && Send2Log "GetField: ${2}='${result}' in \`${1}\`" && return
+	[ -z "$result" ] && [ -z "$1" ] && Send2Log "GetField: field '${2}' not found because the search string was empty (\`${1}\`)" 1 && return
+	[ -z "$result" ] && Send2Log "GetField: field '${2}' not found in \`${1}\`" 1
 }
+
 UsersJSUpdated(){
 	Send2Log "UsersJSUpdated: users_updated changed to '$_ds $_ts'" 2
 	sed -i "s~users_updated=\"[^\"]\{0,\}\"~users_updated=\"$_ds $_ts\"~" "$_usersFile"
