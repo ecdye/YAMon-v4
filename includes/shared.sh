@@ -243,13 +243,16 @@ UsersJSUpdated() {
 }
 
 UpdateField(){
-	local cl="$1" #current line of text
-	local wf="$2" #which field to update
-	local nv="$3" #new value
-	local result=$(echo "$cl" | sed -e "s~\"$wf\":\"[^\"]\{0,\}\"~\"$wf\":\"$nv\"~" -e "s~\"updated\":\"[^\"]\{0,\}\"~\"updated\":\"$_ds $_ts\"~")
+	local cl="$1" # current line of text
+	local wf="$2" # which field to update
+	local nv="$3" # new value
+	local result
+
+  result="$(echo "$cl" | sed -e "s~\"${wf}\":\"[^\"]\{0,\}\"~\"${wf}\":\"${nv}\"~" -e "s~\"updated\":\"[^\"]\{0,\}\"~\"updated\":\"${_ds} ${_ts}\"~")"
 	[ -z "$result" ] && Send2Log "UpdateField: replacement of $wf failed" 2
 	echo "$result"
 }
+
 GetDeviceName(){
 	local mac="$1"
 	NullFunction(){ #do nothing
