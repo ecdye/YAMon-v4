@@ -237,10 +237,11 @@ GetField() {	#returns just the first match... duplicates are ignored
 	[ -z "$result" ] && Send2Log "GetField: field '${2}' not found in \`${1}\`" 1
 }
 
-UsersJSUpdated(){
-	Send2Log "UsersJSUpdated: users_updated changed to '$_ds $_ts'" 2
-	sed -i "s~users_updated=\"[^\"]\{0,\}\"~users_updated=\"$_ds $_ts\"~" "$_usersFile"
+UsersJSUpdated() {
+	Send2Log "UsersJSUpdated: users_updated changed to '${_ds} ${_ts}'" 2
+	sed -i "s~users_updated=\"[^\"]\{0,\}\"~users_updated=\"${_ds} ${_ts}\"~" "$_usersFile"
 }
+
 UpdateField(){
 	local cl="$1" #current line of text
 	local wf="$2" #which field to update
