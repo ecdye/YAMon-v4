@@ -21,5 +21,5 @@ source "${d_baseDir}/includes/shared.sh"
 
 Send2Log "Manually copying temp log to permanent" 2
 
-cat "$tmplogFile" | sed -E "s~^ ([^<].*$)~<pre>\1</pre>~g" | sed -E "s~(^[^<].*$)~<p class='err'>\1</p>~g" >> "$dailyLogFile"
-> "$tmplogFile"
+cat "$tmplogFile" | sed -E -e 's~^ ([^<].*$)~<pre>\1</pre>~g' -e 's~(^[^<].*$)~<p class="err">\1</p>~g' >> "$dailyLogFile"
+true > "$tmplogFile"
