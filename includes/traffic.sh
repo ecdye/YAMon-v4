@@ -138,12 +138,14 @@ GetTraffic(){
 		fl="$(echo -e "$ipt" | head -n 1)"
 		[ -z "$fl" ] && break
 		ip="$(echo "$fl" | cut -d' ' -f2)"
+		if [ "$_generic_ipv4" == "$ip" ] || [ "$_generic_ipv6" == "$ip" ]; then
+			ip="$(echo "$fl" | cut -d' ' -f3)"
+		fi
 
 		Send2Log "GetTraffic: $fl / $ip" 0
 
 		if [ "$_generic_ipv4" == "$ip" ] || [ "$_generic_ipv6" == "$ip" ]; then
 			# unmatched traffic
-			ip="$(echo "$fl" | cut -d' ' -f3)"
 			Send2Log "GetTraffic: Unmatched traffic $(IndentList "$fl")" 2
 			# (so check-network is only executed when there is new unmatched data)
 			${d_baseDir}/check-network.sh
