@@ -16,7 +16,7 @@
 #
 ##########################################################################
 
-Send2Log "start-stop" 1
+Send2Log "start-stop" 0
 
 if [ "$_firmware" -eq "0" ]; then
 	cronJobsFile="/tmp/cron.d/yamon_jobs"
