@@ -79,144 +79,158 @@ GetInterfaceTraffic() {
 }
 
 GetTraffic(){
+	local vnx="${1:--vnx}"
+  local ltrl=0
+	local macIPList
+	local ip4t
+	local ip6t
+	local ipt
+	local tls
+	local intervalTraffic
+	local total_down=0
+	local total_up=0
+	local fl
+	local ip
+	local tip
+	local mac
+	local "do"
+	local up
+	local newLine
+	local wl
+	local wr
+	local hrlyData
+	local currentUptime
+	local rebootFile
+	local interfaceTotals
+	local memoryTotals
+	local diskUtilization
+	local totalsLine
 
-	IP6Enabled(){
+	IP6Enabled() {
 		echo "$(ip6tables -L "$YAMON_IPTABLES" "$vnx" | awk '{ print $2,$7,$8 }' | grep "^[1-9]")"
 	}
-	NoIP6(){
-		echo ''
+	NoIP6() {
+		echo
 	}
 
-	local vnx=${1:--vnx}
-	local ltrl=0
 	[ "$vnx" == '-vnxZ' ] && ltrl=1
+  macIPList="$(cat "$macIPFile")"
+	ip4t="$(iptables -L "$YAMON_IPTABLES" "$vnx" | awk '{ print $2,$8,$9 }' | grep "^[1-9]")"
+	ip6t="$($ip6tablesFn)"
+	ipt="$ip4t\n$ip6t"
+	tls="$(date +"%H:%M:%S")"
+
 	Send2Log "GetTraffic - $vnx ($ltrl)" 0
-
-	local macIPList=$(cat "$macIPFile")
-
-	local ip4t=$(iptables -L "$YAMON_IPTABLES" "$vnx" | awk '{ print $2,$8,$9 }' | grep "^[1-9]")
-	local ip6t="$ip6tablesFn"
 
 	[ -z "$ip4t" ] && Send2Log "GetTraffic - No IPv4 traffic"
 	[ -z "$ip6t" ] && Send2Log "GetTraffic - No IPv6 traffic"
-	if [ -z "$ip4t" ] && [ -z "$ip4t" ] ; then
+	if [ -z "$ip4t" ] && [ -z "$ip6t" ]; then
 		Send2Log "GetTraffic - No traffic at all... checking chains!" 3
-		> $macIPFile
+		true > $macIPFile
 		source "${d_baseDir}/includes/setupIPChains.sh"
 		SetupIPChains
 		return
 	fi
-	local ipt="$ip4t\n$ip6"
 
-	tls=$(date +"%H:%M:%S")
-	local intervalTraffic=''
-	local total_down=0
-	local total_up=0
-	while [ 1 ] ;
-	do
+	while true; do
 		[ -z "$ipt" ] && break
 
-		fl=$(echo -e "$ipt" | head -n 1)
+		fl="$(echo -e "$ipt" | head -n 1)"
 		[ -z "$fl" ] && break
-		local ip=$(echo "$fl" | cut -d' ' -f2)
+		ip="$(echo "$fl" | cut -d' ' -f2)"
 
-		if [ "$_generic_ipv4" == "$ip" ] || [ "$_generic_ipv6" == "$ip" ] ; then
-			ip=$(echo "$fl" | cut -d' ' -f3)
-		fi
-		local tip="\b${ip//\./\\.}\b"
+		Send2Log "GetTraffic: $fl / $ip" 0
 
-		Send2Log "GetTraffic: $fl / $ip)" 0
-
-		if [ "$_generic_ipv4" == "$ip" ] || [ "$_generic_ipv6" == "$ip" ] ; then
-			#unmatched traffic
+		if [ "$_generic_ipv4" == "$ip" ] || [ "$_generic_ipv6" == "$ip" ]; then
+			# unmatched traffic
+			ip="$(echo "$fl" | cut -d' ' -f3)"
 			Send2Log "GetTraffic: Unmatched traffic $(IndentList "$fl")" 2
 			# (so check-network is only executed when there is new unmatched data)
 			${d_baseDir}/check-network.sh
 			UpdateLastSeen "${_generic_mac}-${ip}" "$tls"
-			local do=$(echo "$fl" | cut -d' ' -f1)
+			do="$(echo "$fl" | cut -d' ' -f1)"
 			Send2Log "GetTraffic: down: $do / $total_down " 1
-			total_down=$(( $total_down + ${do:-0} )) #assuming total_up is zero because all traffic goes to a single iptable rule
-			local newLine="hourlyData4({ \"id\":\"$_generic_mac-$ip\", \"hour\":\"$hr\", \"traffic\":\"${do:-0},0,$(( ${do:-0} * $currentlyUnlimited )),0\" })"
-			intervalTraffic="$intervalTraffic\n$newLine"
+			total_down=$(( total_down + ${do:-0} )) # assuming total_up is zero because all traffic goes to a single iptable rule
+			newLine="hourlyData4({ \"id\":\"${_generic_mac}-${ip}\", \"hour\":\"${hr}\", \"traffic\":\"${do:-0},0,$(( currentlyUnlimited * ${do:-0} )),0\" })"
+			intervalTraffic="${intervalTraffic}\n${newLine}"
 
-			#delete the final RETURN/LOG entry in YAMONv40 to reset the totals to zero
-			local wl=$(iptables -L "$YAMON_IPTABLES" -n --line-numbers | grep LOG | awk '{ print $1 }')
+			# delete the final RETURN/LOG entry in YAMONv40 to reset the totals to zero
+			wl="$(iptables -L "$YAMON_IPTABLES" -n --line-numbers | grep LOG | awk '{ print $1 }')"
 			[ -n "$wl" ] && iptables -D "$YAMON_IPTABLES" "$wl"
-			wr=$(iptables -L "$YAMON_IPTABLES" -n --line-numbers | grep RETURN | awk '{ print $1 }')
+			wr="$(iptables -L "$YAMON_IPTABLES" -n --line-numbers | grep RETURN | awk '{ print $1 }')"
 			[ -n "$wr" ] && iptables -D "$YAMON_IPTABLES" "$wr"
 
 			if [ "$_logNoMatchingMac" -eq "1" ] ; then
 				iptables -A "$YAMON_IPTABLES" -j LOG --log-prefix "YAMon: "
-				Send2Log "GetTraffic: re-zeroed LOG rule in $YAMON_IPTABLES (entry #$wo)" 2
+				Send2Log "GetTraffic: re-zeroed LOG rule in $YAMON_IPTABLES (entry #${wl})" 2
 			else
 				iptables -A "$YAMON_IPTABLES" -j RETURN
-				Send2Log "GetTraffic: re-zeroed RETURN rule in $YAMON_IPTABLES (entry #$wo)" 2
+				Send2Log "GetTraffic: re-zeroed RETURN rule in $YAMON_IPTABLES (entry #${wr})" 2
 			fi
 
-			ipt=$(echo -e "$ipt" | grep -v "$fl") #delete just the first entry from the list of IPs
+			ipt="$(echo -e "$ipt" | grep -v "$fl")" # delete just the first entry from the list of IPs
 		else
-			local mac=$(echo "$macIPList" | grep "$tip" | cut -d' ' -f1)
+			tip="\b${ip//\./\\.}\b"
+			mac="$(echo "$macIPList" | grep "$tip" | cut -d' ' -f1)"
 			if [ -z "$mac" ] ; then
-				mac=$(GetMACbyIP "$ip")
-				Send2Log "GetTraffic: no matching entry for $fl.  Appending \`$mac $ip\` to macIPFile" 2
+				mac="$(GetMACbyIP "$ip")"
+				Send2Log "GetTraffic: no matching entry for ${fl}.  Appending \`${mac} ${ip}\` to macIPFile" 2
 				echo -e "$mac $ip" >> "$macIPFile"
-				Send2Log "GetTraffic: Checking users.js for \`$mac $ip\`" 1
+				Send2Log "GetTraffic: Checking users.js for \`${mac} ${ip}\`" 1
 				CheckMAC2IPinUserJS "$mac" "$ip"
 				CheckIPTableEntry "$i"
-				CheckMAC2GroupinUserJS "$mac" ""
+				CheckMAC2GroupinUserJS "$mac"
 			fi
 
 			if [ -n "$mac" ] ; then
-				local do=$(echo "$ipt" | grep -E "($_generic_ipv4|$_generic_ipv6) $tip\b" | cut -d' ' -f1 | head -n 1)
-				local up=$(echo "$ipt" | grep -E "$tip ($_generic_ipv4|$_generic_ipv6)" | cut -d' ' -f1 | head -n 1)
-				total_down=$(( $total_down + ${do:-0} ))
-				total_up=$(( $total_up + ${up:-0} ))
-				Send2Log "GetTraffic: $mac-$ip / ${do:-0} / ${up:-0} / $hr"
-				local newLine="hourlyData4({ \"id\":\"$mac-$ip\", \"hour\":\"$hr\", \"traffic\":\"${do:-0},${up:-0},$(( ${do:-0} * $currentlyUnlimited )),$(( ${up:-0} * $currentlyUnlimited ))\" })"
-				intervalTraffic="$intervalTraffic\n$newLine"
-				UpdateLastSeen "$mac-$ip" "$tls"
+				do="$(echo "$ipt" | grep -E "(${_generic_ipv4}|${_generic_ipv6}) $tip\b" | cut -d' ' -f1 | head -n 1)"
+				up="$(echo "$ipt" | grep -E "$tip (${_generic_ipv4}|${_generic_ipv6})" | cut -d' ' -f1 | head -n 1)"
+				total_down=$(( total_down + ${do:-0} ))
+				total_up=$(( total_up + ${up:-0} ))
+				Send2Log "GetTraffic: ${mac}-${ip} / ${do:-0} / ${up:-0} / ${hr}"
+				local newLine="hourlyData4({ \"id\":\"${mac}-${ip}\", \"hour\":\"${hr}\", \"traffic\":\"${do:-0},${up:-0},$(( currentlyUnlimited * ${do:-0} )),$(( currentlyUnlimited * ${up:-0} ))\" })"
+				intervalTraffic="${intervalTraffic}\n${newLine}"
+				UpdateLastSeen "${mac}-${ip}" "$tls"
 			else
-				Send2Log "GetTraffic: still no matching mac for '$ip'?!? skipping this entry$(IndentList "$fl")" 3
+				Send2Log "GetTraffic: still no matching mac for '${ip}'?!? skipping this entry $(IndentList "$fl")" 3
 			fi
-			ipt=$(echo -e "$ipt" | grep -v "$tip") #delete all matching entries for the current IP
+			ipt="$(echo -e "$ipt" | grep -v "$tip")" # delete all matching entries for the current IP
 		fi
 	done
-	intervalTraffic=$(echo -e "$intervalTraffic" | grep -e "^hourlyData4({ .* })$")
 
-	local hrlyData=$(cat "$hourlyDataFile")
-
-	local currentUptime=$(cat /proc/uptime | cut -d' ' -f1)
+	intervalTraffic="$(echo -e "$intervalTraffic" | grep -e '^hourlyData4({ .* })$')"
+	hrlyData="$(cat "$hourlyDataFile")"
+  currentUptime="$(cat /proc/uptime | cut -d' ' -f1)"
 	[ -z "$currentUptime" ] && Send2Log "GetTraffic: currentUptime is null?!?" 2
 
-	if [ -n "$currentUptime" ] && [ "$currentUptime" \< "$_uptime" ] ; then
-		local rebootFile="${tmplog}reboot-${_ds}.js"
+	if [ -n "$currentUptime" ] && [ "$currentUptime" -lt "$_uptime" ] ; then
+		rebootFile="${tmplog}reboot-${_ds}.js"
 		Send2Log "GetTraffic: rebooted ($currentUptime < $_uptime) --> save current hour data to reboot.js" 2
-		echo "//Uptime: $currentUptime < $_uptime" >> "$rebootFile"
-		echo "$hrlyData" | grep "\"hour\":\"$hr\"" >> "$rebootFile"
+		echo "// Uptime: $currentUptime < $_uptime" >> "$rebootFile"
+		echo "$hrlyData" | grep "\"hour\":\"${hr}\"" >> "$rebootFile"
 		cp "$rebootFile" "$_path2CurrentMonth"
 	fi
 
-	local interfaceTotals=$(GetInterfaceTraffic)
-	local memoryTotals=$(GetMemory)
-	local disk_utilization=$(df "${d_baseDir}" | tail -n 1 | awk '{print $5}')
+	interfaceTotals="$(GetInterfaceTraffic)"
+	memoryTotals="$(GetMemory)"
+	diskUtilization="$(df "${d_baseDir}" | tail -n 1 | awk '{ print $(NF-1) }')"
+	totalsLine="Totals({ \"hour\":\"${hr}\", \"uptime\":\"${currentUptime}\", \"interval\":\"${total_down},${total_up}\",\"interfaces\":'[${interfaceTotals}]',\"memory\":'${memoryTotals}',\"disk_utilization\":'${diskUtilization}' })"
 
-	totalsLine="Totals({ \"hour\":\"$hr\", \"uptime\":\"$currentUptime\", \"interval\":\"$total_down,$total_up\",\"interfaces\":'[$interfaceTotals]',\"memory\":'$memoryTotals',\"disk_utilization\":'$disk_utilization' })"
-
-	if [ -n  "$intervalTraffic" ] ; then
-		Send2Log "GetTraffic ($hr:$mm --> $vnx): intervalTraffic --> $(IndentList "$intervalTraffic\n$totalsLine")" $ltrl
-		echo -e "$(echo "$hrlyData" | grep -v "\"hour\":\"$hr\"")\n${intervalTraffic//,0,0\"/\"}\n${totalsLine//,0,0\"/\"}" > "$hourlyDataFile"
-		echo -e "\n//$hr:$(printf %02d $(( ${mm#0} - ${_updateTraffic:-4} )))->$hr:$mm ($vnx)\n${intervalTraffic//,0,0\"/\"}\n${totalsLine//,0,0\"/\"}" >> "$rawtraffic_hr"
+	if [ -n "$intervalTraffic" ] ; then
+		Send2Log "GetTraffic (${hr}:${mm} --> ${vnx}): intervalTraffic --> $(IndentList "${intervalTraffic}\n${totalsLine}")" $ltrl
+		echo -e "$(echo "$hrlyData" | grep -v "\"hour\":\"${hr}\"")\n${intervalTraffic//,0,0\"/\"}\n${totalsLine//,0,0\"/\"}" > "$hourlyDataFile"
+		echo -e "\n//$hr:$(printf %02d $(( ${mm#0} - ${_updateTraffic:-4} )))->${hr}:${mm} (${vnx})\n${intervalTraffic//,0,0\"/\"}\n${totalsLine//,0,0\"/\"}" >> "$rawtraffic_hr"
 	else
-		Send2Log "GetTraffic ($hr:$mm): No traffic" 1
+		Send2Log "GetTraffic (${hr}:${mm}): No traffic" 1
 		local str="Totals({ \"hour\":\"$hr\""
 		echo -e "$(echo "$hrlyData" | grep -v "$str")\n${totalsLine//,0,0\"/\"}" > "$hourlyDataFile"
-		echo -e "\n//$hr:$(printf %02d $(( ${mm#0} - ${_updateTraffic:-4} )))->$hr:$mm ($vnx)\n//No traffic" >> "$rawtraffic_hr"
+		echo -e "\n//${hr}:$(printf %02d $(( ${mm#0} - ${_updateTraffic:-4} )))->${hr}:${mm} (${vnx})\n//No traffic" >> "$rawtraffic_hr"
 	fi
 
-	sed -i "s~var hourly_updated.\{0,\}$~var hourly_updated=\"$_ds $hr:$mm\"~" "$hourlyDataFile"
-	sed -i "s~var serverUptime.\{0,\}$~var serverUptime=\"$currentUptime\"~" "$hourlyDataFile"
+	sed -i "s~var hourly_updated.\{0,\}$~var hourly_updated=\"$_ds ${hr}:${mm}\"~" "$hourlyDataFile"
+	sed -i "s~var serverUptime.\{0,\}$~var serverUptime=\"${currentUptime}\"~" "$hourlyDataFile"
 
 	cp "$hourlyDataFile" "$_path2CurrentMonth"
-	cp "$tmpLastSeen" "${_lastSeenFile}"
+	cp "$tmpLastSeen" "$_lastSeenFile"
 	ChangePath '_uptime' "$currentUptime"
 }
