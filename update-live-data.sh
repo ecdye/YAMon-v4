@@ -49,15 +49,13 @@ CurrentConnections_1() { # _doCurrConnections=1
 		return
 	}
 	ArchiveLiveUpdates_1() { # _doArchiveLiveUpdates=1
-	  local dpct
-		local dspace
+	  local diskUtilization
 
-		dpct="$(df $d_baseDir | grep "^/" | awk '{ print $5 }')"
-		dspace="$(printf %02d "$(echo "${dpct%\%} ")")"
-		if [ "$dspace" -lt '90' ]; then
+		diskUtilization="$(df "$d_baseDir" | tail -n 1 | awk '{ print $(NF-1) }' | cut -d'%' -f1)"
+		if [ "$diskUtilization" -lt 90 ]; then
 			cat "$_liveFilePath" >> $_liveArchiveFilePath
 		else
-			Send2Log "ArchiveLiveUpdates_: skipped because of low disk space: $dpct" 3
+			Send2Log "ArchiveLiveUpdates_: skipped because of low disk space: $diskUtilization" 3
 		fi
 	}
 

@@ -214,7 +214,7 @@ GetTraffic(){
 
 	interfaceTotals="$(GetInterfaceTraffic)"
 	memoryTotals="$(GetMemory)"
-	diskUtilization="$(df "${d_baseDir}" | tail -n 1 | awk '{ print $(NF-1) }')"
+	diskUtilization="$(df "$d_baseDir" | tail -n 1 | awk '{ print $(NF-1) }')"
 	totalsLine="Totals({ \"hour\":\"${hr}\", \"uptime\":\"${currentUptime}\", \"interval\":\"${total_down},${total_up}\",\"interfaces\":'[${interfaceTotals}]',\"memory\":'${memoryTotals}',\"disk_utilization\":'${diskUtilization}' })"
 
 	if [ -n "$intervalTraffic" ]; then
