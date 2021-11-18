@@ -25,7 +25,6 @@
 
 hr="$(echo "$_ts" | cut -d':' -f1)"
 mm="$(echo "$_ts" | cut -d':' -f2)"
-
 sm="$(printf %02d $(( ${mm#0} - ${_updateTraffic:-4} )))"
 Send2Log "traffic.sh: --> ${hr}:${sm} -> ${hr}:${mm}" 1
 
@@ -162,7 +161,7 @@ GetTraffic(){
 			wr="$(iptables -L "$YAMON_IPTABLES" -n --line-numbers | grep RETURN | awk '{ print $1 }')"
 			[ -n "$wr" ] && iptables -D "$YAMON_IPTABLES" "$wr"
 
-			if [ "$_logNoMatchingMac" -eq "1" ] ; then
+			if [ "$_logNoMatchingMac" -eq "1" ]; then
 				iptables -A "$YAMON_IPTABLES" -j LOG --log-prefix "YAMon: "
 				Send2Log "GetTraffic: re-zeroed LOG rule in $YAMON_IPTABLES (entry #${wl})" 2
 			else
@@ -174,17 +173,17 @@ GetTraffic(){
 		else
 			tip="\b${ip//\./\\.}\b"
 			mac="$(echo "$macIPList" | grep "$tip" | cut -d' ' -f1)"
-			if [ -z "$mac" ] ; then
+			if [ -z "$mac" ]; then
 				mac="$(GetMACbyIP "$ip")"
 				Send2Log "GetTraffic: no matching entry for ${fl}.  Appending \`${mac} ${ip}\` to macIPFile" 2
 				echo -e "$mac $ip" >> "$macIPFile"
 				Send2Log "GetTraffic: Checking users.js for \`${mac} ${ip}\`" 1
 				CheckMAC2IPinUserJS "$mac" "$ip"
-				CheckIPTableEntry "$i"
+				CheckIPTableEntry "$ip"
 				CheckMAC2GroupinUserJS "$mac"
 			fi
 
-			if [ -n "$mac" ] ; then
+			if [ -n "$mac" ]; then
 				do="$(echo "$ipt" | grep -E "(${_generic_ipv4}|${_generic_ipv6}) $tip\b" | cut -d' ' -f1 | head -n 1)"
 				up="$(echo "$ipt" | grep -E "$tip (${_generic_ipv4}|${_generic_ipv6})" | cut -d' ' -f1 | head -n 1)"
 				total_down=$(( total_down + ${do:-0} ))
@@ -205,7 +204,7 @@ GetTraffic(){
   currentUptime="$(cat /proc/uptime | cut -d' ' -f1)"
 	[ -z "$currentUptime" ] && Send2Log "GetTraffic: currentUptime is null?!?" 2
 
-	if [ -n "$currentUptime" ] && [ "$currentUptime" \< "$_uptime" ] ; then
+	if [ -n "$currentUptime" ] && [ "$currentUptime" \< "$_uptime" ]; then
 		rebootFile="${tmplog}reboot-${_ds}.js"
 		Send2Log "GetTraffic: rebooted ($currentUptime < $_uptime) --> save current hour data to reboot.js" 2
 		echo "// Uptime: $currentUptime < $_uptime" >> "$rebootFile"
@@ -218,15 +217,15 @@ GetTraffic(){
 	diskUtilization="$(df "${d_baseDir}" | tail -n 1 | awk '{ print $(NF-1) }')"
 	totalsLine="Totals({ \"hour\":\"${hr}\", \"uptime\":\"${currentUptime}\", \"interval\":\"${total_down},${total_up}\",\"interfaces\":'[${interfaceTotals}]',\"memory\":'${memoryTotals}',\"disk_utilization\":'${diskUtilization}' })"
 
-	if [ -n "$intervalTraffic" ] ; then
+	if [ -n "$intervalTraffic" ]; then
 		Send2Log "GetTraffic (${hr}:${mm} --> ${vnx}): intervalTraffic --> $(IndentList "${intervalTraffic}\n${totalsLine}")" $ltrl
 		echo -e "$(echo "$hrlyData" | grep -v "\"hour\":\"${hr}\"")\n${intervalTraffic//,0,0\"/\"}\n${totalsLine//,0,0\"/\"}" > "$hourlyDataFile"
-		echo -e "\n//$hr:$(printf %02d $(( ${mm#0} - ${_updateTraffic:-4} )))->${hr}:${mm} (${vnx})\n${intervalTraffic//,0,0\"/\"}\n${totalsLine//,0,0\"/\"}" >> "$rawtraffic_hr"
+		echo -e "\n//$hr:${sm}->${hr}:${mm} (${vnx})\n${intervalTraffic//,0,0\"/\"}\n${totalsLine//,0,0\"/\"}" >> "$rawtraffic_hr"
 	else
 		Send2Log "GetTraffic (${hr}:${mm}): No traffic" 1
 		local str="Totals({ \"hour\":\"$hr\""
 		echo -e "$(echo "$hrlyData" | grep -v "$str")\n${totalsLine//,0,0\"/\"}" > "$hourlyDataFile"
-		echo -e "\n//${hr}:$(printf %02d $(( ${mm#0} - ${_updateTraffic:-4} )))->${hr}:${mm} (${vnx})\n//No traffic" >> "$rawtraffic_hr"
+		echo -e "\n//${hr}:${sm})->${hr}:${mm} (${vnx})\n//No traffic" >> "$rawtraffic_hr"
 	fi
 
 	sed -i "s~var hourly_updated.\{0,\}$~var hourly_updated=\"$_ds ${hr}:${mm}\"~" "$hourlyDataFile"
