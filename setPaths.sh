@@ -168,7 +168,7 @@ echo -e "\n# Firmware specfic & dependent entries:" >> "${pathsFile}"
 		AddEntry '_dnsmasq_leases' "/tmp/dnsmasq.leases"
 		AddEntry "_wwwPath" "${_wwwPath:-/tmp/www/}"
 		AddEntry "_wwwURL" '/user'
-		_lan_iface='vlan1'
+		_lan_iface='br-0'
 		AddEntry "_iptablesWait" '-w -W1'
 
 		hip6="$(nvram get ipv6_enable)"
