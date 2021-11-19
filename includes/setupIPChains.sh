@@ -141,11 +141,7 @@ SetupIPChains(){
 			CheckTables
 		done
 
-		if [ "${_logNoMatchingMac:-0}" -eq "1" ] ; then
-			eval $cmd -A "$YAMON_IPTABLES" -j LOG --log-prefix "YAMon: " "$_iptablesWait"
-		else
-			eval $cmd -A "$YAMON_IPTABLES" -j RETURN
-		fi
+		AddIPTableRules
 
 	done
 

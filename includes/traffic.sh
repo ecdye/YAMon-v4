@@ -26,7 +26,6 @@
 hr="$(echo "$_ts" | cut -d':' -f1)"
 mm="$(echo "$_ts" | cut -d':' -f2)"
 sm="$(printf %02d $(( ${mm#0} - ${_updateTraffic:-4} )))"
-Send2Log "traffic.sh: --> ${hr}:${sm} -> ${hr}:${mm}" 1
 
 GetMemory() {
 	local memInfo
@@ -119,7 +118,7 @@ GetTraffic(){
 	ipt="$ip4t\n$ip6t"
 	tls="$(date +"%H:%M:%S")"
 
-	Send2Log "GetTraffic - $vnx ($ltrl)" 0
+	Send2Log "GetTraffic - $vnx ($ltrl) --> ${hr}:${sm} -> ${hr}:${mm}" 1
 
 	[ -z "$ip4t" ] && Send2Log "GetTraffic - No IPv4 traffic"
 	[ -z "$ip6t" ] && Send2Log "GetTraffic - No IPv6 traffic"
@@ -156,19 +155,7 @@ GetTraffic(){
 			intervalTraffic="${intervalTraffic}\n${newLine}"
 
 			# delete the final RETURN/LOG entry in YAMONv40 to reset the totals to zero
-			wl="$(iptables -L "$YAMON_IPTABLES" -n --line-numbers | grep LOG | awk '{ print $1 }')"
-			[ -n "$wl" ] && iptables -D "$YAMON_IPTABLES" "$wl"
-			wr="$(iptables -L "$YAMON_IPTABLES" -n --line-numbers | grep RETURN | awk '{ print $1 }')"
-			[ -n "$wr" ] && iptables -D "$YAMON_IPTABLES" "$wr"
-
-			if [ "$_logNoMatchingMac" -eq "1" ]; then
-				iptables -A "$YAMON_IPTABLES" -j LOG --log-prefix "YAMon: "
-				Send2Log "GetTraffic: re-zeroed LOG rule in $YAMON_IPTABLES (entry #${wl})" 2
-			else
-				iptables -A "$YAMON_IPTABLES" -j RETURN
-				Send2Log "GetTraffic: re-zeroed RETURN rule in $YAMON_IPTABLES (entry #${wr})" 2
-			fi
-
+			AddIPTableRules
 			ipt="$(echo -e "$ipt" | grep -v "$fl")" # delete just the first entry from the list of IPs
 		else
 			tip="\b${ip//\./\\.}\b"

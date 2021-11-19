@@ -146,6 +146,43 @@ GetDeviceGroup() {
 	echo "$group"
 }
 
+AddIPTableRules() {
+	local commands="iptables"
+	local cmd
+
+	DeleteIPTableRule() {
+		local ruleName="$1"
+		local cmd
+		local nl="0"
+		local ln
+
+		for cmd in $commands; do
+			while true; do
+				ln="$($cmd -L "$YAMON_IPTABLES" -n --line-numbers | grep "$ruleName" | awk '{ print $1 }')"
+				[ -z $ln ] && break
+				$cmd -D "$YAMON_IPTABLES" "$ln" "$_iptablesWait"
+				nl="$(( nl + 1 ))"
+			done
+			Send2Log "deleteIPTableRule: deleted $nl $ruleName rules from $cmd: $YAMON_IPTABLES" 2
+		done
+	}
+
+	[ -n "$ip6Enabled" ] && commands="iptables,ip6tables"
+
+	DeleteIPTableRule LOG
+	DeleteIPTableRule RETURN
+
+	for cmd in $commands; do
+		if [ "$_logNoMatchingMac" -eq "1" ]; then
+			$cmd -A "$YAMON_IPTABLES" -j LOG --log-prefix "YAMon: " "$_iptablesWait"
+			Send2Log "addIPTableRule: added LOG rule in $cmd: $YAMON_IPTABLES" 2
+		else
+			$cmd -A "$YAMON_IPTABLES" -j RETURN
+			Send2Log "addIPTableRule: added RETURN rule in $cmd: $YAMON_IPTABLES" 2
+		fi
+	done
+}
+
 CheckIPTableEntry() {
 	local ip="$1"
 	local tip="\b${ip//\./\\.}\b"
