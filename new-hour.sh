@@ -19,13 +19,13 @@
 d_baseDir=$(cd "$(dirname "$0")" && pwd)
 source "${d_baseDir}/includes/shared.sh"
 
-hr=$(echo $_ts | cut -d':' -f1)
-Send2Log "new hour: Start of hour $hr" 1
+hr="$(echo $_ts | cut -d':' -f1)"
+Send2Log "Start of hour $hr (${_ds})" 1
 
 rawtraffic_hr="${tmplog}raw-traffic-$_ds-$hr.txt"
 ChangePath 'rawtraffic_hr' "$rawtraffic_hr"
 
-[ ! -f "$rawtraffic_hr" ] && > "$rawtraffic_hr"
+[ ! -f "$rawtraffic_hr" ] && true > "$rawtraffic_hr"
 Send2Log "new hour: created new temporary hour file: $rawtraffic_hr"
 
 sleep 5

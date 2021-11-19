@@ -17,47 +17,58 @@
 ##########################################################################
 
 DeactiveIdleDevices(){
-	local _activeIPs=$(cat "$_usersFile" | grep -e "^mac2ip({.*})$" | grep '"active":"1"')
-	local lastseen=''
-	[ -f "$_lastSeenFile" ] && lastseen=$(cat "$_lastSeenFile" | grep -e "^lastseen({.*})$")
-	IFS=$'\n'
+	local _activeIPs
+	local _inActiveIPs
+	local lastseen
+	local line
+	local id
+	local ls
+	local wl
+	local newline
+	local changes1
+	local changes2
+
+  _activeIPs="$(cat "$_usersFile" | grep -e '^mac2ip({.*})$' | grep '"active":"1"')"
+	_inActiveIPs="$(cat "$_usersFile" | grep -e '^mac2ip({.*})$' | grep '"active":"0"')"
+	[ -f "$_lastSeenFile" ] && lastseen="$(cat "$_lastSeenFile" | grep -e '^lastseen({.*})$')"
+
 	Send2Log "DeactiveIdleDevices - _activeIPs"
-	for line in $_activeIPs
-	do
+	IFS=$'\n'
+	for line in $_activeIPs; do
 		[ -z "$line" ] && continue
-		local id=$(GetField "$line" 'id')
-		local ls=$(GetField "$(echo "$lastseen" | grep "$id")" 'last-seen')
-		#ToDo - add a check for last-seen more than 30 days old
-		if [ -z "$ls" ] ; then
-			newline=$(echo "${line/\"active\":\"1\"/\"active\":\"0\"}")
-			sed -i "s~$line~$newline~" "$_usersFile"
-			#To Do... cull the inactive entries from iptables?!?
+		id="$(GetField "$line" 'id')"
+		ls="$(GetField "$(echo "$lastseen" | grep "$id")" 'last-seen')"
+		# TODO: add a check for last-seen more than 30 days old
+		if [ -z "$ls" ]; then
+			newline="$(echo "${line/\"active\":\"1\"/\"active\":\"0\"}")"
+			sed -i "s~${line}~${newline}~" "$_usersFile"
+			# TODO: cull the inactive entries from iptables?!?
 			Send2Log "DeactiveIdleDevices: $id set to inactive (based upon users.js)" 1
-			local changes1=1
+			changes1=1
 		fi
 	done
+	unset IFS
 	[ -z "$changes1" ] && Send2Log "DeactiveIdleDevices: no active devices deactivated"
 
-	local _inActiveIPs=$(cat "$_usersFile" | grep -e "^mac2ip({.*})$" | grep '"active":"0"')
-
 	Send2Log "DeactiveIdleDevices - lastseen"
-	for line in $lastseen
-	do
+	IFS=$'\n'
+	for line in $lastseen; do
 		[ -z "$line" ] && continue
-		local id=$(GetField "$line" 'id')
-		local wl=$(echo "$_inActiveIPs" | grep "$id")
-		if [ -n "$wl" ] ; then
-			newline=$(echo "${wl/\"active\":\"0\"/\"active\":\"1\"}")
-			sed -i "s~$wl~$newline~" "$_usersFile"
+		id="$(GetField "$line" 'id')"
+		wl="$(echo "$_inActiveIPs" | grep "$id")"
+		if [ -n "$wl" ]; then
+			newline="$(echo "${wl/\"active\":\"0\"/\"active\":\"1\"}")"
+			sed -i "s~${wl}~${newline}~" "$_usersFile"
 			Send2Log "DeactiveIdleDevices: $id set to active (based upon lastseen.js)" 1
 			local changes2=1
 		fi
 	done
+	unset IFS
 	[ -z "$changes2" ] && Send2Log "DeactiveIdleDevices: no deactived devices activated"
 	[ -n "$changes1" ] || [ -n "$changes2" ] && UsersJSUpdated
 }
 
-d_baseDir=$(cd "$(dirname "$0")" && pwd)
+d_baseDir="$(cd "$(dirname "$0")" && pwd)"
 source "${d_baseDir}/includes/shared.sh"
 source "${d_baseDir}/includes/dailytotals.sh"
 [ -n "$1" ] && _ds="$1"
@@ -67,16 +78,15 @@ Send2Log "End of day: $_ds" 1
 Send2Log "End of day: copy $hourlyDataFile --> $_path2CurrentMonth"
 cp "$hourlyDataFile" "$_path2CurrentMonth"
 
-#Calculate the daily totals
+# Calculate the daily totals
 Send2Log "End of day: tally the traffic for the day and update the monthly file"
 CalculateDailyTotals ## no param --> implies value of _ds
 
 Send2Log "End of day: backup files as required"
 cp "$tmplogFile" "$_path2logs"
 
-[ "$_doDailyBU" -eq "1" ] && tar -cf "${_path2bu}bu-${_ds}.tar.gz" $_usersFile $tmpLastSeen $(find -L ${d_baseDir} | grep "$_ds") 2>/dev/null && Send2Log "End of day: archive date specific files to '${_path2bu}bu-${_ds}.tar.gz'"
-
-rm $(find "$tmplog" | grep "$_ds") #delete the date specific files
+[ "$_doDailyBU" -eq "1" ] && tar -czf "${_path2bu}bu-${_ds}.tar.gz" $_usersFile $tmpLastSeen "$(find -L ${d_baseDir} | grep "$_ds")" 2>/dev/null && Send2Log "End of day: archive date specific files to '${_path2bu}bu-${_ds}.tar.gz'"
+rm "$(find "$tmplog" | grep "$_ds")" # delete the date specific files
 
 DeactiveIdleDevices
 

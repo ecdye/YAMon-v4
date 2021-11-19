@@ -16,19 +16,20 @@
 #
 ##########################################################################
 
-d_baseDir=$(cd "$(dirname "$0")" && pwd)
+d_baseDir="$(cd "$(dirname "$0")" && pwd)"
 source "${d_baseDir}/includes/shared.sh"
-ChangePath 'rawtraffic_day' "${_path2CurrentMonth}raw-traffic-$_ds.txt"
+ChangePath 'rawtraffic_day' "${_path2CurrentMonth}raw-traffic-${_ds}.txt"
 hourlyDataFile="${tmplog}hourly_${_ds}.js"
 dailyLogFile="${_path2logs}${_ds}.html"
 ChangePath 'hourlyDataFile' "$hourlyDataFile"
 ChangePath 'dailyLogFile' "$dailyLogFile"
+[ "${_doArchiveLiveUpdates:-0}" -eq "1" ] && ChangePath '_liveArchiveFilePath' "${_path2CurrentMonth}${_ds}-live_data4.js"
 if [ ! -f "$hourlyDataFile" ] ; then
-	echo -e "var hourly_created=\"${_ds} ${_ts}\"\nvar hourly_updated=\"${_ds} ${_ts}\"\nvar disk_utilization=\"\"\nvar serverUptime=\"$_uptime\"\nvar freeMem=\"\",availMem=\"\",totMem=\"\"" > "$hourlyDataFile"
+	echo -e "var hourly_created=\"${_ds} ${_ts}\"\nvar hourly_updated=\"${_ds} ${_ts}\"\nvar serverUptime=\"${_uptime}\"\n" > "$hourlyDataFile"
 fi
-Send2Log "new-day: $_ds / $hourlyDataFile" 1
+Send2Log "New day: $_ds (${hourlyDataFile})" 1
 
-[ ! -f "$dailyLogFile" ] && > "$rawtraffic_day"
+[ ! -f "$dailyLogFile" ] && true > "$rawtraffic_day"
 [ ! -f "$dailyLogFile" ] && echo "<!DOCTYPE html>
 <html lang='en'>
 <head>
@@ -43,12 +44,12 @@ Send2Log "new-day: $_ds / $hourlyDataFile" 1
 </head>
 <body>
 <div id='header'>
-<h1>Log for <span id='logDate'>$_ds</span></h1>
+<h1>Log for <span id='logDate'>${_ds}</span></h1>
 <p>Show: <label><input class='filter' type='checkbox' name='no-errors' checked>Errors</label><label><input class='filter' type='checkbox' name='no-ll2' checked>Level 2</label><label><input class='filter' type='checkbox' name='no-ll1' checked>Level 1</label><label><input class='filter' type='checkbox' name='no-ll0'>Level 0</label></p>
 </div><div id='log-contents' class='no-ll0'>
 " > "$dailyLogFile"
 
-#update the day-log symlink
+# update the day-log symlink
 nll="${_path2logs%/}/${_ds}.html"
 oll="${_wwwPath}logs/day-log.html"
 [ -h "$oll" ] && rm -fv "$oll"

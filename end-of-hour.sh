@@ -20,9 +20,9 @@ d_baseDir=$(cd "$(dirname "$0")" && pwd)
 source "${d_baseDir}/includes/shared.sh"
 source "${d_baseDir}/includes/traffic.sh"
 
-hr=$(echo $_ts | cut -d':' -f1)
+hr="$(echo $_ts | cut -d':' -f1)"
 sleep 59
-Send2Log "End of hour: $hr" 1
+Send2Log "End of hour: $hr (${_ds})" 1
 
 GetTraffic '-vnxZ'  # get the data and zero the tables
 
@@ -40,7 +40,7 @@ else
 fi
 
 Send2Log "crontab: $(IndentList "$acRules")" 0
-Send2Log "blocked: $(IndentList "$(iptables -L | grep blocked -B 2)")" 2
+[ -n "$_dbkey" ] && Send2Log "blocked: $(IndentList "$(iptables -L | grep blocked -B 2)")" 2
 Send2Log "End of hour: append \`$tmplogFile\` to \`$dailyLogFile\`" 2
 #contents of tmplog minus the header lines
 tmplogContents=$(cat "$tmplogFile" | grep -v "<\(/\{0,1\}head\|html\|meta\|link\|script\|head\|body\|!--header--\)")
@@ -65,15 +65,15 @@ echo "<!DOCTYPE html>
 </head>
 <body>
 <div id='header'> <!--header-->
-<h1>Log for <span id='logDate'>$tds</span></h1> <!--header-->
+<h1>Log for <span id='logDate'>${tds}</span></h1> <!--header-->
 <p>Show: <label><input class='filter' type='checkbox' name='no-errors' checked>Errors</label><label><input class='filter' type='checkbox' name='no-ll2' checked>Level 2</label><label><input class='filter' type='checkbox' name='no-ll1' checked>Level 1</label><label><input class='filter' type='checkbox' name='no-ll0'>Level 0</label></p> <!--header-->
 </div> <!--header-->
-<div class='hour-contents'><p>Hour: $thr</p>
+<div class='hour-contents'><p>Hour: ${thr}</p>
 " > "$tmplogFile"
 
 Send2Log "End of hour: remove \`$rawtraffic_hr\`"
 rm "$rawtraffic_hr"
 
-Send2Log "Processes: $(IndentList "$(ps | grep -v grep | grep $d_baseDir)")"
+Send2Log "Processes: $(IndentList "$(ps | grep -v grep | grep "$d_baseDir")")"
 
 LogEndOfFunction
