@@ -158,12 +158,12 @@ AddIPTableRules() {
 
 		for cmd in $commands; do
 			while true; do
-				ln="$($cmd -L "$YAMON_IPTABLES" -n --line-numbers | grep "$ruleName" | awk '{ print $1 }')"
+				ln="$($cmd -L "$YAMON_IPTABLES" -n --line-numbers | grep "$ruleName" | awk '{ print $1 }' | head -n 1)"
 				[ -z $ln ] && break
-				$cmd -D "$YAMON_IPTABLES" "$ln" "$_iptablesWait"
+				eval $cmd -D "$YAMON_IPTABLES" "$ln" "$_iptablesWait"
 				nl="$(( nl + 1 ))"
 			done
-			Send2Log "deleteIPTableRule: deleted $nl $ruleName rules from $cmd: $YAMON_IPTABLES" 2
+			Send2Log "deleteIPTableRule: deleted $nl $ruleName rules from ${cmd}: $YAMON_IPTABLES" 2
 		done
 	}
 
@@ -174,11 +174,11 @@ AddIPTableRules() {
 
 	for cmd in $commands; do
 		if [ "$_logNoMatchingMac" -eq "1" ]; then
-			$cmd -A "$YAMON_IPTABLES" -j LOG --log-prefix "YAMon: " "$_iptablesWait"
-			Send2Log "addIPTableRule: added LOG rule in $cmd: $YAMON_IPTABLES" 2
+			eval $cmd -A "$YAMON_IPTABLES" -j LOG --log-prefix "YAMon: " "$_iptablesWait"
+			Send2Log "addIPTableRule: added LOG rule in ${cmd}: $YAMON_IPTABLES" 2
 		else
-			$cmd -A "$YAMON_IPTABLES" -j RETURN
-			Send2Log "addIPTableRule: added RETURN rule in $cmd: $YAMON_IPTABLES" 2
+			eval $cmd -A "$YAMON_IPTABLES" -j RETURN "$_iptablesWait"
+			Send2Log "addIPTableRule: added RETURN rule in ${cmd}: $YAMON_IPTABLES" 2
 		fi
 	done
 }
