@@ -422,7 +422,7 @@ CheckMAC2GroupinUserJS() {
 		sed -i "s~${matchesMACGroup}~${newLine}~" $_usersFile
 		#To do - change entries in ip[6]tables
 		# iptables -E YAMONv40_Interfaces2 YAMONv40_Interfaces
-		matchingMACs="$(cat "$_usersFile" | grep -e "^mac2ip" | grep "\"active\":\"1\"")"
+		matchingMACs="$(cat $_usersFile | grep "^mac2ip({ \"id\":\"$(GetField "$matchesMACGroup" 'mac').*$")"
 		IFS=$'\n'
 		for line in $matchingMACs; do
 			[ -z "$line" ] && continue
