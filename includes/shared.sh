@@ -412,7 +412,7 @@ CheckMAC2GroupinUserJS() {
 		local matchingMACs
 		local matchingRules
 		local rule
-		local ii
+		local ip
 		local id
 		local ln
 
@@ -428,7 +428,7 @@ CheckMAC2GroupinUserJS() {
 			[ -z "$line" ] && continue
 			id="$(GetField $line 'id')"
 			[ -z "$id" ] && continue
-			ii="$(echo "$id" | cut -d'-' -f2)"
+			ip="$(echo "$id" | cut -d'-' -f2)"
 
 			re_ip4="([0-9]{1,3}\.){3}[0-9]{1,3}"
 			if [ -n "$(echo $ip | grep -E "$re_ip4")" ]; then # simplistically matches IPv4
@@ -436,9 +436,9 @@ CheckMAC2GroupinUserJS() {
 			else
 				local cmd='ip6tables'
 			fi
-			Send2Log "ChangeMACGroup: changing chain destination for $ii in $cmd ($gn)" 2
+			Send2Log "ChangeMACGroup: changing chain destination for $ip in $cmd ($gn)" 2
 
-			matchingRules="$($cmd -L "$YAMON_IPTABLES" -n --line-numbers | grep "\b${ii//\./\\.}\b")"
+			matchingRules="$($cmd -L "$YAMON_IPTABLES" -n --line-numbers | grep "\b${ip//\./\\.}\b")"
 			for rule in $matchingRules ; do
 				[ -z "$rule" ] && continue
 				ln="$(echo $rule | awk '{ print $1 }')"
