@@ -242,7 +242,7 @@ function setSettingsDefaults(){
 		livekbs_do.addColumn('number','ave. downloads');
 		livekbs_up=new google.visualization.DataTable();
 		livekbs_up.addColumn('string','Time');
-		livekbs_up.addColumn('number','uploads')
+		livekbs_up.addColumn('number','uploads');
 		livekbs_up.addColumn('number','ave. uploads');
 	}
 	$('#ShowRD').prop('checked',g_Settings['ShowRD']);

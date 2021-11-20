@@ -68,9 +68,6 @@ $(document).ready(function (){
 			});
 	   }
 	});
-	$('#sp_curSL').attr('id','sp_1minSL')
-	$('#sp_minSL').attr('id','sp_5minSL')
-	$('#sp_minSL').attr('id','sp_15minSL')
 	addISPList()
 	maxGrWidth=Math.min(1000, $('.tab-div').css('width').replace('px','')-44)
 
@@ -837,13 +834,13 @@ function serverloads(minL,minTS,maxL,maxTS){
 	minL*=1
 	maxL*=1
 	var _processors=1
-	var gw=$('.gradient').css('width').replace('px','')*1 ,wm=gw/Math.max(_processors,$('#sp_15minSL .txt').text()*1)
+	var gw=$('.gradient').css('width').replace('px','')*1 ,wm=gw/Math.max(_processors,$('#sp_15minSL').text()*1)
 	var los=Math.max(22,$('.gradient').position()['left']*1)
 	$('#serverload').fadeIn('slow')
 	$('#sp_5minSL').attr('title','Min load at: '+minTS)
-	$('#sp_5minSL .txt').text(minL.toFixed(2))
+	$('#sp_5minSL').text(minL.toFixed(2))
 	$('#sp_15minSL').attr('title','Max load at: '+maxTS)
-	$('#sp_15minSL .txt').text(maxL.toFixed(2))
+	$('#sp_15minSL').text(maxL.toFixed(2))
 	var l1=Math.min(gw, minL*wm-Math.max(20,$('#sp_5minSL').width())/2)+los,l2=Math.min(gw, maxL*wm-Math.max(20,$('#sp_15minSL').width())/2)+los
 	$('#sp_5minSL').css('left',l1)
 	$('#sp_15minSL').css('left',l2)
