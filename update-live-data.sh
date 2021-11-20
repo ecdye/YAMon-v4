@@ -53,7 +53,7 @@ CurrentConnections_1() { # _doCurrConnections=1
 
 		diskUtilization="$(df "$d_baseDir" | tail -n 1 | awk '{ print $(NF-1) }' | cut -d'%' -f1)"
 		if [ "$diskUtilization" -lt 90 ]; then
-			cat "$_liveFilePath" >> $_liveArchiveFilePath
+			cat "$_liveFilePath" > $_liveArchiveFilePath
 		else
 			Send2Log "ArchiveLiveUpdates_: skipped because of low disk space: $diskUtilization" 3
 		fi
@@ -97,7 +97,7 @@ CurrentConnections_1() { # _doCurrConnections=1
 loads="$(cat /proc/loadavg | cut -d' ' -f1,2,3 | tr -s ' ' ',')"
 Send2Log ">>> loadavg: $loads"
 
-echo -e "var last_update='$_ds $_ts'\nserverload($loads)" > $_liveFilePath
+echo -e "var last_update='$_ds $_ts'\nserverload($loads)" >> "$_liveFilePath"
 
 $doCurrConnections
 
