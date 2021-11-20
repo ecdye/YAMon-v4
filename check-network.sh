@@ -17,43 +17,60 @@
 #
 ##########################################################################
 
-d_baseDir=$(cd "$(dirname "$0")" && pwd)
+d_baseDir="$(cd "$(dirname "$0")" && pwd)"
 source "${d_baseDir}/includes/shared.sh"
 source "${d_baseDir}/includes/start-stop.sh"
 
 Send2Log "Checking the network for new devices" 1
 
 excluding='FAILED,STALE,INCOMPLETE,00:00:00:00:00:00' # excludes listed entries from the results
-arpResults=$(cat /proc/net/arp | grep "^[1-9]" | tr "[A-Z]" "[a-z]")
-arpList=$(echo "$arpResults" | grep -Ev "(${excluding//,/|})" | awk '{ print $4,$1 }')
+arpResults="$(cat /proc/net/arp | grep "^[1-9]" | tr "[A-Z]" "[a-z]")"
+arpList="$(echo "$arpResults" | grep -Ev "(${excluding//,/|})" | awk '{ print $4,$1 }')"
 #[ -n "$arpList" ] && Send2Log "Check4NewDevices: arpList: $(IndentList "$arpList")"
 
-ipResults=$($_IPCmd | tr "[A-Z]" "[a-z]") # a hack for firmware variants which do not include the full ip command (so `ip neigh show` does not return valid info)
-ipList=$(echo "$ipResults" | grep -Ev "(${excluding//,/|})" | awk '{ print $5,$1 }')
+ipResults="$($_IPCmd | tr "[A-Z]" "[a-z]")" # a hack for firmware variants which do not include the full ip command (so `ip neigh show` does not return valid info)
+ipList="$(echo "$ipResults" | grep -Ev "(${excluding//,/|})" | awk '{ print $5,$1 }')"
 #[ -n "$ipList" ] && Send2Log "Check4NewDevices: ipList: $(IndentList "$ipList")"
 
 
-Check4NewDevices(){
+Check4NewDevices() {
+	local macIPList
+	local currentIPList
+	local combinedIPArp
+	local newIPList
+	local dmsg
+	local ipsFromARP
+	local nip
+	local nd
+	local iptablesList
+	local mac
+	local re_mac='([a-f0-9]{2}:){5}[a-f0-9]{2}'
+	local groupName
+	local line
+	local m
+	local i
+	local rm
 
-	FindRefMAC(){
+	FindRefMAC() {
+		local fm
+		local nm
+		local rm
+
 		Send2Log "FindRefMAC: $i $m"
-
-		local fm=$(echo "$macIPList" | grep "\b${i//\./\\.}\b")
-		local nm=$(echo "$fm" | wc -l)
+		fm="$(echo "$macIPList" | grep "\b${i//\./\\.}\b")"
+		nm="$(echo "$fm" | wc -l)"
 		[ -z "$fm" ] && nm=0
 		if [ "$nm" -eq "1" ] ; then
-			local rm=$(echo "$fm" | cut -d' ' -f1)
+			rm="$(echo "$fm" | cut -d' ' -f1)"
 			Send2Log "FindRefMAC: MAC changed from $m to $rm" 1
 			echo "$rm"
 			return
 		elif [ "$nm" -eq "0" ] ; then
-			Send2Log "FindRefMAC: no matching entry for $i in $macIPFile... checking $tmpLastSeen" 1
-			local fm=''
-			[ -f "$tmpLastSeen" ] && fm=$(cat "$tmpLastSeen" | grep -e "^lastseen({.*})$" | grep "\b${i//\./\\.}\b" | grep -v "$_generic_mac")
-			local nm=$(echo "$fm" | wc -l)
-			[ -z "$fm" ] && nm=0
-			if [ "$nm" -eq "1" ] ; then
-				local rm=$(echo "$(GetField "$fm" 'id')" | cut -d'-' -f1)
+			Send2Log "FindRefMAC: no matching entry for $i in ${macIPFile}... checking $tmpLastSeen" 1
+			[ -f "$tmpLastSeen" ] && fm="$(cat "$tmpLastSeen" | grep -e "^lastseen({.*})$" | grep "\b${i//\./\\.}\b" | grep -v "$_generic_mac")"
+			[ -z "$fm" ] && nm=0 || nm="$(echo "$fm" | wc -l)"
+			if [ "$nm" -eq "1" ]; then
+				rm=$(echo "$(GetField "$fm" 'id')" | cut -d'-' -f1)
 				Send2Log "FindRefMAC: MAC changed from $m to $rm in $tmpLastSeen" 1
 				echo "$rm"
 				return
@@ -66,73 +83,71 @@ Check4NewDevices(){
 		echo -e "$_ts: $nd\n\tIP: $(echo "$arpResults" | grep "\b$i\b") \n\tarp: $(echo "$ipResults" | grep "\b$i\b" )" >> "${tmplog}bad-mac.txt"
 	}
 
-	local macIPList=$(cat "$macIPFile" | grep -Ev "^\s{0,}$")
+	macIPList="$(cat "$macIPFile" | grep -Ev '^\s{0,}$')"
 
 	#Send2Log "Check4NewDevices: starting macIPList--> $(IndentList "$macIPList")"
-	local currentIPList=$(echo "$macIPList" | tr "\n" '|')
-	currentIPList=${currentIPList%|}
-	local combinedIPArp=$(echo -e "$ipList\n$arpList" | grep -Ev "^\s{0,}$" | sort -u)
-	local newIPList=$(echo "$combinedIPArp" | grep -Ev "$currentIPList")
-	[ -z "$currentIPList" ] && newIPList=$combinedIPArp
+	currentIPList="$(echo "$macIPList" | tr "\n" '|')"
+	currentIPList="${currentIPList%|}"
+	combinedIPArp="$(echo -e "$ipList\n$arpList" | grep -Ev '^\s{0,}$' | sort -u)"
+	newIPList="$(echo "$combinedIPArp" | grep -Ev "$currentIPList")"
+	[ -z "$currentIPList" ] && newIPList="$combinedIPArp"
 
 	#Send2Log "Check4NewDevices: currentIPList: $(IndentList "$currentIPList")"
 
 	# add the YAMon entries of dmesg into the logs to see where the unmatched data is coming from (and then clear dmesg)
-	[ "${_logNoMatchingMac:-0}" -eq "1" ] && local dmsg=$(dmesg -c | grep YAMon)
-	if [ -z "$newIPList" ] ; then
+	[ "${_logNoMatchingMac:-0}" -eq "1" ] && dmsg="$(dmesg -c | grep "YAMon")"
+	if [ -z "$newIPList" ]; then
 		Send2Log "Check4NewDevices: no new devices... checking that all IP addresses exist in iptables"
-		local ipsFromARP=$(cat /proc/net/arp | grep "^[1-9]" | grep -Ev "(${excluding//,/|})" | awk '{ print $1 }' | sort)
-		local iptablesList=$(iptables -L YAMONv40 -vnx | awk '{ print $8 }' | grep -v '0.0.0.0' | sort | grep "^[1-9]" | tr "\n" '|')
+		ipsFromARP="$(cat /proc/net/arp | grep "^[1-9]" | grep -Ev "(${excluding//,/|})" | awk '{ print $1 }' | sort)"
+		iptablesList="$(iptables -L "$YAMON_IPTABLES" -vnx | awk '{ print $8 }' | grep -v '0.0.0.0' | sort | grep "^[1-9]" | tr "\n" '|')"
 		iptablesList="${iptablesList%|}"
 		iptablesList="${iptablesList//|/$|}"
 		iptablesList="${iptablesList//\./\\.}"
-
-		unmatchedIPs=$(echo "$ipsFromARP" | grep -Ev "${iptablesList%|}")
+		unmatchedIPs="$(echo "$ipsFromARP" | grep -Ev "${iptablesList%|}")"
 		for nip in $unmatchedIPs ; do
-			local mac=$(GetMACbyIP "$nip")
-			local groupName=$(GetDeviceGroup "$mac" "$nip")
+			mac="$(GetMACbyIP "$nip")"
+			groupName="$(GetDeviceGroup "$mac" "$nip")"
 			Send2Log "Check4NewDevices: $nip ($mac / $groupName) is missing in iptables" 2
 			CheckIPTableEntry "$nip" "$groupName"
 		done
 
 		[ -n "$dmsg" ] && Send2Log "Check4NewDevices: Found YAMon entries in dmesg" 2
 		IFS=$'\n'
-		for line in $dmsg
-		do
-			#to-do parse lines for MAC & IP
+		for line in $dmsg; do
+			# TODO: parse lines for MAC & IP
 			Send2Log "check-network.sh: dmesg --> $line" 2
 		done
+		unset IFS
 	else
 		#Send2Log "Check4NewDevices: found new IPs: $(IndentList "$newIPList")" 1
-
 		IFS=$'\n'
-		local re_mac='([a-f0-9]{2}:){5}[a-f0-9]{2}'
-		for nd in $newIPList
-		do
+		for nd in $newIPList; do
 			[ -z "$nd" ] && return
-			local m=$(echo $nd | cut -d' ' -f1)
-			local i=$(echo $nd | cut -d' ' -f2)
-			Send2Log "check-network: new device=$nd  ;  ip=$i  ; mac=$m" 1
-			if [ -z "$(echo "$m" | grep -Ei "$re_mac")" ] ; then
-				Send2Log "Check4NewDevices: Bad MAC --> \n\tIP: $(echo "$arpResults" | grep "\b$i\b") \n\tarp: $(echo "$ipResults" | grep "\b$i\b" )" 2
-				local rm=$(FindRefMAC)
-				newIPList=$(echo "$newIPList" | sed -e "s~$nd~$rm $i~g" | grep -Ev "$currentIPList")
-				m=$rm
+			m="$(echo $nd | cut -d' ' -f1)"
+			i="$(echo $nd | cut -d' ' -f2)"
+			Send2Log "check-network: new device --> ip=${i}; mac=${m}" 1
+			if [ -z "$(echo "$m" | grep -Ei "$re_mac")" ]; then
+				unset IFS
+				Send2Log "Check4NewDevices: Bad MAC --> \n\tIP: $(echo "$arpResults" | grep "\b$i\b") \n\tarp: $(echo "$ipResults" | grep "\b$i\b")" 2
+				IFS=$'\n'
+				rm="$(FindRefMAC)"
+				newIPList="$(echo "$newIPList" | sed -e "s~${nd}~${rm} ${i}~g" | grep -Ev "$currentIPList")"
+				m="$rm"
 			fi
 			CheckMAC2IPinUserJS "$m" "$i"
-			local groupName=$(GetDeviceGroup "$m" "$i")
+			groupName="$(GetDeviceGroup "$m" "$i")"
 			CheckMAC2GroupinUserJS "$m" "$groupName"
 			CheckIPTableEntry "$i" "$groupName"
-			macIPList=$(echo "$macIPList" | grep -v "\b${i//\./\\.}\b")
+			macIPList="$(echo "$macIPList" | grep -v "\b${i//\./\\.}\b")"
 		done
+		unset IFS
 
 		[ -z "$newIPList" ] && return
-
 		Send2Log "Check4NewDevices: the following new devices were found: $(IndentList "$newIPList")" 1
-		echo -e "$macIPList\n$newIPList" | grep -Ev "^\s{0,}$" > "$macIPFile"
-
+		echo -e "$macIPList\n$newIPList" | grep -Ev '^\s{0,}$' > "$macIPFile"
 	fi
 }
+
 CheckMacIP4Duplicates(){
 	local macIPList=$(cat "$macIPFile")
 	local dups=$(echo -e "$macIPList" | awk '{print $2}' | awk ' { tot[$0]++ } END { for (i in tot) if (tot[i]>1) print tot[i],i } ')
@@ -179,7 +194,7 @@ Check4UpdatesInReports(){
 	done
 }
 
-if [ -n "$_dbkey" ] ; then
+if [ -n "$_dbkey" ]; then
 	Check4UpdatesInReports
 	SetAccessRestrictions
 fi

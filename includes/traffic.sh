@@ -94,8 +94,6 @@ GetTraffic(){
 	local "do"
 	local up
 	local newLine
-	local wl
-	local wr
 	local hrlyData
 	local currentUptime
 	local rebootFile

@@ -400,65 +400,75 @@ GetDeviceName() {
 	Send2Log "GetDeviceName: did not find name for ${mac}... defaulting to ${_defaultDeviceName}-${nextnum}" 0
 }
 
-CheckMAC2GroupinUserJS(){
-	Send2Log "CheckMAC2GroupinUserJS:  $1 $2" 2
-	local m=$1
-	local gn=${2:-${_defaultGroup:-${_defaultOwner:-Unknown}}}
+CheckMAC2GroupinUserJS() {
+	local m="$1"
+	local gn="${2:-${_defaultGroup:-Unknown}}"
+	local matchesMACGroup
+	local cgn
 
-	ChangeMACGroup(){
-		Send2Log "ChangeMACGroup: group names do not match! $gn !== $cgn " 2
-		local newLine=$(UpdateField "$matchesMACGroup" 'group' "$gn")
-		local groupChain="${YAMON_IPTABLES}_$(echo $gn | sed "s~[^a-z0-9]~~ig")"
-		sed -i "s~$matchesMACGroup~$newLine~" $_usersFile
+	ChangeMACGroup() {
+		local newLine
+		local groupChain
+		local matchingMACs
+		local matchingRules
+		local rule
+		local ii
+		local id
+		local ln
+
+		Send2Log "ChangeMACGroup: group names do not match! $gn != $cgn" 2
+		newLine="$(UpdateField "$matchesMACGroup" 'group' "$gn")"
+		groupChain="${YAMON_IPTABLES}_$(echo $gn | sed "s~[^a-z0-9]~~ig")"
+		sed -i "s~${matchesMACGroup}~${newLine}~" $_usersFile
 		#To do - change entries in ip[6]tables
 		# iptables -E YAMONv40_Interfaces2 YAMONv40_Interfaces
-		local matchingMACs=$(cat "$_usersFile" | grep -e "^mac2ip" | grep "\"active\":\"1\"")
+		matchingMACs="$(cat "$_usersFile" | grep -e "^mac2ip" | grep "\"active\":\"1\"")"
 		IFS=$'\n'
-		for line in $matchingMACs ; do
+		for line in $matchingMACs; do
 			[ -z "$line" ] && continue
-			local id=$(GetField $line 'id')
+			id="$(GetField $line 'id')"
 			[ -z "$id" ] && continue
-			local mm=$(echo "$id" | cut -d'-' -f1)
-			local ii=$(echo "$id" | cut -d'-' -f2)
+			ii="$(echo "$id" | cut -d'-' -f2)"
 
 			re_ip4="([0-9]{1,3}\.){3}[0-9]{1,3}"
-			if [ -n "$(echo $ip | grep -E "$re_ip4")" ] ; then # simplistically matches IPv4
+			if [ -n "$(echo $ip | grep -E "$re_ip4")" ]; then # simplistically matches IPv4
 				local cmd='iptables'
 			else
 				local cmd='ip6tables'
 			fi
 			Send2Log "ChangeMACGroup: changing chain destination for $ii in $cmd ($gn)" 2
 
-			local matchingRules=$($cmd -L ${YAMON_IPTABLES} -n --line-numbers | grep "\b${ii//\./\\.}\b")
+			matchingRules="$($cmd -L "$YAMON_IPTABLES" -n --line-numbers | grep "\b${ii//\./\\.}\b")"
 			for rule in $matchingRules ; do
 				[ -z "$rule" ] && continue
-				local ln=$(echo $rule | awk '{print $1}')
-				eval $cmd -R ${YAMON_IPTABLES} $ln -j $groupChain "$_iptablesWait"
+				ln="$(echo $rule | awk '{ print $1 }')"
+				eval $cmd -R "$YAMON_IPTABLES" "$ln" -j "$groupChain" "$_iptablesWait"
 				Send2Log "ChangeMACGroup: changing destination of $rule to $gn" 2
 			done
 		done
 		UsersJSUpdated
 	}
-
 	AddNewMACGroup(){
-		Send2Log "AddNewMACGroup: adding mac2group entry for $m & $gn" 2
 		local newentry="mac2group({ \"mac\":\"$m\", \"group\":\"$gn\" })"
-		sed -i "s~//MAC -> Groups~//MAC -> Groups\n$newentry~g" "$_usersFile"
+
+		Send2Log "AddNewMACGroup: adding mac2group entry for $m & $gn" 2
+		sed -i "s~//MAC -> Groups~//MAC -> Groups\n${newentry}~g" "$_usersFile"
 		UsersJSUpdated
 	}
 
-	local matchesMACGroup=$(cat "$_usersFile" | grep -e "^mac2group({.*})$" | grep "\"mac\":\"$m\"")
+	Send2Log "CheckMAC2GroupinUserJS: $m $gn" 2
+	matchesMACGroup="$(cat "$_usersFile" | grep -e '^mac2group({.*})$' | grep "\"mac\":\"${m}\"")"
 
-	if [ -z "$matchesMACGroup" ] ; then
+	if [ -z "$matchesMACGroup" ]; then
 		AddNewMACGroup
 	elif [ "$(echo $matchesMACGroup | wc -l)" -eq 1 ] ; then
-		local cgn=$(GetField "$matchesMACGroup" 'group')
-		#To do - check that the group names match
-		[ -n "$2" ] && [ "$gn" == "$cgn" ] || ChangeMACGroup
+		cgn="$(GetField "$matchesMACGroup" 'group')"
+		[ "$gn" == "$cgn" ] || ChangeMACGroup
 	else
-		Send2Log "CheckDeviceInUserJS: uh-oh... *$matchesMACGroup* mac2group matches for '$m' in '$_usersFile' --> $(IndentList "$(cat "$_usersFile" | grep -e "^mac2group({.*})$" | grep "\"id\":\"$m\"")")" 2
+		Send2Log "CheckDeviceInUserJS: uh-oh... *${matchesMACGroup}* mac2group matches for '${m}' in '${_usersFile}' --> $(IndentList "$(cat "$_usersFile" | grep -e '^mac2group({.*})$' | grep "\"id\":\"${m}\"")")" 2
 	fi
 }
+
 CheckMAC2IPinUserJS(){
 	Send2Log "CheckMAC2IPinUserJS:  $1 $2" 0
 	local m=$1
