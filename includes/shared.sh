@@ -439,9 +439,10 @@ CheckMAC2GroupinUserJS() {
 			Send2Log "ChangeMACGroup: changing chain destination for $ip in $cmd ($gn)" 2
 
 			matchingRules="$($cmd -L "$YAMON_IPTABLES" -n --line-numbers | grep "\b${ip//\./\\.}\b")"
-			for rule in $matchingRules ; do
+			for rule in $matchingRules; do
 				[ -z "$rule" ] && continue
 				ln="$(echo $rule | awk '{ print $1 }')"
+				eval $cmd -N "$groupChain" "$_iptablesWait" 2>/dev/null
 				eval $cmd -R "$YAMON_IPTABLES" "$ln" -j "$groupChain" "$_iptablesWait"
 				Send2Log "ChangeMACGroup: changing destination of $rule to $gn" 2
 			done
