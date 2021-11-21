@@ -16,7 +16,7 @@
 #
 ##########################################################################
 
-DeactiveIdleDevices(){
+DeactiveIdleDevices() {
 	local _activeIPs
 	local _inActiveIPs
 	local lastseen
@@ -58,9 +58,9 @@ DeactiveIdleDevices(){
 		wl="$(echo "$_inActiveIPs" | grep "$id")"
 		if [ -n "$wl" ]; then
 			newline="$(echo "${wl/\"active\":\"0\"/\"active\":\"1\"}")"
-			sed -i "s~${wl}~${newline}~" "$_usersFile"
+			sed -i "s@${wl}@${newline}@" "$_usersFile"
 			Send2Log "DeactiveIdleDevices: $id set to active (based upon lastseen.js)" 1
-			local changes2=1
+			changes2=1
 		fi
 	done
 	unset IFS
