@@ -86,10 +86,9 @@ Check4NewDevices() {
 	macIPList="$(cat "$macIPFile" | grep -Ev '^\s{0,}$')"
 
 	#Send2Log "Check4NewDevices: starting macIPList--> $(IndentList "$macIPList")"
-	currentIPList="$(echo "$macIPList" | tr "\n" '|')"
-	currentIPList="${currentIPList%|}"
-	combinedIPArp="$(echo -e "$ipList\n$arpList" | grep -Ev '^\s{0,}$' | sort -u)"
-	newIPList="$(echo "$combinedIPArp" | grep -Ev "$currentIPList")"
+	currentIPList="$macIPList"
+	combinedIPArp="$(echo -e "${ipList}\n${arpList}" | grep -Ev '^\s{0,}$' | sort -u)"
+	newIPList="$(echo "$combinedIPArp" | grep -Ev "$(echo "$currentIPList")")"
 	[ -z "$currentIPList" ] && newIPList="$combinedIPArp"
 
 	#Send2Log "Check4NewDevices: currentIPList: $(IndentList "$currentIPList")"
@@ -98,37 +97,36 @@ Check4NewDevices() {
 	[ "${_logNoMatchingMac:-0}" -eq "1" ] && dmsg="$(dmesg -c | grep "YAMon")"
 	if [ -z "$newIPList" ]; then
 		Send2Log "Check4NewDevices: no new devices... checking that all IP addresses exist in iptables"
-		ipsFromARP="$(cat /proc/net/arp | grep "^[1-9]" | grep -Ev "(${excluding//,/|})" | awk '{ print $1 }' | sort)"
-		iptablesList="$(iptables -L "$YAMON_IPTABLES" -vnx | awk '{ print $8 }' | grep -v '0.0.0.0' | sort | grep "^[1-9]" | tr "\n" '|')"
-		iptablesList="${iptablesList%|}"
-		iptablesList="${iptablesList//|/$|}"
-		iptablesList="${iptablesList//\./\\.}"
-		unmatchedIPs="$(echo "$ipsFromARP" | grep -Ev "${iptablesList%|}")"
-		for nip in $unmatchedIPs ; do
+		ipsFromARP="$(echo "$combinedIPArp" | awk '{ print $2 }')"
+		iptablesList="$(iptables -L "$YAMON_IPTABLES" -vnx | awk '{ print $8 }' | grep -v '0.0.0.0' | sort | grep "^[1-9]")"
+		unmatchedIPs="$(echo "$ipsFromARP" | grep -Ev "$iptablesList")"
+		for nip in $unmatchedIPs; do
 			mac="$(GetMACbyIP "$nip")"
 			groupName="$(GetDeviceGroup "$mac" "$nip")"
 			Send2Log "Check4NewDevices: $nip ($mac / $groupName) is missing in iptables" 2
 			CheckIPTableEntry "$nip" "$groupName"
 		done
 
-		[ -n "$dmsg" ] && Send2Log "Check4NewDevices: Found YAMon entries in dmesg" 2
-		IFS=$'\n'
-		for line in $dmsg; do
-			# TODO: parse lines for MAC & IP
-			Send2Log "check-network.sh: dmesg --> $line" 2
-		done
-		unset IFS
+		if [ -n "$dmsg" ]; then
+			Send2Log "Check4NewDevices: Found YAMon entries in dmesg" 2
+			IFS=$'\n'
+			for line in $dmsg; do
+				# TODO: parse lines for MAC & IP
+				Send2Log "check-network.sh: dmesg --> $line" 2
+			done
+			unset IFS
+		fi
 	else
 		#Send2Log "Check4NewDevices: found new IPs: $(IndentList "$newIPList")" 1
 		IFS=$'\n'
 		for nd in $newIPList; do
 			[ -z "$nd" ] && return
-			m="$(echo $nd | cut -d' ' -f1)"
-			i="$(echo $nd | cut -d' ' -f2)"
+			m="$(echo "$nd" | cut -d' ' -f1)"
+			i="$(echo "$nd" | cut -d' ' -f2)"
 			Send2Log "check-network: new device --> ip=${i}; mac=${m}" 1
 			if [ -z "$(echo "$m" | grep -Ei "$re_mac")" ]; then
 				unset IFS
-				Send2Log "Check4NewDevices: Bad MAC --> \n\tIP: $(echo "$arpResults" | grep "\b$i\b") \n\tarp: $(echo "$ipResults" | grep "\b$i\b")" 2
+				Send2Log "Check4NewDevices: Bad MAC --> \n\tIP: $(echo "$arpResults" | grep "\b${i}\b") \n\tarp: $(echo "$ipResults" | grep "\b${i}\b")" 2
 				IFS=$'\n'
 				rm="$(FindRefMAC)"
 				newIPList="$(echo "$newIPList" | sed -e "s~${nd}~${rm} ${i}~g" | grep -Ev "$currentIPList")"
@@ -148,18 +146,24 @@ Check4NewDevices() {
 	fi
 }
 
-CheckMacIP4Duplicates(){
-	local macIPList=$(cat "$macIPFile")
-	local dups=$(echo -e "$macIPList" | awk '{print $2}' | awk ' { tot[$0]++ } END { for (i in tot) if (tot[i]>1) print tot[i],i } ')
-	local combinedIPArp=$(echo -e "$ipList\n$arpList" | grep -Ev "^\s{0,}$" | sort -u)
+CheckMacIP4Duplicates() {
+	local macIPList
+	local dups
+	local combinedIPArp
+	local ip
+	local activeID
+	local line
+
+	macIPList="$(cat "$macIPFile")"
+	dups="$(echo -e "$macIPList" | awk '{ print $2 }' | awk ' { tot[$0]++ } END { for (i in tot) if (tot[i]>1) print tot[i],i } ')"
+	combinedIPArp="$(echo -e "${ipList}\n${arpList}" | grep -Ev '^\s{0,}$' | sort -u)"
 	[ -z "$dups" ] && Send2Log "CheckMacIP4Duplicates: no duplicate entries in $macIPFile" 1 && return
 	IFS=$'\n'
-	for line in $dups
-	do
-		local ip=$(echo "$line" | awk '{ print $2}')
+	for line in $dups; do
+		ip="$(echo "$line" | awk '{ print $2 }')"
 		Send2Log "CheckMacIP4Duplicates: $ip has duplicate entries in $macIPFile" 2
-		macIPList=$(echo -e "$macIPList" | grep -v "${ip//\./\\.}")
-		local activeID=$(echo "$combinedIPArp" | grep "${ip//\./\\.}")
+		macIPList="$(echo "$macIPList" | grep -v "${ip//\./\\.}")"
+		activeID="$(echo "$combinedIPArp" | grep "${ip//\./\\.}")"
 		if [ -n "$activeID" ] ; then
 			Send2Log "CheckMacIP4Duplicates: re-added activeID \`$activeID\`" 2
 			macIPList="$macIPList\n$activeID"
@@ -167,6 +171,7 @@ CheckMacIP4Duplicates(){
 			Send2Log "CheckMacIP4Duplicates: no active matches for \`$ip\` in arp & ip lists" 2
 		fi
 	done
+	unset IFS
 	echo -e "$macIPList" > "$macIPFile"
 }
 
