@@ -619,6 +619,47 @@ DigitAdd()
 	echo ${total:-0}
 	Send2Log "DigitAdd: $1 + $2 = $total"
 }
+
+DigitSub() {
+	local n1
+	local n2
+	n1="$(echo "${1:-0}" | sed 's/-*/0/')"
+	n2="$(echo "${2:-0}" | sed 's/-*/0/')"
+	if [ $n1 == $n2 ]; then
+		echo 0
+		return
+	fi
+	local l1=${#n1}
+	local l2=${#n2}
+	local b=0
+	local d1
+	local d2
+	local d
+	local total
+	if [ "$l1" -lt "${_max_digits:-12}" ] && [ "$l2" -lt "${_max_digits:-12}" ]; then
+		echo $(( l1 + l2 ))
+		return
+	fi
+
+	while [ $l1 -gt 0 ] || [ $l2 -gt 0 ]; do
+		d1=0
+		d2=0
+		l1=$(( l1 - 1 ))
+		l2=$(( l2 - 1 ))
+		[ $l1 -ge 0 ] && d1=${n1:$l1:1}
+		[ $l2 -ge 0 ] && d2=${n2:$l2:1}
+		[ "$d2" == "-" ] && d2=0
+		d1=$(( d1 - b ))
+		b=0
+		[ $d2 -gt $d1 ] && b=1
+		d=$(( d1 + b * 10 - d2 ))
+		total="${d}${total}"
+	done
+	[ $b -eq 1 ] && total="-${total}"
+	echo "$(echo "$total" | sed 's/0*//')"
+	Send2Log "DigitSub: $1 - $2 = $(echo "$total" | sed 's/0*//')"
+}
+
 CheckIntervalFiles(){
 # create the data directory
 	[ -f "$_intervalDataFile" ] && Send2Log "CheckIntervalFiles: interval file exists: $_intervalDataFile" 1 && return

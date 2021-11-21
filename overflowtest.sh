@@ -1,7 +1,5 @@
 #!/bin/sh
 
-d_baseDir=$(cd "$(dirname "$0")" && pwd)
-
 check4Overflow(){
 	local n=1
 	local a=5

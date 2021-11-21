@@ -66,8 +66,8 @@ GetInterfaceTraffic() {
 		eval ov=\"\$$interfaceVar\"
 		ov_down="$(echo "$ov" | cut -d',' -f1)"
 		ov_up="$(echo "$ov" | cut -d',' -f2)"
-		new_down="$(expr $current_down - $ov_down)"
-		new_up="$(expr $current_up - $ov_up)"
+		new_down="$(DigitSub $current_down $ov_down)"
+		new_up="$(DigitSub $current_up $ov_up)"
 		interfaceLine="{\"n\":\"${interface%:}\", \"t\":\"${new_down},${new_up}\"}"
 		Send2Log "GetInterfaceTraffic: interfaceLine=$interfaceLine --> $line (${ov})" 1
 		iTotals="${iTotals}, $interfaceLine"
