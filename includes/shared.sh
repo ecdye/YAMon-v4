@@ -147,7 +147,7 @@ GetDeviceGroup() {
 }
 
 AddIPTableRules() {
-	local commands="iptables"
+	local commands
 	local cmd
 
 	DeleteIPTableRule() {
@@ -156,29 +156,29 @@ AddIPTableRules() {
 		local nl="0"
 		local ln
 
-		for cmd in $commands; do
+		for cmd in ${commands//,/ }; do
 			while true; do
 				ln="$($cmd -L "$YAMON_IPTABLES" -n --line-numbers | grep "$ruleName" | awk '{ print $1 }' | head -n 1)"
 				[ -z $ln ] && break
 				eval $cmd -D "$YAMON_IPTABLES" "$ln" "$_iptablesWait"
 				nl="$(( nl + 1 ))"
 			done
-			Send2Log "deleteIPTableRule: deleted $nl $ruleName rules from ${cmd}: $YAMON_IPTABLES" 2
+			Send2Log "DeleteIPTableRule: deleted $nl $ruleName rules from ${cmd}: $YAMON_IPTABLES" 2
 		done
 	}
 
-	[ -n "$ip6Enabled" ] && commands="iptables,ip6tables"
+	[ -n "$ip6Enabled" ] && commands='iptables,ip6tables' || commands='iptables'
 
 	DeleteIPTableRule LOG
 	DeleteIPTableRule RETURN
 
-	for cmd in $commands; do
+	for cmd in ${commands//,/ }; do
 		if [ "$_logNoMatchingMac" -eq "1" ]; then
 			eval $cmd -A "$YAMON_IPTABLES" -j LOG --log-prefix "YAMon: " "$_iptablesWait"
-			Send2Log "addIPTableRule: added LOG rule in ${cmd}: $YAMON_IPTABLES" 2
+			Send2Log "AddIPTableRules: added LOG rule in ${cmd}: $YAMON_IPTABLES" 2
 		else
 			eval $cmd -A "$YAMON_IPTABLES" -j RETURN "$_iptablesWait"
-			Send2Log "addIPTableRule: added RETURN rule in ${cmd}: $YAMON_IPTABLES" 2
+			Send2Log "AddIPTableRules: added RETURN rule in ${cmd}: $YAMON_IPTABLES" 2
 		fi
 	done
 }
@@ -400,6 +400,24 @@ GetDeviceName() {
 	Send2Log "GetDeviceName: did not find name for ${mac}... defaulting to ${_defaultDeviceName}-${nextnum}" 0
 }
 
+CheckChains() {
+	local chain="$1"
+	local commands
+	local ipChain
+	local cmd
+
+	[ -n "$ip6Enabled" ] && commands='iptables,ip6tables' || commands='iptables'
+	for cmd in ${commands//,/ }; do
+		ipChain="$($cmd -L | grep "Chain $YAMON_IPTABLES" | grep "\b${chain}\b")"
+		if [ -z "$ipChain" ]; then
+			Send2Log "CheckChains: Adding $chain in $cmd" 2
+			eval $cmd -N $chain "$_iptablesWait"
+		else
+			Send2Log "CheckChains: $chain exists in $cmd" 1
+		fi
+	done
+}
+
 CheckMAC2GroupinUserJS() {
 	local m="$1"
 	local gn="${2:-${_defaultGroup:-Unknown}}"
@@ -442,7 +460,7 @@ CheckMAC2GroupinUserJS() {
 			for rule in $matchingRules; do
 				[ -z "$rule" ] && continue
 				ln="$(echo $rule | awk '{ print $1 }')"
-				eval $cmd -N "$groupChain" "$_iptablesWait" 2>/dev/null
+				CheckChains "$groupChain"
 				eval $cmd -R "$YAMON_IPTABLES" "$ln" -j "$groupChain" "$_iptablesWait"
 				Send2Log "ChangeMACGroup: changing destination of $rule to $gn" 2
 			done

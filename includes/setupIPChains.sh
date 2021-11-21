@@ -23,171 +23,159 @@ _PRIVATE_IP4_BLOCKS='10.0.0.0/8,172.16.0.0/12,192.168.0.0/16'
 _PRIVATE_IP6_BLOCKS='fc00::/7,ff02::/7'
 _LOCAL_IP4='255.255.255.255,224.0.0.1,127.0.0.1'
 _LOCAL_IP6=''
+LOCAL="${YAMON_IPTABLES}Local"
+ENTRY="${YAMON_IPTABLES}Entry"
 
-SetupIPChains(){
+CheckTables() {
+  local commands
+  local foundRuleInChain
+  local cmd
+  local i=1
+  local dup_num
+  local rule="${YAMON_IPTABLES}Entry"
 
-    CheckChains(){
-		local chain="$YAMON_IPTABLES$ch"
-        local ce=$(echo "$ipchains" | grep "\b$chain\b")
-		Send2Log "CheckChain: $chain --> '$ce'"
-        if [ -z "$ce" ] ; then
-            Send2Log "CheckChains: Adding $chain in $cmd" 2
-            eval $cmd -N $chain "$_iptablesWait"
-        else
-            Send2Log "CheckChain: $chain exists in $cmd" 1
-        fi
-    }
+  [ -n "$ip6Enabled" ] && commands='iptables,ip6tables' || commands='iptables'
 
-	CheckTables()
-	{
-		local rule="${YAMON_IPTABLES}Entry"
-		local foundRuleinChain=$(eval $cmd -nL "$tbl" | grep -ic "\b$rule\b")
+  for cmd in ${commands//,/ }; do
+    foundRuleInChain=$(eval $cmd -nL "$1" | grep -ic "\b$rule\b")
 
-		if [ "$foundRuleinChain" == "1" ] ; then
-			Send2Log "CheckTables: '$cmd' rule $rule exists in chain $tbl" 1
-			return
-		elif [ "$foundRuleinChain" -eq "0" ]; then
-			Send2Log "CheckTables: Created '$cmd' rule $rule in chain $tbl" 2
-			eval $cmd -I "$tbl" -j "$rule" "$_iptablesWait"
-			return
-		fi
+    if [ "$foundRuleInChain" -eq 1 ]; then
+      Send2Log "CheckTables: '$cmd' rule $rule exists in chain $1" 1
+      return
+    elif [ "$foundRuleInChain" -eq 0 ]; then
+      Send2Log "CheckTables: Created '$cmd' rule $rule in chain $1" 2
+      eval $cmd -I "$1" -j "$rule" "$_iptablesWait"
+      return
+    fi
 
-		#its unlikely you should get here... but added defensively
-		Send2Log "CheckTables: Found $foundRuleinChain instances of '$cmd' $rule in chain $tbl... deleting entries individually rather than flushing!" 3
-		local i=1
-		while [  "$i" -le "$foundRuleinChain" ]; do
-			local dup_num=$($cmd -nL "$tbl" --line-numbers | grep -m 1 -i "\b$rule\b" | cut -d' ' -f1)
-			eval $cmd -D "$tbl" $dup_num "$_iptablesWait"
-			i=$(($i+1))
-		done
-		eval $cmd -I "$tbl" -j "$rule" "$_iptablesWait"
-	}
-
-    AddPrivateBlocks(){
-        $cmd -F "$YAMON_IPTABLES"
-        $cmd -F "$ent"
-        $cmd -F "$loc"
-		Send2Log "AddPrivateBlocks: $cmd / '$YAMON_IPTABLES' / '$ent' / '$loc' / $ip_blocks" 1
-    	IFS=$','
-        for iprs in $ip_blocks
-        do
-            for iprd in $ip_blocks
-            do
-				if [ "$_firmware" -eq "0" ] && [ "$cmd" == 'ip6tables' ] ; then
-					eval $cmd -I "$ent" -j "RETURN" -s $iprs -d $iprd "$_iptablesWait"
-					eval $cmd -I "$ent" -j "$loc" -s $iprs -d $iprd "$_iptablesWait"
-				else
-					eval $cmd -I "$ent" -g "$loc" -s $iprs -d $iprd "$_iptablesWait"
-				fi
-			done
-        done
-        eval $cmd -A "$ent" -j "${YAMON_IPTABLES}" "$_iptablesWait"
-		eval $cmd -I "$loc" -j "RETURN" "$_iptablesWait"
-
-		Send2Log "chains --> $cmd / $YAMON_IPTABLES --> $(IndentList "$($cmd -L -vx | grep $YAMON_IPTABLES | grep Chain)")"
-    }
-
-    AddLocalIPs(){
-		Send2Log "AddLocalIPs: $cmd / '$YAMON_IPTABLES' / '$ent' / '$loc' / $ip_addresses" 1
-    	IFS=$','
-        for ip in $ip_addresses
-        do
-			if [ "$_firmware" -eq "0" ] && [ "$cmd" == 'ip6tables' ] ; then
-				eval $cmd -I "$ent" -j "RETURN" -s $ip "$_iptablesWait"
-				eval $cmd -I "$ent" -j "RETURN" -d $ip "$_iptablesWait"
-				eval $cmd -I "$ent" -j "$loc" -s $ip "$_iptablesWait"
-				eval $cmd -I "$ent" -j "$loc" -d $ip "$_iptablesWait"
-			else
-				eval $cmd -I "$ent" -g "$loc" -s $ip "$_iptablesWait"
-				eval $cmd -I "$ent" -g "$loc" -d $ip "$_iptablesWait"
-			fi
-        done
-    }
-
-	#Main body of function
-	local commands='iptables'
-	[ -n "$ip6Enabled" ] && commands='iptables,ip6tables'
-
-	local chains=",Entry,Local"
-	local tables="FORWARD,INPUT,OUTPUT"
-
-	local loc="${YAMON_IPTABLES}Local"
-	local ent="${YAMON_IPTABLES}Entry"
-
-	IFS=$','
-	for cmd in $commands
-	do
-		Send2Log "SetupIPChains --> $cmd" 1
-		local ipchains=$(eval "$cmd" -L | grep "Chain $YAMON_IPTABLES")
-
-		for ch in $chains
-		do
-			CheckChains
-		done
-
-		if [ "$cmd" == 'iptables' ] ; then
-			local ip_blocks="$_PRIVATE_IP4_BLOCKS"
-			local ip_addresses="$_LOCAL_IP4"
-		else
-			local ip_blocks="$_PRIVATE_IP6_BLOCKS"
-			local ip_addresses="$_LOCAL_IP6"
-		fi
-
-		AddPrivateBlocks
-		AddLocalIPs
-
-		for tbl in $tables
-		do
-			CheckTables
-		done
-
-		AddIPTableRules
-
-	done
-
+    # It's unlikely you should get here... but added defensively
+    Send2Log "CheckTables: Found $foundRuleInChain instances of '$cmd' $rule in chain $1... deleting entries individually rather than flushing!" 3
+    while [  "$i" -le "$foundRuleInChain" ]; do
+      dup_num="$($cmd -nL "$1" --line-numbers | grep -m 1 -i "\b$rule\b" | cut -d' ' -f1)"
+      eval $cmd -D "$1" "$dup_num" "$_iptablesWait"
+      i=$(( i + 1 ))
+    done
+    eval $cmd -I "$1" -j "$rule" "$_iptablesWait"
+  done
 }
+
+AddPrivateBlocks() {
+  local commands
+  local ipBlocks
+  local iprs
+  local iprd
+
+  [ -n "$ip6Enabled" ] && commands='iptables,ip6tables' || commands='iptables'
+  [ -n "$ip6Enabled" ] && ipBlocks="$_PRIVATE_IP6_BLOCKS" || ipBlocks="$_PRIVATE_IP4_BLOCKS"
+
+  for cmd in $commands; do
+    $cmd -F "$YAMON_IPTABLES"
+    $cmd -F "$ENTRY"
+    $cmd -F "$LOCAL"
+    Send2Log "AddPrivateBlocks: $cmd / '$YAMON_IPTABLES' / '$ENTRY' / '$LOCAL' / $ipBlocks" 1
+    for iprs in ${ipBlocks//,/ }; do
+      for iprd in ${ipBlocks//,/ }; do
+        if [ "$_firmware" -eq "0" ] && [ "$cmd" == 'ip6tables' ]; then
+          eval $cmd -I "$ENTRY" -j "RETURN" -s $iprs -d $iprd "$_iptablesWait"
+          eval $cmd -I "$ENTRY" -j "$LOCAL" -s $iprs -d $iprd "$_iptablesWait"
+        else
+          eval $cmd -I "$ENTRY" -g "$LOCAL" -s $iprs -d $iprd "$_iptablesWait"
+        fi
+      done
+    done
+    eval $cmd -A "$ENTRY" -j "${YAMON_IPTABLES}" "$_iptablesWait"
+    eval $cmd -I "$LOCAL" -j "RETURN" "$_iptablesWait"
+
+    Send2Log "chains --> $cmd / $YAMON_IPTABLES --> $(IndentList "$($cmd -L -vx | grep "$YAMON_IPTABLES" | grep "Chain")")"
+  done
+}
+
+AddLocalIPs() {
+  local ip
+  local commands
+  local cmd
+  local ipAddresses
+
+  [ -n "$ip6Enabled" ] && commands='iptables,ip6tables' || commands='iptables'
+  [ -n "$ip6Enabled" ] && ipAddresses="$_LOCAL_IP6" || ipAddresses="$_LOCAL_IP4"
+
+  for cmd in $commands; do
+    Send2Log "AddLocalIPs: $cmd / '$YAMON_IPTABLES' / '$ENTRY' / '$LOCAL' / $ipAddresses" 1
+    for ip in ${ipAddresses//,/ }; do
+      if [ "$_firmware" -eq "0" ] && [ "$cmd" == 'ip6tables' ] ; then
+        eval $cmd -I "$ENTRY" -j "RETURN" -s $ip "$_iptablesWait"
+        eval $cmd -I "$ENTRY" -j "RETURN" -d $ip "$_iptablesWait"
+        eval $cmd -I "$ENTRY" -j "$LOCAL" -s $ip "$_iptablesWait"
+        eval $cmd -I "$ENTRY" -j "$LOCAL" -d $ip "$_iptablesWait"
+      else
+        eval $cmd -I "$ENTRY" -g "$LOCAL" -s $ip "$_iptablesWait"
+        eval $cmd -I "$ENTRY" -g "$LOCAL" -d $ip "$_iptablesWait"
+      fi
+    done
+  done
+}
+
+SetupIPChains() {
+  local ch
+  local tbl
+  local chains="${ENTRY},${LOCAL}"
+  local tables="FORWARD,INPUT,OUTPUT"
+
+  [ -n "$ip6Enabled" ] && commands='iptables,ip6tables' || commands='iptables'
+  Send2Log "SetupIPChains" 1
+  for ch in $chains; do
+    CheckChains "$ch"
+  done
+  AddPrivateBlocks
+  AddLocalIPs
+  for tbl in $tables; do
+    CheckTables "$tbl"
+  done
+  AddIPTableRules
+}
+
 AddNetworkInterfaces(){
-	Send2Log "AddNetworkInterfaces:" 1
-	listofInterfaces=$(ls /sys/class/net)
-	#[ -z "$listofInterfaces" ] && "$(ifconfig | grep HWaddr | awk '{print $1}')"
-	local re_mac='([a-f0-9]{2}:){5}[a-f0-9]{2}'
-	IFS=$'\n'
-	interfaceList=''
-	for inf in $listofInterfaces
-	do
-		ifc=$(ifconfig $inf)
-		mac=$(echo "$ifc" | grep -o 'HWaddr.*$' | cut -d' ' -f2 | tr "[A-Z]" "[a-z]")
-		[ -z "$mac" ] && continue
-		if [ -z "$(echo "$mac" | grep -Ei "$re_mac")" ] ; then
-			Send2Log "AddNetworkInterfaces: bad mac --> $mac from $ifc" 1
-			continue
-		fi
-		inet4=$(echo "$ifc" | grep 'inet addr' | cut -d: -f2 | awk '{print $1}')
-		inet6=$(echo "$ifc" | grep 'inet6 addr'| awk '{print $3}')
-		[ -z "$inet4" ] && [ -z "$inet6" ] && continue
-		iplist=$(echo -e "$inet4\n$inet6")
-		Send2Log "AddNetworkInterfaces: $inf --> $mac $(IndentList "$iplist")" 1
-		for ip in $iplist
-		do
-			[ -z "$ip" ] && continue
-			CheckMAC2IPinUserJS "$mac" "$ip" "$inf"
-			CheckMAC2GroupinUserJS "$mac" 'Interfaces'
-			CheckIPTableEntry "$ip" "Interfaces"
-		done
-		interfaceList="$interfaceList,$inf"
-	done
-	interfaceList=${interfaceList#,}
-	AddEntry "_interfaces" "$interfaceList"
+  Send2Log "AddNetworkInterfaces:" 1
+  listofInterfaces=$(ls /sys/class/net)
+  #[ -z "$listofInterfaces" ] && "$(ifconfig | grep HWaddr | awk '{print $1}')"
+  local re_mac='([a-f0-9]{2}:){5}[a-f0-9]{2}'
+  IFS=$'\n'
+  interfaceList=''
+  for inf in $listofInterfaces
+  do
+    ifc=$(ifconfig $inf)
+    mac=$(echo "$ifc" | grep -o 'HWaddr.*$' | cut -d' ' -f2 | tr "[A-Z]" "[a-z]")
+    [ -z "$mac" ] && continue
+    if [ -z "$(echo "$mac" | grep -Ei "$re_mac")" ] ; then
+      Send2Log "AddNetworkInterfaces: bad mac --> $mac from $ifc" 1
+      continue
+    fi
+    inet4=$(echo "$ifc" | grep 'inet addr' | cut -d: -f2 | awk '{print $1}')
+    inet6=$(echo "$ifc" | grep 'inet6 addr'| awk '{print $3}')
+    [ -z "$inet4" ] && [ -z "$inet6" ] && continue
+    iplist=$(echo -e "$inet4\n$inet6")
+    Send2Log "AddNetworkInterfaces: $inf --> $mac $(IndentList "$iplist")" 1
+    for ip in $iplist
+    do
+      [ -z "$ip" ] && continue
+      CheckMAC2IPinUserJS "$mac" "$ip" "$inf"
+      CheckMAC2GroupinUserJS "$mac" 'Interfaces'
+      CheckIPTableEntry "$ip" "Interfaces"
+    done
+    interfaceList="$interfaceList,$inf"
+  done
+  interfaceList=${interfaceList#,}
+  AddEntry "_interfaces" "$interfaceList"
 
-	IFS=$'\n'
-	pnd=$(cat "/proc/net/dev" | grep -E "${interfaceList//,/|}")
-	for line in $pnd
-	do
-		ifn=$(echo "$line" | awk '{ print $1 }' | sed -e 's~-~_~' -e 's~:~~')
-		AddEntry "interface_${ifn}" "$(echo "$line" | awk '{ print $10","$2 }')"
-	done
+  IFS=$'\n'
+  pnd=$(cat "/proc/net/dev" | grep -E "${interfaceList//,/|}")
+  for line in $pnd
+  do
+    ifn=$(echo "$line" | awk '{ print $1 }' | sed -e 's~-~_~' -e 's~:~~')
+    AddEntry "interface_${ifn}" "$(echo "$line" | awk '{ print $10","$2 }')"
+  done
 
-	CheckMAC2IPinUserJS "$_generic_mac" "$_generic_ipv4" "No Matching Device"
-	[ "$ip6Enabled" == '1' ] && CheckMAC2IPinUserJS "$_generic_mac" "$_generic_ipv6" "No Matching Device"
-	CheckMAC2GroupinUserJS "$_generic_mac" "$_defaultGroup"
+  CheckMAC2IPinUserJS "$_generic_mac" "$_generic_ipv4" "No Matching Device"
+  [ "$ip6Enabled" == '1' ] && CheckMAC2IPinUserJS "$_generic_mac" "$_generic_ipv6" "No Matching Device"
+  CheckMAC2GroupinUserJS "$_generic_mac" "$_defaultGroup"
 }
