@@ -489,43 +489,48 @@ CheckMAC2GroupinUserJS() {
 }
 
 CheckMAC2IPinUserJS(){
-	Send2Log "CheckMAC2IPinUserJS:  $1 $2" 0
-	local m=$1
-	local i=$2
-	local dn=$3
-	DeactivatebyIP(){
-		Send2Log "DeactivatebyIP:  $i" 0
-		local otherswithIP=$(cat "$_usersFile" | grep -e "^mac2ip({.*})$" | grep "\b${i//\./\\.}\b" | grep "\"active\":\"1\"")
-		if [ -z "$otherswithIP" ] ; then
-			Send2Log "DeactivatebyIP: no active duplicates of $i in $_usersFile" 0
+	local m="$1"
+	local i="$2"
+	local dn="$3"
+	local matchesMACIP
+
+	DeactivateByIP() {
+		local othersWithIP
+		local od
+		local nl
+
+		Send2Log "DeactivateByIP: $i"
+		othersWithIP="$(cat "$_usersFile" | grep -e '^mac2ip({.*})$' | grep "\b${i//\./\\.}\b" | grep "\"active\":\"1\"")"
+		if [ -z "$othersWithIP" ]; then
+			Send2Log "DeactivatebyIP: no active duplicates of $i in $_usersFile"
 			return
 		fi
-		Send2Log "DeactivatebyIP: $(echo "$otherswithIP" | wc -l) active duplicates of $i in $_usersFile" 0
+		Send2Log "DeactivatebyIP: $(echo "$othersWithIP" | wc -l) active duplicates of $i in $_usersFile"
 		IFS=$'\n'
-		for od in $otherswithIP
-		do
+		for od in $othersWithIP; do
 			Send2Log "DeactivatebyIP: set active=0 in $od" 0
-			local nl=$(UpdateField "$od" 'active' '0')
-			local nl=$(UpdateField "$nl" 'updated' "$_ds $_ts")
-			sed -i "s~$od~$nl~g" "$_usersFile"
-			local changes=1
+			nl="$(UpdateField "$od" 'active' '0')"
+			nl="$(UpdateField "$nl" 'updated' "$_ds $_ts")"
+			sed -i "s~${od}~${nl}~g" "$_usersFile"
 		done
-		[ -n "$changes" ] && UsersJSUpdated
+		[ -n "$nl" ] && UsersJSUpdated
 	}
-	AddNewMACIP(){
-		Send2Log "AddNewMACIP: $m $i $dn" 0
-		DeactivatebyIP
-		[ -z "$dn" ] && local otherswithMAC=$(cat "$_usersFile" | grep -e "^mac2ip({.*})$" | grep -m1 "$m") #NB - specifically looks for just one match
-		if [ -n "$otherswithMAC" ] ; then
-			local dn=$(GetField "$otherswithMAC" 'name')
-			Send2Log "AddNewMACIP: copying device name '$dn' from $otherswithMAC" 0
-			if [ -n "$(echo "$dn" | grep $_defaultDeviceName )" ] ; then
-				local ndn=$(GetDeviceName "$m" "$i")
+	AddNewMACIP() {
+		local othersWithMAC
+		local ndn
+
+		Send2Log "AddNewMACIP: mac=$m ip=$i device-name=$dn"
+		DeactivateByIP
+		[ -z "$dn" ] && othersWithMAC="$(cat "$_usersFile" | grep -e '^mac2ip({.*})$' | grep -m1 "$m")" # NB - specifically looks for just one match
+		if [ -n "$othersWithMAC" ]; then
+			dn="$(GetField "$othersWithMAC" 'name')"
+			Send2Log "AddNewMACIP: copying device name '$dn' from $othersWithMAC"
+			if [ -n "$(echo "$dn" | grep "$_defaultDeviceName")" ]; then
+				ndn="$(GetDeviceName "$m" "$i")"
 				[ -z "$(echo "$ndn" | grep $_defaultDeviceName )" ] && dn="$ndn"
 			fi
-		elif [ -z "$dn" ] ; then
-			local dn=$(GetDeviceName "$m" "$i")
-			Send2Log "Otherwise..." 0
+		elif [ -z "$dn" ]; then
+			dn="$(GetDeviceName "$m" "$i")"
 		fi
 		local newentry="mac2ip({ \"id\":\"$m-$i\", \"name\":\"${dn:-New Device}\", \"active\":\"1\", \"added\":\"${_ds} ${_ts}\", \"updated\":\"\" })"
 		Send2Log "AddNewMACIP: adding $newentry to $_usersFile" 0
@@ -534,15 +539,16 @@ CheckMAC2IPinUserJS(){
 		UsersJSUpdated
 	}
 
-	local matchesMACIP=$(cat "$_usersFile" | grep -e "^mac2ip({.*})$" | grep "\"id\":\"$m-$i\"")
-	if [ -z "$matchesMACIP" ] ; then
+	Send2Log "CheckMAC2IPinUserJS: mac=$m ip=$i"
+	matchesMACIP="$(cat "$_usersFile" | grep -e '^mac2ip({.*})$' | grep "\"id\":\"${m}-${i}\"")"
+	if [ -z "$matchesMACIP" ]; then
 		AddNewMACIP
-	elif [ "$(echo $matchesMACIP | wc -l)" -eq 1 ] ; then
-		Send2Log "CheckMAC2IPinUserJS: found a unique match for $m-$i"
+	elif [ "$(echo "$matchesMACIP" | wc -l)" -eq 1 ] ; then
+		Send2Log "CheckMAC2IPinUserJS: found a unique match for ${m}-${i}"
 		[ -z "$dn" ] && return
-		# To do: check that the name matches
+		# TODO: check that the name matches
 	else
-		Send2Log "CheckMAC2IPinUserJS: uh-oh... *$matchesMACIP* matches for '$m-$i' in '$_usersFile' --> $(IndentList "$(cat "$_usersFile" | grep -e "^mac2ip({.*})$" | grep "\"id\":\"$m-$i\"")")" 2
+		Send2Log "CheckMAC2IPinUserJS: uh-oh... *$(echo "$matchesMACIP" | wc -l)* matches for '${m}-${i}' in '$_usersFile' --> $(IndentList "$(echo "$matchesMACIP")")" 2
 	fi
 }
 
