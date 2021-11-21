@@ -30,6 +30,7 @@ CheckTables() {
   local commands
   local foundRuleInChain
   local cmd
+  local tab
   local i=1
   local dup_num
   local rule="${YAMON_IPTABLES}Entry"
@@ -37,25 +38,27 @@ CheckTables() {
   [ -n "$ip6Enabled" ] && commands='iptables,ip6tables' || commands='iptables'
 
   for cmd in ${commands//,/ }; do
-    foundRuleInChain=$(eval $cmd -nL "$1" | grep -ic "\b$rule\b")
+    for tab in ${1//,/ }; do
+      foundRuleInChain="$($cmd -nL "$tab" | grep -ic "\b$rule\b")"
 
-    if [ "$foundRuleInChain" -eq 1 ]; then
-      Send2Log "CheckTables: '$cmd' rule $rule exists in chain $1" 1
-      return
-    elif [ "$foundRuleInChain" -eq 0 ]; then
-      Send2Log "CheckTables: Created '$cmd' rule $rule in chain $1" 2
-      eval $cmd -I "$1" -j "$rule" "$_iptablesWait"
-      return
-    fi
+      if [ "$foundRuleInChain" -eq 1 ]; then
+        Send2Log "CheckTables: '$cmd' rule $rule exists in chain $tab" 1
+        return
+      elif [ "$foundRuleInChain" -eq 0 ]; then
+        Send2Log "CheckTables: Created '$cmd' rule $rule in chain $tab" 2
+        eval $cmd -I "$tab" -j "$rule" "$_iptablesWait"
+        return
+      fi
 
-    # It's unlikely you should get here... but added defensively
-    Send2Log "CheckTables: Found $foundRuleInChain instances of '$cmd' $rule in chain $1... deleting entries individually rather than flushing!" 3
-    while [  "$i" -le "$foundRuleInChain" ]; do
-      dup_num="$($cmd -nL "$1" --line-numbers | grep -m 1 -i "\b$rule\b" | cut -d' ' -f1)"
-      eval $cmd -D "$1" "$dup_num" "$_iptablesWait"
-      i=$(( i + 1 ))
+      # It's unlikely you should get here... but added defensively
+      Send2Log "CheckTables: Found $foundRuleInChain instances of '$cmd' $rule in chain $tab... deleting entries individually rather than flushing!" 3
+      while [  "$i" -le "$foundRuleInChain" ]; do
+        dup_num="$($cmd -nL "$tab" --line-numbers | grep -m 1 -i "\b$rule\b" | cut -d' ' -f1)"
+        eval $cmd -D "$tab" "$dup_num" "$_iptablesWait"
+        i=$(( i + 1 ))
+      done
+      eval $cmd -I "$tab" -j "$rule" "$_iptablesWait"
     done
-    eval $cmd -I "$1" -j "$rule" "$_iptablesWait"
   done
 }
 
@@ -99,7 +102,7 @@ AddLocalIPs() {
   [ -n "$ip6Enabled" ] && commands='iptables,ip6tables' || commands='iptables'
   [ -n "$ip6Enabled" ] && ipAddresses="$_LOCAL_IP6" || ipAddresses="$_LOCAL_IP4"
 
-  for cmd in $commands; do
+  for cmd in ${commands//,/ }; do
     Send2Log "AddLocalIPs: $cmd / '$YAMON_IPTABLES' / '$ENTRY' / '$LOCAL' / $ipAddresses" 1
     for ip in ${ipAddresses//,/ }; do
       if [ "$_firmware" -eq "0" ] && [ "$cmd" == 'ip6tables' ] ; then
