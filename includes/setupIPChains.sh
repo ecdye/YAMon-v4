@@ -118,7 +118,7 @@ AddLocalIPs() {
 SetupIPChains() {
   local ch
   local tbl
-  local chains="${ENTRY},${LOCAL}"
+  local chains="${YAMON_IPTABLES},${ENTRY},${LOCAL}"
   local tables="FORWARD,INPUT,OUTPUT"
 
   [ -n "$ip6Enabled" ] && commands='iptables,ip6tables' || commands='iptables'
