@@ -595,7 +595,7 @@ DigitAdd()
 	Send2Log "DigitAdd - $1 & $2"
 	local n1=${1:-0}
 	local n2=${2:-0}
-	if [ "${#n1}" -lt "${_max_digits:-12}" ] && [ "${#n1}" -lt "${_max_digits:-12}" ] ; then
+	if [ "${#n1}" -lt "${_max_digits:-12}" ] && [ "${#n2}" -lt "${_max_digits:-12}" ] ; then
 		echo $(($n1+$n2))
 		return
 	fi

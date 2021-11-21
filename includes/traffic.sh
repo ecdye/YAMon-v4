@@ -53,6 +53,8 @@ GetInterfaceTraffic() {
 	local new_up
 	local interfaceLine
 	local ov
+	local ov_down
+	local ov_up
 
 	pnd="$(cat "/proc/net/dev" | grep -E "${_interfaces//,/|}")"
 	IFS=$'\n'
@@ -62,8 +64,10 @@ GetInterfaceTraffic() {
 		current_down="$(echo "$line" | awk '{ print $10 }')"
 		current_up="$(echo "$line" | awk '{ print $2 }')"
 		eval ov=\"\$$interfaceVar\"
-		new_down="$(( current_down - $(echo "$ov" | cut -d',' -f1) ))"
-		new_up="$(( current_up - $(echo "$ov" | cut -d',' -f2) ))"
+		ov_down="$(echo "$ov" | cut -d',' -f1)"
+		ov_up="$(echo "$ov" | cut -d',' -f2)"
+		new_down="$(expr $current_down - $ov_down)"
+		new_up="$(expr $current_up - $ov_up)"
 		interfaceLine="{\"n\":\"${interface%:}\", \"t\":\"${new_down},${new_up}\"}"
 		Send2Log "GetInterfaceTraffic: interfaceLine=$interfaceLine --> $line (${ov})" 1
 		iTotals="${iTotals}, $interfaceLine"
