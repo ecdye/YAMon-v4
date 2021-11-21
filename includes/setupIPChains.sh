@@ -30,7 +30,6 @@ CheckTables() {
   local commands
   local foundRuleInChain
   local cmd
-  local tab
   local i=1
   local dup_num
   local rule="${YAMON_IPTABLES}Entry"
@@ -38,27 +37,25 @@ CheckTables() {
   [ -n "$ip6Enabled" ] && commands='iptables,ip6tables' || commands='iptables'
 
   for cmd in ${commands//,/ }; do
-    for tab in ${1//,/ }; do
-      foundRuleInChain="$($cmd -nL "$tab" | grep -ic "\b$rule\b")"
+    foundRuleInChain="$($cmd -nL "$1" | grep -ic "\b$rule\b")"
 
-      if [ "$foundRuleInChain" -eq 1 ]; then
-        Send2Log "CheckTables: '$cmd' rule $rule exists in chain $tab" 1
-        return
-      elif [ "$foundRuleInChain" -eq 0 ]; then
-        Send2Log "CheckTables: Created '$cmd' rule $rule in chain $tab" 2
-        eval $cmd -I "$tab" -j "$rule" "$_iptablesWait"
-        return
-      fi
+    if [ "$foundRuleInChain" -eq 1 ]; then
+      Send2Log "CheckTables: '$cmd' rule $rule exists in chain $1" 1
+      return
+    elif [ "$foundRuleInChain" -eq 0 ]; then
+      Send2Log "CheckTables: Created '$cmd' rule $rule in chain $1" 2
+      eval $cmd -I "$1" -j "$rule" "$_iptablesWait"
+      return
+    fi
 
-      # It's unlikely you should get here... but added defensively
-      Send2Log "CheckTables: Found $foundRuleInChain instances of '$cmd' $rule in chain $tab... deleting entries individually rather than flushing!" 3
-      while [  "$i" -le "$foundRuleInChain" ]; do
-        dup_num="$($cmd -nL "$tab" --line-numbers | grep -m 1 -i "\b$rule\b" | cut -d' ' -f1)"
-        eval $cmd -D "$tab" "$dup_num" "$_iptablesWait"
-        i=$(( i + 1 ))
-      done
-      eval $cmd -I "$tab" -j "$rule" "$_iptablesWait"
+    # It's unlikely you should get here... but added defensively
+    Send2Log "CheckTables: Found $foundRuleInChain instances of '$cmd' $rule in chain $1... deleting entries individually rather than flushing!" 3
+    while [  "$i" -le "$foundRuleInChain" ]; do
+      dup_num="$($cmd -nL "$1" --line-numbers | grep -m 1 -i "\b$rule\b" | cut -d' ' -f1)"
+      eval $cmd -D "$1" "$dup_num" "$_iptablesWait"
+      i=$(( i + 1 ))
     done
+    eval $cmd -I "$1" -j "$rule" "$_iptablesWait"
   done
 }
 
@@ -126,12 +123,12 @@ SetupIPChains() {
 
   [ -n "$ip6Enabled" ] && commands='iptables,ip6tables' || commands='iptables'
   Send2Log "SetupIPChains" 1
-  for ch in $chains; do
+  for ch in ${chains//,/ }; do
     CheckChains "$ch"
   done
   AddPrivateBlocks
   AddLocalIPs
-  for tbl in $tables; do
+  for tbl in ${tables//,/ }; do
     CheckTables "$tbl"
   done
   AddIPTableRules
