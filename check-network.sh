@@ -125,9 +125,7 @@ Check4NewDevices() {
 			i="$(echo "$nd" | cut -d' ' -f2)"
 			Send2Log "check-network: new device --> ip=${i}; mac=${m}" 1
 			if [ -z "$(echo "$m" | grep -Ei "$re_mac")" ]; then
-				unset IFS
-				Send2Log "Check4NewDevices: Bad MAC --> \n\tIP: $(echo "$arpResults" | grep "\b${i}\b") \n\tarp: $(echo "$ipResults" | grep "\b${i}\b")" 2
-				IFS=$'\n'
+				Send2Log "Check4NewDevices: Bad MAC --> $(IndentList "$(echo -e "IP: $(echo "$ipResults" | grep "\b${i}\b")\nARP: $(echo "$arpResults" | grep "\b${i}\b")")")" 2
 				rm="$(FindRefMAC)"
 				newIPList="$(echo "$newIPList" | sed -e "s~${nd}~${rm} ${i}~g" | grep -Ev "$currentIPList")"
 				m="$rm"
