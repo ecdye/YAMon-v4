@@ -433,6 +433,7 @@ CheckMAC2GroupinUserJS() {
 		local ip
 		local id
 		local ln
+		local i
 
 		Send2Log "ChangeMACGroup: group names do not match! $gn != $cgn" 2
 		newLine="$(UpdateField "$matchesMACGroup" 'group' "$gn")"
@@ -459,9 +460,15 @@ CheckMAC2GroupinUserJS() {
 			matchingRules="$($cmd -L "$YAMON_IPTABLES" -n --line-numbers | grep "\b${ip//\./\\.}\b")"
 			for rule in $matchingRules; do
 				[ -z "$rule" ] && continue
-				ln="$(echo $rule | awk '{ print $1 }')"
+				ln="$(echo "$rule" | awk '{ print $1 }')"
+				i="$(echo "$rule" | awk '{ print $5 }')"
 				CheckChains "$groupChain"
-				eval $cmd -R "$YAMON_IPTABLES" "$ln" -j "$groupChain" "$_iptablesWait"
+				if [ "$i" != "$_generic_ipv4" ]; then
+					eval $cmd -R "$YAMON_IPTABLES" "$ln" -s "$i" -j "$groupChain" "$_iptablesWait"
+				else
+					i="$(echo "$rule" | awk '{ print $6 }')"
+					eval $cmd -R "$YAMON_IPTABLES" "$ln" -d "$i" -j "$groupChain" "$_iptablesWait"
+				fi
 				Send2Log "ChangeMACGroup: changing destination of $rule to $gn" 2
 			done
 		done
