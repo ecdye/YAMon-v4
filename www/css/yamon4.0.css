@@ -1913,12 +1913,7 @@ country codes from https: //en.wikipedia.org/wiki/ISO_3166-1_alpha-2
 .home {background-position: right -3952px;}
 
 .sp-current-date {
-	background-image: -o-linear-gradient(left,#3ce69a 0%,#ffe959 100%)!important;
-	background-image: -moz-linear-gradient(left,#3ce69a 0%,#ffe959 100%)!important;
-	background-image: -webkit-linear-gradient(left,#3ce69a 0%,#ffe959 100%)!important;
-	background-image: -ms-linear-gradient(left,#3ce69a 0%,#ffe959 100%)!important;
-	background-image: linear-gradient(to left,#3ce69a 0%,#ffe959 100%)!important;
-	display: inline-block;
+	display: inline-flex;
 	margin: 0;
 	width: 208px;
 }
