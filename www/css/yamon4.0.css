@@ -2,7 +2,8 @@ body {
 	font-size: 11px;
 }
 table {
-	border-collapse: separate;
+  border-collapse: collapse;
+  border-spacing: 0;
 }
 #gauges table{
 	box-shadow:unset;
