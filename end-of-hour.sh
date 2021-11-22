@@ -62,6 +62,7 @@ echo "<!DOCTYPE html>
 <script src='https://code.jquery.com/jquery-3.6.0.min.js'></script>
 <script src='https://code.jquery.com/ui/1.13.0/jquery-ui.min.js'></script>
 <script src='../js/logs.js'></script>
+<link rel='shortcut icon' href='../images/favicon.png'/>
 </head>
 <body>
 <div id='header'> <!--header-->

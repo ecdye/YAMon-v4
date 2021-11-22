@@ -2,11 +2,9 @@ body {
 	font-size: 11px;
 }
 table {
-	border-collapse: collapse;
 	border-spacing: 0;
 }
-td,
-th {
+td, th {
 	padding: 0;
 }
 #gauges table{
@@ -1185,7 +1183,12 @@ span.current-interval {
 .gr-cb {
 	margin: 0 2px 0 8px;
 }
-
+.tab-round-tl {
+	border-top-left-radius: 4px;
+}
+.tab-round-tr {
+	border-top-right-radius: 4px;
+}
 #all-graphs:before,#no-graphs:before {
 	content: '[ ';
 }
@@ -1361,7 +1364,7 @@ span.current-interval {
 	border-bottom: 1px dotted #444;
 	padding: 5px 10px;
 }
-.alert-msg p: first-child {
+.alert-msg p:first-child {
 	font-weight: bold;
 }
 #myAlert>p {
@@ -1945,12 +1948,6 @@ country codes from https: //en.wikipedia.org/wiki/ISO_3166-1_alpha-2
 .post-btn {
 	padding-left: 4px;
 }
-.rs-date {
-	border-radius: 4px 0 0 4px;
-}
-.re-date {
-	border-radius: 0 4px 4px 0;
-}
 .rs-date.nc,.re-date.nc {
 	background: transparent;
 }
@@ -2001,7 +1998,8 @@ country codes from https: //en.wikipedia.org/wiki/ISO_3166-1_alpha-2
 #current-devices .info-d {
 	max-width: 522px;
 }
-tr: first-child th: first-child {
+#SummaryUsageTable tbody:first-child tr:first-child td:first-child,
+tr:first-child th:first-child {
 	border-radius: 8px 0 0;
 }
 .info-w {
