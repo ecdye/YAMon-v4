@@ -1849,9 +1849,8 @@ function Totals(arr){
 	pnd_data.usage=o2u.usage
 	var mem=(arr.memory).replace(/[{}]/g,"").split(',')
 	hourly_totals.memory[hr]=mem
-	drawSummaryGauges(arr.disk_utilization, arr.memory )
+	drawSummaryGauges(arr.disk_utilization, arr.memory)
 	$('#uptime').text(sec2text(arr.uptime))
-
 }
 
 function GrandTotalDaily(arr){

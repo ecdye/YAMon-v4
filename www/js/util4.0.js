@@ -1655,14 +1655,6 @@ function saveIPs(){
 	localStorage.setItem('IPii',JSON.stringify(g_IPii))
 }
 function refreshTimerFunc(){
-	function countTo(t,d){
-		var nv=$("#sp-freeMem").text()*1+d
-		$("#sp-freeMem").text(nv)
-		if(nv>=t){
-			clearInterval(c2timer)
-		}
-	}
-	var c2timer
 	$(".RefreshInterval").text($(".RefreshInterval").text()*1-1);
 	if ($(".RefreshInterval").text()==0){
 		$('#daily-tab').removeClass('loaded')
@@ -1670,10 +1662,6 @@ function refreshTimerFunc(){
 		hourlyLoaded.done(function(){
 			//do nothing!
 		});
-		var dfm=freeMem*1-$("#sp-freeMem").text()*1
-		if(dfm!=0){
-			c2timer=setInterval(function() { countTo(freeMem,dfm>0?1:-1)},1000*_updatefreq/Math.abs(dfm*1.333))
-		}
 		$(".RefreshInterval").text($("#RefreshInterval").val());
 	}
 }
@@ -2877,7 +2865,6 @@ function updateDashboard(){
 		$('#mb-filter').val('dd-'+g_n).change()
 	})
 
-	$("#sp-freeMem").text()==0 && $("#sp-freeMem").text(freeMem)
 	displayBytes('#SummaryUsageTable')
 }
 function sortDevices(c,so){
