@@ -1809,7 +1809,7 @@ function hourlyData4(arr){
 function drawSummaryGauges(du, mem){
 	var du=(du.replace('%','')*1)
 	var m=mem.split(',')
-	$("#sp-freeMem").text(mem[0])
+	$("#sp-freeMem").text(m[0])
 	if (!google||!google.visualization||!google.visualization.arrayToDataTable){
 		//console.log('Error - google.visualization.arrayToDataTable')
 	}
