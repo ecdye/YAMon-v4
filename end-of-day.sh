@@ -55,10 +55,10 @@ DeactiveIdleDevices() {
 	for line in $lastseen; do
 		[ -z "$line" ] && continue
 		id="$(GetField "$line" 'id')"
-		wl="$(echo "$_inActiveIPs" | grep "$id")"
+		wl="$(echo "$_inActiveIPs" | grep "\"$id\"")"
 		if [ -n "$wl" ]; then
 			newline="$(echo "${wl/\"active\":\"0\"/\"active\":\"1\"}")"
-			sed -i "s@${wl}@${newline}@" "$_usersFile"
+			sed -i "s~${wl}~${newline}~" "$_usersFile"
 			Send2Log "DeactiveIdleDevices: $id set to active (based upon lastseen.js)" 1
 			changes2=1
 		fi
