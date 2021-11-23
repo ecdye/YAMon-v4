@@ -97,6 +97,9 @@ $(document).ready(function (){
 		}
 		if(_doLiveUpdates==1){
 			setUpLiveCharts()
+			$('#curr-users-gt').data('value',0)
+			$('#cu-gt-do').data('value',0)
+			$('#cu-gt-up').data('value',0)
 		}
 		$('.selected').removeClass('selected')
 		var wt=$('#defvu').val()||'summary-tab'
@@ -1613,7 +1616,7 @@ function curr_users_totals(tt){
 	nr.find('.cu_up').data('value',t_up)
 	nr.find('.kbs-up').text((t_up/dt/g_toKB).toFixed(_dec))
 	nr.prependTo('#curr-users')
-	$('#curr-users-gt').data('value',$('#curr-users-gt').data('value')*1=='NaN'?$('#curr-users-gt').data('value')*1:0+dt)
+	$('#curr-users-gt').data('value',$('#curr-users-gt').data('value')*1+dt)
 	$('#cu-gt-do').data('value',$('#cu-gt-do').data('value')*1+t_do)
 	$('#cu-gt-up').data('value',$('#cu-gt-up').data('value')*1+t_up)
 	$('#cu-kbs-do').text((($('#cu-gt-do').data('value')*1)/$('#curr-users-gt').data('value')*1/g_toKB).toFixed(_dec))
