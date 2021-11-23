@@ -216,10 +216,11 @@ label, select, input[type='checkbox'], input[type='radio'], .btn, .c-p,.l-c, .mb
 }
 .mr-int {
 	font-weight: bold;
-	padding: 1px 12px;
+	padding: 1px 6px;
 	margin-bottom: 6px;
 	margin-right: 16px;
-	display: inline-block;
+	display: inline-flex;
+	align-items: center;
 	min-width: unset;
 }
 .edit-d {
