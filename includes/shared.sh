@@ -495,7 +495,7 @@ CheckMAC2GroupinUserJS() {
 	fi
 }
 
-CheckMAC2IPinUserJS(){
+CheckMAC2IPinUserJS() {
 	local m="$1"
 	local i="$2"
 	local dn="$3"
@@ -507,19 +507,20 @@ CheckMAC2IPinUserJS(){
 		local nl
 
 		Send2Log "DeactivateByIP: $i"
-		othersWithIP="$(cat "$_usersFile" | grep -e '^mac2ip({.*})$' | grep "\b${i//\./\\.}\b" | grep "\"active\":\"1\"")"
+		othersWithIP="$(cat "$_usersFile" | grep -e '^mac2ip({.*})$' | grep "\b${i//\./\\.}\b" | grep '"active":"1"')"
 		if [ -z "$othersWithIP" ]; then
-			Send2Log "DeactivatebyIP: no active duplicates of $i in $_usersFile"
+			Send2Log "DeactivateByIP: no active duplicates of $i in $_usersFile"
 			return
 		fi
-		Send2Log "DeactivatebyIP: $(echo "$othersWithIP" | wc -l) active duplicates of $i in $_usersFile"
+		Send2Log "DeactivateByIP: $(echo "$othersWithIP" | wc -l) active duplicates of $i in $_usersFile"
 		IFS=$'\n'
 		for od in $othersWithIP; do
-			Send2Log "DeactivatebyIP: set active=0 in $od" 0
+			Send2Log "DeactivateByIP: set active=0 in $od" 0
 			nl="$(UpdateField "$od" 'active' '0')"
 			nl="$(UpdateField "$nl" 'updated' "$_ds $_ts")"
 			sed -i "s~${od}~${nl}~g" "$_usersFile"
 		done
+		unset IFS
 		[ -n "$nl" ] && UsersJSUpdated
 	}
 	AddNewMACIP() {
@@ -541,7 +542,7 @@ CheckMAC2IPinUserJS(){
 		fi
 		local newentry="mac2ip({ \"id\":\"$m-$i\", \"name\":\"${dn:-New Device}\", \"active\":\"1\", \"added\":\"${_ds} ${_ts}\", \"updated\":\"\" })"
 		Send2Log "AddNewMACIP: adding $newentry to $_usersFile" 0
-		sed -i "s~// MAC -> IP~// MAC -> IP\n$newentry~g" "$_usersFile"
+		sed -i "s~// MAC -> IP~// MAC -> IP\n${newentry}~g" "$_usersFile"
 		UpdateLastSeen "$m-$i" "$(date +"%T")"
 		UsersJSUpdated
 	}
