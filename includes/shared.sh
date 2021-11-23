@@ -261,7 +261,7 @@ UpdateLastSeen() {
 	local lsd="$_ds $tls"
 
 	Send2Log "UpdateLastSeen:  Updating last seen for '${id}' to '${lsd}'" 0
-	echo -e "lastseen({ \"id\":\"${id}\", \"last-seen\":\"${lsd}\" })\n$(cat "$tmpLastSeen" | grep -e '^lastseen({.*})$' | grep -v "$id")" > "$tmpLastSeen"
+	echo -e "lastseen({ \"id\":\"${id}\", \"last-seen\":\"${lsd}\" })\n$(cat "$tmpLastSeen" | grep -e '^lastseen({.*})$' | grep -v "\"$id\"")" > "$tmpLastSeen"
 }
 
 GetField() {	#returns just the first match... duplicates are ignored
@@ -279,7 +279,7 @@ UsersJSUpdated() {
 	sed -i "s~users_updated=\"[^\"]\{0,\}\"~users_updated=\"${_ds} ${_ts}\"~" "$_usersFile"
 }
 
-UpdateField(){
+UpdateField() {
 	local cl="$1" # current line of text
 	local wf="$2" # which field to update
 	local nv="$3" # new value
@@ -478,7 +478,7 @@ CheckMAC2GroupinUserJS() {
 		local newentry="mac2group({ \"mac\":\"$m\", \"group\":\"$gn\" })"
 
 		Send2Log "AddNewMACGroup: adding mac2group entry for $m & $gn" 2
-		sed -i "s~//MAC -> Groups~//MAC -> Groups\n${newentry}~g" "$_usersFile"
+		sed -i "s~// MAC -> Groups~// MAC -> Groups\n${newentry}~g" "$_usersFile"
 		UsersJSUpdated
 	}
 
@@ -541,7 +541,7 @@ CheckMAC2IPinUserJS(){
 		fi
 		local newentry="mac2ip({ \"id\":\"$m-$i\", \"name\":\"${dn:-New Device}\", \"active\":\"1\", \"added\":\"${_ds} ${_ts}\", \"updated\":\"\" })"
 		Send2Log "AddNewMACIP: adding $newentry to $_usersFile" 0
-		sed -i "s~//MAC -> IP~//MAC -> IP\n$newentry~g" "$_usersFile"
+		sed -i "s~// MAC -> IP~// MAC -> IP\n$newentry~g" "$_usersFile"
 		UpdateLastSeen "$m-$i" "$(date +"%T")"
 		UsersJSUpdated
 	}

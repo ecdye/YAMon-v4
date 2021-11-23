@@ -2911,14 +2911,21 @@ function exportTableToCSV(tablename) {
 			.split(tmpColDelim).join(colDelim) + '"'
 		return str
 	}
-   function devices2csv(){
- 		var str = 'var users_created="' + users_created + '"\n\n'
-		Object.keys(devices).sort(byName).forEach(function (d) {
-			var ip4=devices[d].ip=='0.0.0.0_0'?'0.0.0.0/0':devices[d].ip
-			str += 'ud_a({"mac":"' + d + '","ip":"' + ip4 + (typeof(_includeIPv6)=='undefined'?'':('","ip6":"' + devices[d].ip6)) + '","owner":"' + devices[d].group + '","name":"' + devices[d].name + '","colour":"' + devices[d].colour + '","added":"' + devices[d].added + '","updated":"' + devices[d].updated + '","last-seen":"' + devices[d].last_seen + '"})\n'
-		})
-		return str
-	}
+  function devices2csv(){
+    var srt = 'var users_version="' + users_version + '"\n'
+    str += 'var users_created="' + users_created + '"\n'
+    str += 'var users_updated="' + users_updated + '"\n\n'
+    str += '// MAC -> Groups\n'
+    Object.keys(devices).sort(byName).forEach(function (d) {
+      str += 'mac2group({ "mac":"' + d + '", "group":"' + devices[d].group + '" })\n'
+    })
+    str += '\n// MAC -> IP\n'
+    Object.keys(devices).sort(byName).forEach(function (d) {
+      var ip4=devices[d].ip=='0.0.0.0_0'?'0.0.0.0/0':devices[d].ip
+      str += 'mac2ip({ "id":"' + d + '-' + ip4 + '", "name":"' + devices[d].name + '", "active":"' + devices[d].active + '", "added":"' + devices[d].added + '", "updated":"' + devices[d].updated + '" })\n'
+    })
+    return str
+  }
 	var $tr = $('#'+tablename).find('tr:visible:has(td)'),
 		tmpColDelim = String.fromCharCode(11),
 		tmpRowDelim = String.fromCharCode(0),

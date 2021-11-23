@@ -80,10 +80,10 @@ do
 	IFS=$'\n'
 done
 echo -e "\n\n Done"
-echo -e "$header\n//MAC -> Groups" > $_usersFile
+echo -e "$header\n// MAC -> Groups" > $_usersFile
 [ -f "$m2g_f" ] && cat "$m2g_f" >> $_usersFile && rm "$m2g_f"
 
-echo -e "\n//MAC -> IP" >> $_usersFile
+echo -e "\n// MAC -> IP" >> $_usersFile
 [ -f "${tmplog}mac2ip.txt" ] && cat "${tmplog}mac2ip.txt" >> $_usersFile && rm "${tmplog}mac2ip.txt"
 
 #echo -e "\n/*Legacy Records\n" >> $_usersFile
