@@ -1616,8 +1616,8 @@ function curr_users_totals(tt){
 	$('#curr-users-gt').data('value',$('#curr-users-gt').data('value')*1+dt)
 	$('#cu-gt-do').data('value',$('#cu-gt-do').data('value')*1+t_do)
 	$('#cu-gt-up').data('value',$('#cu-gt-up').data('value')*1+t_up)
-	$('#cu-kbs-do').text(($('#cu-gt-do').data('value')/$('#curr-users-gt').data('value')/g_toKB).toFixed(_dec))
-	$('#cu-kbs-up').text(($('#cu-gt-up').data('value')/$('#curr-users-gt').data('value')/g_toKB).toFixed(_dec))
+	$('#cu-kbs-do').text((($('#cu-gt-do').data('value')*1)/($('#curr-users-gt').data('value')*1)/g_toKB).toFixed(_dec))
+	$('#cu-kbs-up').text((($('#cu-gt-up').data('value')*1)/($('#curr-users-gt').data('value')*1)/g_toKB).toFixed(_dec))
 	numLU++
 	displayBytes('.'+tt_id+',#curr-users-gt,.p-cu-tot:first')
 	if($('.p-cu-tot').length>($('#hmUpdateRows').val()*1+1)){
