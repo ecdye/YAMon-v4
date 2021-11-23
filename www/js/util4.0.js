@@ -2912,7 +2912,7 @@ function exportTableToCSV(tablename) {
 		return str
 	}
   function devices2csv(){
-    var srt = 'var users_version="' + users_version + '"\n'
+    var str = 'var users_version="' + users_version + '"\n'
     str += 'var users_created="' + users_created + '"\n'
     str += 'var users_updated="' + users_updated + '"\n\n'
     str += '// MAC -> Groups\n'
