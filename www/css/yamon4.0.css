@@ -122,7 +122,7 @@ footer a{
 	color: #ffa200;
 }
 h1 { margin: 5px 0;}
-h2 { margin: 4px 0;}
+h2 { margin: 10px 0;}
 h3 { margin: 3px 0;}
 p { margin: 3px 0;}
 th {
@@ -1182,12 +1182,6 @@ span.current-interval {
 }
 .gr-cb {
 	margin: 0 2px 0 8px;
-}
-.tab-round-tl {
-	border-top-left-radius: 4px;
-}
-.tab-round-tr {
-	border-top-right-radius: 4px;
 }
 #all-graphs:before,#no-graphs:before {
 	content: '[ ';
