@@ -1576,7 +1576,7 @@ function curr_users4(arr){
 	var mac=id[0].toLowerCase(), ip=id[1].toLowerCase(), dg=!devices[mac]?'Unknown group':devices[mac].group, dn=!devices[mac]?'Unknown device':devices[mac].name
 	//var mac=arr.mac.toLowerCase(), dg=!devices[mac]?'Unknown group':devices[mac].group, dn=!devices[mac]?'Unknown device':devices[mac].name
 	var tt_id='cu-'+tt.replace(/:/gi,'-')
-	var dt=old_last_update?(Date.parse(last_update)-Date.parse(old_last_update))/1000:_updatefreq
+	var dt=old_last_update?(Date.parse(last_update.replace(/ /g,"T"))-Date.parse(old_last_update.replace(/ /g,"T")))/1000:_updatefreq
 	var fltr=ip==$('.filterIP:first').text()?' filter':''
 	var nr=$('#blank-cu').clone(true,true).removeAttr('id').attr('ip',ip).attr('data-mac',id[0]).attr('title',ip).addClass('p-cu '+tt_id+fltr).removeClass('hidden')
 	nr.find('.cu-o').text(dg)
@@ -1593,7 +1593,7 @@ function curr_users4(arr){
 	live[arr.id]={'down':arr.down, 'up':arr.up}
 }
 function curr_users_totals(tt){
-	var dt=old_last_update?(Date.parse(last_update)-Date.parse(old_last_update))/1000:_updatefreq
+	var dt=old_last_update?(Date.parse(last_update.replace(/ /g,"T"))-Date.parse(old_last_update.replace(/ /g,"T")))/1000:_updatefreq
 	var tt_id='cu-'+tt.replace(/:/gi,'-')
 	if($('#'+tt_id).length>0) return
 	var ncu=$('.'+tt_id).length

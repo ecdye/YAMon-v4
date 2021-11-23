@@ -980,7 +980,6 @@ span.current-interval {
 }
 #mb-filter {
 	font-weight: normal;
-	max-width: 96px;
 }
 .mb-row,.summary-row,.p-tr,.p-cu,.acon-row {
 	background: #FFF;
