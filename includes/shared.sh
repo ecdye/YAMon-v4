@@ -590,41 +590,43 @@ AddActiveDevices(){
 	Send2Log "AddActiveDevices: macipList --> $(IndentList "$(cat "$macIPFile")")"
 }
 
-DigitAdd()
-{
-	Send2Log "DigitAdd - $1 & $2"
+DigitAdd() {
 	local n1=${1:-0}
 	local n2=${2:-0}
-	if [ "${#n1}" -lt "${_max_digits:-12}" ] && [ "${#n2}" -lt "${_max_digits:-12}" ] ; then
-		echo $(($n1+$n2))
-		return
-	fi
 	local l1=${#n1}
 	local l2=${#n2}
 	local carry=0
-	local total=''
-	while [ "$l1" -gt "0" ] || [ "$l2" -gt "0" ]; do
+	local d1
+	local d2
+	local s
+	local total
+	if [ "$l1" -lt "${_max_digits:-12}" ] && [ "$l2" -lt "${_max_digits:-12}" ]; then
+		echo $(( n1 + n2 ))
+		return
+	fi
+
+	while [ $l1 -gt 0 ] || [ $l2 -gt 0 ]; do
 		d1=0
 		d2=0
-		l1=$(($l1-1))
-		l2=$(($l2-1))
-		[ "$l1" -ge "0" ] && d1=${n1:$l1:1}
-		[ "$l2" -ge "0" ] && d2=${n2:$l2:1}
-		s=$(($d1+$d2+$carry))
-		sum=$(($s%10))
-		carry=$(($s/10))
-		total="$sum$total"
+		l1=$(( l1 - 1 ))
+		l2=$(( l2 - 1 ))
+		[ $l1 -ge 0 ] && d1=${n1:$l1:1}
+		[ $l2 -ge 0 ] && d2=${n2:$l2:1}
+		s=$(( d1 + d2 + carry ))
+		sum=$(( s % 10 ))
+		carry=$(( s / 10 ))
+		total="${sum}${total}"
 	done
-	[ "$carry" -eq "1" ] && total="$carry$total"
-	echo ${total:-0}
+	[ $carry -eq 1 ] && total="${carry}${total}"
+	echo "${total:-0}"
 	Send2Log "DigitAdd: $1 + $2 = $total"
 }
 
 DigitSub() {
 	local n1
 	local n2
-	n1="$(echo "${1:-0}" | sed 's/-*/0/')"
-	n2="$(echo "${2:-0}" | sed 's/-*/0/')"
+	n1="$(echo "${1:-0}" | sed 's/-*//')"
+	n2="$(echo "${2:-0}" | sed 's/-*//')"
 	if [ $n1 == $n2 ]; then
 		echo 0
 		return
@@ -637,7 +639,7 @@ DigitSub() {
 	local d
 	local total
 	if [ "$l1" -lt "${_max_digits:-12}" ] && [ "$l2" -lt "${_max_digits:-12}" ]; then
-		echo $(( l1 + l2 ))
+		echo $(( n1 - n2 ))
 		return
 	fi
 
