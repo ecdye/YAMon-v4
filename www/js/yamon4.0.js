@@ -1613,12 +1613,11 @@ function curr_users_totals(tt){
 	nr.find('.cu_up').data('value',t_up)
 	nr.find('.kbs-up').text((t_up/dt/g_toKB).toFixed(_dec))
 	nr.prependTo('#curr-users')
-	var currgt=$('#curr-users-gt').data('value')
-	$('#curr-users-gt').data('value',currgt.replace(/NaN/g,0)*1+dt)
+	$('#curr-users-gt').data('value',$('#curr-users-gt').data('value')*1=='NaN'?$('#curr-users-gt').data('value')*1:0+dt)
 	$('#cu-gt-do').data('value',$('#cu-gt-do').data('value')*1+t_do)
 	$('#cu-gt-up').data('value',$('#cu-gt-up').data('value')*1+t_up)
-	$('#cu-kbs-do').text((($('#cu-gt-do').data('value')*1)/(currgt.replace(/NaN/g,0)*1)/g_toKB).toFixed(_dec))
-	$('#cu-kbs-up').text((($('#cu-gt-up').data('value')*1)/(currgt.replace(/NaN/g,0)*1)/g_toKB).toFixed(_dec))
+	$('#cu-kbs-do').text((($('#cu-gt-do').data('value')*1)/$('#curr-users-gt').data('value')*1/g_toKB).toFixed(_dec))
+	$('#cu-kbs-up').text((($('#cu-gt-up').data('value')*1)/$('#curr-users-gt').data('value')*1/g_toKB).toFixed(_dec))
 	numLU++
 	displayBytes('.'+tt_id+',#curr-users-gt,.p-cu-tot:first')
 	if($('.p-cu-tot').length>($('#hmUpdateRows').val()*1+1)){
