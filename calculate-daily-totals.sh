@@ -26,9 +26,10 @@ source "${d_baseDir}/includes/dailytotals.sh"
 
 [ -n "$1" ] && totalsDate="$1"
 [ -z "$totalsDate" ] && totalsDate="$_ds"
+intervalDataFile="${2:-${_intervalDataFile}}"
 
-Send2Log "calculate-daily-totals,sh: start --> ${_intervalDataFile} (totalsDate: ${totalsDate})" 1
+Send2Log "calculate-daily-totals,sh: start --> ${intervalDataFile} (totalsDate: ${totalsDate})" 1
 
-CalculateDailyTotals "$totalsDate"
+CalculateDailyTotals "$totalsDate" "$intervalDataFile"
 
 LogEndOfFunction

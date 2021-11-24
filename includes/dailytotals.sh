@@ -22,8 +22,8 @@
 ##########################################################################
 
 CalculateDailyTotals() {
-	local _intervalDataFile
-	local _path2CurrentMonth
+	local intervalDataFile
+	local path2CurrentMonth
 	local day
 	local deviceTotals
 	local down up
@@ -95,14 +95,14 @@ CalculateDailyTotals() {
 
 	[ -n "$1" ] && totalsDate="$1" || totalsDate="$_ds"
 	if [ -n "$2" ] ; then
-		_intervalDataFile="$2"
-		if [ ! -f "$_intervalDataFile" ]; then
-			Send2Log "CalculateDailyTotals: couldn't find \`$_intervalDataFile\`?!?" 3
+		intervalDataFile="$2"
+		if [ ! -f "$intervalDataFile" ]; then
+			Send2Log "CalculateDailyTotals: couldn't find \`$intervalDataFile\`?!?" 3
 			CheckIntervalFiles
 		fi
-		_path2CurrentMonth="$(dirname "$_intervalDataFile")/"
+		path2CurrentMonth="$(dirname "$intervalDataFile")/"
 	fi
-	file2Total="${_path2CurrentMonth}hourly_${totalsDate}.js"
+	file2Total="${path2CurrentMonth}hourly_${totalsDate}.js"
 
 	Send2Log "CalculateDailyTotals: start --> $file2Total (param: $totalsDate)" 2
 	echo -e "\n// Totals for $totalsDate"  >> "$_intervalDataFile"
