@@ -1,7 +1,8 @@
 #!/bin/sh
 ##########################################################################
 # Yet Another Monitor (YAMon)
-# Copyright (c) 2013-present Al Caughey
+# Copyright (c) 2013-2020 Al Caughey
+# Copyright (c) 2021 Ethan Dye
 # All rights reserved.
 #
 # some useful aliases and shortcuts

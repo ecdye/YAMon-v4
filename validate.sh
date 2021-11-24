@@ -2,7 +2,8 @@
 
 ##########################################################################
 # Yet Another Monitor (YAMon)
-# Copyright (c) 2013-present Al Caughey
+# Copyright (c) 2013-2020 Al Caughey
+# Copyright (c) 2021 Ethan Dye
 # All rights reserved.
 #
 # Script to help validate the installation of YAMon4.x

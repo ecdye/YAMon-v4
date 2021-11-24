@@ -21,7 +21,8 @@ More info: questions@usage-monitoring.com
 
 # License
 
-Copyright (C) 2020 by Al Caughey (al@caughey.ca)
+Copyright (C) 2013-2020 by Al Caughey (al@caughey.ca)
+Copyright (C) 2021 by Ethan Dye (mrtops03@gmail.com)
 
 Permission to use and/or distribute this software for any purpose without fee is hereby granted.
 

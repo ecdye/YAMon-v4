@@ -2,7 +2,8 @@
 
 ##########################################################################
 # Yet Another Monitor (YAMon)
-# Copyright (c) 2013-present Al Caughey
+# Copyright (c) 2013-2020 Al Caughey
+# Copyright (c) 2021 Ethan Dye
 # All rights reserved.
 #
 # generate /includes/paths.sh with computed paths files & logs; also computed function names(shared between one or more scripts)
@@ -18,27 +19,8 @@
 #
 ##########################################################################
 
-d_baseDir=$(cd "$(dirname "$0")" && pwd)
-
-check4Overflow() {
-	local n=1
-	local a=9
-	local b=9
-	local ob=0
-	local c
-
-	while true; do
-		c=$(( a + b ))
-		[ $c -lt $a ] || [ $c -lt $b ] && break # check for sum overflow
-		ob=$b
-		a=$(( a * 10 + 1 ))
-		b=$(( b * 10 + 9 ))
-		[ $b -lt $ob ] && break # check for value overflow
-		[ $n -eq 32 ] && break # check for max digits
-		n=$(( n + 1 ))
-	done
-	echo $n
-}
+d_baseDir="$(cd "$(dirname "$0")" && pwd)"
+source "${d_baseDir}/includes/helpers.sh"
 
 if [ -n "$1" ] && [ "$1" == 'clean' ]; then
 	echo 'Clean install...'
@@ -234,7 +216,7 @@ echo -e "\n# Firmware specfic & dependent entries:" >> "${pathsFile}"
 	else
 		AddEntry 'nameFromDNSMasqLease' "NullFunction"
 	fi
-	AddEntry '_max_digits' "$(check4Overflow)"
+	AddEntry '_max_digits' "$(checkOverflow)"
 
 
 # Set nice level of current PID to 10 (low priority)

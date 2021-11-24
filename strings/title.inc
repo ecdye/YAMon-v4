@@ -11,7 +11,8 @@ _s_title="
    ////  ////      \\\\\\\\||||    ||||  \\\\\\|///  |||   |||
 
               Yet Another Monitor (v: $_version)
-            Copyright (c) 2013-present Al Caughey
+            Copyright (c) 2013-2020 Al Caughey
+            Copyright (c) 2020 Ethan Dye
                   All rights reserved.
                https://usage-monitoring.com
 
