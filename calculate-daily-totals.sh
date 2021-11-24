@@ -26,7 +26,6 @@ source "${d_baseDir}/includes/dailytotals.sh"
 
 [ -n "$1" ] && totalsDate="$1"
 [ -z "$totalsDate" ] && totalsDate="$_ds"
-_intervalDataFile="${_intervalDataFile/.js/2.js}"
 
 Send2Log "calculate-daily-totals,sh: start --> ${_intervalDataFile} (totalsDate: ${totalsDate})" 1
 

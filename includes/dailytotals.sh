@@ -41,7 +41,7 @@ CalculateDailyTotals() {
 	local totalsDate
 	local traffic
 	local unlimited_down unlimited_up
-	
+
 	CalculateInterfaceTotals() {
 		local ifn
 		local vn
