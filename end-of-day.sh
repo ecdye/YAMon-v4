@@ -86,8 +86,8 @@ CalculateDailyTotals ## no param --> implies value of _ds
 Send2Log "End of day: backup files as required"
 cp "$tmplogFile" "$_path2logs"
 
-[ "$_doDailyBU" -eq "1" ] && tar -czf "${_path2bu}bu-${_ds}.tar.gz" $_usersFile $tmpLastSeen "$(find -L ${d_baseDir} | grep "$_ds")" 2>/dev/null && Send2Log "End of day: archive date specific files to '${_path2bu}bu-${_ds}.tar.gz'"
-rm "$(find "$tmplog" | grep "$_ds")" # delete the date specific files
+[ "$_doDailyBU" -eq "1" ] && tar -chzf "${_path2bu}bu-${_ds}.tar.gz" $_usersFile $tmpLastSeen "$(find -L ${d_baseDir} | grep "$_ds")" 2>/dev/null && Send2Log "End of day: archive date specific files to '${_path2bu}bu-${_ds}.tar.gz'"
+rm -f "$(find "$tmplog" | grep "$_ds")" # delete the date specific files
 
 DeactiveIdleDevices
 

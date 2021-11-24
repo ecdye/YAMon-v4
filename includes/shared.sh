@@ -188,7 +188,7 @@ CheckIPTableEntry() {
 	local ip="$1"
 	local tip="\b${ip//\./\\.}\b"
 	local groupName="${2:-Unknown}"
-	local re_ip4
+	local re_ip4="([0-9]{1,3}\.){3}[0-9]{1,3}"
 	local cmd
 	local g_ip
 	local nm
@@ -226,15 +226,8 @@ CheckIPTableEntry() {
 	Send2Log "CheckIPTableEntry: $ip / $groupName" 0
 	Send2Log "CheckIPTableEntry: ip=$ip / cmd=$cmd / chain=$YAMON_IPTABLES" 0
 
-	re_ip4="([0-9]{1,3}\.){3}[0-9]{1,3}"
-	if [ -n "$(echo $ip | grep -E "$re_ip4")" ] ; then # simplistically matches IPv4
-		cmd='iptables'
-		g_ip='0.0.0.0/0'
-	else
-		[ -z "$ip6Enabled" ] && Send2Log "CheckIPTableEntry: skipping ip6tables check for $ip as IPv6 is not enabled" 1 && return
-		cmd='ip6tables'
-		g_ip='::/0'
-	fi
+	[ -n "$(echo $ip | grep -E "$re_ip4")" ] && cmd='iptables' || [ -n "$ip6Enabled" ] && cmd='ip6tables'
+	[ -n "$(echo $ip | grep -E "$re_ip4")" ] && g_ip="$_generic_ipv4" || [ -n "$ip6Enabled" ] && g_ip="$_generic_ipv6"
 	Send2Log "CheckIPTableEntry: checking $cmd for $ip"
 
 	[ "$ip" == "$g_ip" ] && return
@@ -250,7 +243,7 @@ CheckIPTableEntry() {
 	if [ "$nm" -eq "0" ]; then
 		Send2Log "CheckIPTableEntry: no match for $ip in $cmd / $YAMON_IPTABLES"
 	else
-		Send2Log "CheckIPTableEntry: Incorrect number of rules for $ip in $cmd / $YAMON_IPTABLES -> $nm... removing duplicates\n\t$cmd -L \"$YAMON_IPTABLES\" | grep -ic \"$tip\"" 3
+		Send2Log "CheckIPTableEntry: Incorrect number of rules for $ip in $cmd / $YAMON_IPTABLES -> ${nm}... removing duplicates" 3
 		ClearDuplicateRules
 	fi
 	AddIP

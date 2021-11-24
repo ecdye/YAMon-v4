@@ -42,7 +42,7 @@ getlatest()
 		err_num=$((err_num+1))
 		echo -n "    --> download failed?!? Waiting 5 sec before trying again"
 		n=1
-		while [ 1 ]; do
+		while true; do
 			echo -n '.'
 			[ "$n" -ge "5" ] && break
 			n=$(($n+1))

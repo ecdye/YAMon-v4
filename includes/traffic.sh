@@ -165,7 +165,7 @@ GetTraffic(){
 			mac="$(echo "$macIPList" | grep "$tip" | cut -d' ' -f1)"
 			if [ -z "$mac" ]; then
 				mac="$(GetMACbyIP "$ip")"
-				Send2Log "GetTraffic: no matching entry for ${fl}.  Appending \`${mac} ${ip}\` to macIPFile" 2
+				Send2Log "GetTraffic: no matching entry for ${fl}. Appending \`${mac} ${ip}\` to macIPFile" 2
 				echo -e "$mac $ip" >> "$macIPFile"
 				Send2Log "GetTraffic: Checking users.js for \`${mac} ${ip}\`" 1
 				CheckMAC2IPinUserJS "$mac" "$ip"
@@ -179,7 +179,7 @@ GetTraffic(){
 				total_down=$(( total_down + ${do:-0} ))
 				total_up=$(( total_up + ${up:-0} ))
 				Send2Log "GetTraffic: ${mac}-${ip} / ${do:-0} / ${up:-0} / ${hr}"
-				local newLine="hourlyData4({ \"id\":\"${mac}-${ip}\", \"hour\":\"${hr}\", \"traffic\":\"${do:-0},${up:-0},$(( currentlyUnlimited * ${do:-0} )),$(( currentlyUnlimited * ${up:-0} ))\" })"
+				newLine="hourlyData4({ \"id\":\"${mac}-${ip}\", \"hour\":\"${hr}\", \"traffic\":\"${do:-0},${up:-0},$(( currentlyUnlimited * ${do:-0} )),$(( currentlyUnlimited * ${up:-0} ))\" })"
 				intervalTraffic="${intervalTraffic}\n${newLine}"
 				UpdateLastSeen "${mac}-${ip}" "$tls"
 			else
@@ -205,7 +205,7 @@ GetTraffic(){
 	interfaceTotals="$(GetInterfaceTraffic)"
 	memoryTotals="$(GetMemory)"
 	diskUtilization="$(df "$d_baseDir" | tail -n 1 | awk '{ print $(NF-1) }')"
-	totalsLine="Totals({ \"hour\":\"${hr}\", \"uptime\":\"${currentUptime}\", \"interval\":\"${total_down},${total_up}\",\"interfaces\":'[${interfaceTotals}]',\"memory\":'${memoryTotals}',\"disk_utilization\":'${diskUtilization}' })"
+	totalsLine="Totals({ \"hour\":\"${hr}\", \"uptime\":\"${currentUptime}\", \"interval\":\"${total_down},${total_up}\", \"interfaces\":'[${interfaceTotals}]', \"memory\":'${memoryTotals}', \"disk_utilization\":'${diskUtilization}' })"
 
 	if [ -n "$intervalTraffic" ]; then
 		Send2Log "GetTraffic (${hr}:${mm} --> ${vnx}): intervalTraffic --> $(IndentList "${intervalTraffic}\n${totalsLine}")" $ltrl
