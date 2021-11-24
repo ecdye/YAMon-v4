@@ -213,7 +213,7 @@ GetTraffic(){
 		echo -e "\n//$hr:${sm}->${hr}:${mm} (${vnx})\n${intervalTraffic//,0,0\"/\"}\n${totalsLine//,0,0\"/\"}" >> "$rawtraffic_hr"
 	else
 		Send2Log "GetTraffic (${hr}:${mm}): No traffic" 1
-		local str="Totals({ \"hour\":\"$hr\""
+		local str="Totals({ \"hour\":\"${hr}\""
 		echo -e "$(echo "$hrlyData" | grep -v "$str")\n${totalsLine//,0,0\"/\"}" > "$hourlyDataFile"
 		echo -e "\n//${hr}:${sm})->${hr}:${mm} (${vnx})\n//No traffic" >> "$rawtraffic_hr"
 	fi

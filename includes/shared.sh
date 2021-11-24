@@ -226,8 +226,14 @@ CheckIPTableEntry() {
 	Send2Log "CheckIPTableEntry: $ip / $groupName" 0
 	Send2Log "CheckIPTableEntry: ip=$ip / cmd=$cmd / chain=$YAMON_IPTABLES" 0
 
-	[ -n "$(echo $ip | grep -E "$re_ip4")" ] && cmd='iptables' || [ -n "$ip6Enabled" ] && cmd='ip6tables'
-	[ -n "$(echo $ip | grep -E "$re_ip4")" ] && g_ip="$_generic_ipv4" || [ -n "$ip6Enabled" ] && g_ip="$_generic_ipv6"
+	if [ -n "$(echo $ip | grep -E "$re_ip4")" ]; then
+		cmd='iptables'
+		g_ip="$_generic_ipv4"
+	else
+		[ -z "$ip6Enabled" ] && return
+		cmd='ip6tables'
+		g_ip="$_generic_ipv6"
+	fi
 	Send2Log "CheckIPTableEntry: checking $cmd for $ip"
 
 	[ "$ip" == "$g_ip" ] && return
@@ -447,6 +453,7 @@ CheckMAC2GroupinUserJS() {
 			if [ -n "$(echo $ip | grep -E "$re_ip4")" ]; then # simplistically matches IPv4
 				local cmd='iptables'
 			else
+				[ -n "$ip6Enabled" ] || local cmd='iptables'
 				local cmd='ip6tables'
 			fi
 			Send2Log "ChangeMACGroup: changing chain destination for $ip in $cmd ($gn)" 2
@@ -469,7 +476,7 @@ CheckMAC2GroupinUserJS() {
 		UsersJSUpdated
 	}
 	AddNewMACGroup(){
-		local newentry="mac2group({ \"mac\":\"$m\", \"group\":\"$gn\" })"
+		local newentry="mac2group({ \"mac\":\"${m}\", \"group\":\"${gn}\" })"
 
 		Send2Log "AddNewMACGroup: adding mac2group entry for $m & $gn" 2
 		sed -i "s~// MAC -> Groups~// MAC -> Groups\n${newentry}~g" "$_usersFile"
