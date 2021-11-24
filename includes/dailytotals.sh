@@ -125,16 +125,20 @@ CalculateDailyTotals() {
 		# Send2Log "CalculateDailyTotals: entries4id:$(IndentList "$entries4id")"
 		for line in $entries4id; do
 			[ -z "$line" ] && break
+			total_down=0
+			total_up=0
+			total_unlimited_down=0
+			total_unlimited_up=0
 			Send2Log "CalculateDailyTotals --> line:$(IndentList "$line")"
 			traffic="$(GetField "$line" 'traffic')"
 			down="$(echo "$traffic" | cut -d',' -f1)"
 			up="$(echo "$traffic" | cut -d',' -f2)"
 			unlimited_down="$(echo "$traffic" | cut -d',' -f3)"
 			unlimited_up="$(echo "$traffic" | cut -d',' -f4)"
-			total_down="$(DigitAdd "${total_down:-0}" "$down")"
-			total_up="$(DigitAdd "${total_up:-0}" "$up")"
-			total_unlimited_down="$(DigitAdd "${total_unlimited_down:-0}" "${unlimited_down:-0}")"
-			total_unlimited_up="$(DigitAdd "${total_unlimited_up:-0}" "${unlimited_up:-0}")"
+			total_down="$(DigitAdd "$total_down" "$down")"
+			total_up="$(DigitAdd "$total_up" "$up")"
+			total_unlimited_down="$(DigitAdd "$total_unlimited_down" "${unlimited_down:-0}")"
+			total_unlimited_up="$(DigitAdd "$total_unlimited_up" "${unlimited_up:-0}")"
 		done
 
 		deviceTotals="totalDaily({ \"day\":\"${day}\", \"id\":\"${id}\", \"traffic\":\"${total_down},${total_up},${total_unlimited_down},${total_unlimited_up}\" })"
