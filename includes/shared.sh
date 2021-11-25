@@ -536,7 +536,7 @@ CheckMAC2IPinUserJS() {
 			Send2Log "AddNewMACIP: copying device name '$dn' from $othersWithMAC"
 			if [ -n "$(echo "$dn" | grep "$_defaultDeviceName")" ]; then
 				ndn="$(GetDeviceName "$m" "$i")"
-				[ -z "$(echo "$ndn" | grep $_defaultDeviceName )" ] && dn="$ndn"
+				[ -z "$(echo "$ndn" | grep "$_defaultDeviceName")" ] && dn="$ndn"
 			fi
 		elif [ -z "$dn" ]; then
 			dn="$(GetDeviceName "$m" "$i")"
@@ -561,35 +561,43 @@ CheckMAC2IPinUserJS() {
 	fi
 }
 
-AddActiveDevices(){
+AddActiveDevices() {
+	local _ActiveIPs
+	local _MACGroups
+	local currentMacIP
+	local device
+	local id
+	local ip
+	local mac
+	local group
+
 	Send2Log "AddActiveDevices" 0
-	local _ActiveIPs=$(cat "$_usersFile" | grep -e "^mac2ip({.*})$" | grep '"active":"1"')
-	local _MACGroups=$(cat "$_usersFile" | grep -e "^mac2group({.*})$")
-	local currentMacIP=$(cat "$macIPFile")
-	local adl=$(echo "$_currentUsers" | grep '"active":"1"')
+	_ActiveIPs="$(cat "$_usersFile" | grep -e '^mac2ip({.*})$' | grep '"active":"1"')"
+	_MACGroups="$(cat "$_usersFile" | grep -e '^mac2group({.*})$')"
 	IFS=$'\n'
-	for device in $_ActiveIPs
-	do
-		local id=$(GetField $device 'id')
-		local ip=$(echo "$id" | cut -d'-' -f2)
+	for device in $_ActiveIPs; do
+		currentMacIP="$(cat "$macIPFile")"
+		id="$(GetField "$device" 'id')"
+		ip="$(echo "$id" | cut -d'-' -f2)"
 		[ -z "$ip" ] && Send2Log "AddActiveDevices --> IP is null --> $device" && continue
 		[ "$_generic_ipv4" == "$ip" ] || [ "$_generic_ipv6" == "$ip" ] && continue
-		local mac=$(echo "$id" | cut -d'-' -f1)
-		local group=$(GetField "$(echo "$_MACGroups" | grep "$mac")" 'group')
+		mac="$(echo "$id" | cut -d'-' -f1)"
+		group="$(GetField "$(echo "$_MACGroups" | grep -i "\"$mac\"")" 'group')"
 
 		Send2Log "AddActiveDevices --> $id / $mac / $ip / ${group:-Unknown} "
-		if [ -z "$(echo "$currentMacIP" | grep "${ip//\./\\.}" )" ] ; then
-			Send2Log "AddActiveDevices --> IP $ip does not exist in $macIPFile... added to the list" 0
+		if [ -z "$(echo "$currentMacIP" | grep "${ip//\./\\.}" )" ]; then
+			Send2Log "AddActiveDevices --> IP $ip does not exist in ${macIPFile}... added to the list" 0
 		else
-			Send2Log "AddActiveDevices --> IP $ip exists in $macIPFile... deleted entries $(IndentList "$(echo "$currentMacIP" | grep "${ip//\./\\.}" )")" 2
-			echo -e "$macIPList" | grep -Ev "${ip//\./\\.}" > "$macIPFile"
+			Send2Log "AddActiveDevices --> IP $ip exists in ${macIPFile}... deleted entries $(IndentList "$(echo "$currentMacIP" | grep "${ip//\./\\.}")")" 2
+			echo "$currentMacIP" | grep -v "${ip//\./\\.}" > "$macIPFile"
 		fi
 		Send2Log "AddActiveDevices --> $id added to $macIPFile" 1
 		echo "$mac $ip" >> "$macIPFile"
 
 		CheckIPTableEntry "$ip" "${group:-Unknown}"
 	done
-	Send2Log "AddActiveDevices: macipList --> $(IndentList "$(cat "$macIPFile")")"
+	unset IFS
+	Send2Log "AddActiveDevices --> $(IndentList "$(cat "$macIPFile")")"
 }
 
 DigitAdd() {

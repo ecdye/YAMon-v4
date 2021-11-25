@@ -163,7 +163,7 @@ CheckMacIP4Duplicates() {
 		Send2Log "CheckMacIP4Duplicates: $ip has duplicate entries in $macIPFile" 2
 		macIPList="$(echo "$macIPList" | grep -v "${ip//\./\\.}")"
 		activeID="$(echo "$combinedIPArp" | grep "${ip//\./\\.}")"
-		if [ -n "$activeID" ] ; then
+		if [ -n "$activeID" ]; then
 			Send2Log "CheckMacIP4Duplicates: re-added activeID \`$activeID\`" 2
 			macIPList="$macIPList\n$activeID"
 		else
