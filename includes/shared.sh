@@ -95,7 +95,7 @@ CheckGroupChain() {
 
 	Send2Log "CheckGroupChain: $cmd /  $groupName" 0
 	groupChain="${YAMON_IPTABLES}_$(echo "$groupName" | sed "s/[^a-z0-9]//ig")"
-	if [ -z "$($cmd -L | grep '^Chain' | grep "${groupChain}\b")" ]; then
+	if [ -z "$($cmd -L "$_iptablesWait" | grep '^Chain' | grep "${groupChain}\b")" ]; then
 		Send2Log "CheckGroupChain: Adding group chain to iptables: $groupChain" 2
 		eval $cmd -N "$groupChain" "$_iptablesWait"
 		eval $cmd -A "$groupChain" -j "RETURN" "$_iptablesWait"
@@ -585,11 +585,11 @@ AddActiveDevices() {
 		group="$(GetField "$(echo "$_MACGroups" | grep -i "\"$mac\"")" 'group')"
 
 		Send2Log "AddActiveDevices --> $id / $mac / $ip / ${group:-Unknown} "
-		if [ -z "$(echo "$currentMacIP" | grep "${ip//\./\\.}" )" ]; then
+		if [ -z "$(echo "$currentMacIP" | grep "${ip//\./\\.}$")" ]; then
 			Send2Log "AddActiveDevices --> IP $ip does not exist in ${macIPFile}... added to the list" 0
 		else
-			Send2Log "AddActiveDevices --> IP $ip exists in ${macIPFile}... deleted entries $(IndentList "$(echo "$currentMacIP" | grep "${ip//\./\\.}")")" 2
-			echo "$currentMacIP" | grep -v "${ip//\./\\.}" > "$macIPFile"
+			Send2Log "AddActiveDevices --> IP $ip exists in ${macIPFile}... deleted entries $(IndentList "$(echo "$currentMacIP" | grep "${ip//\./\\.}$")")" 2
+			echo "$currentMacIP" | grep -v "${ip//\./\\.}$" > "$macIPFile"
 		fi
 		Send2Log "AddActiveDevices --> $id added to $macIPFile" 1
 		echo "$mac $ip" >> "$macIPFile"
