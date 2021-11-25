@@ -135,48 +135,51 @@ SetupIPChains() {
   AddIPTableRules
 }
 
-AddNetworkInterfaces(){
-  Send2Log "AddNetworkInterfaces:" 1
-  listofInterfaces=$(ls /sys/class/net)
-  #[ -z "$listofInterfaces" ] && "$(ifconfig | grep HWaddr | awk '{print $1}')"
+AddNetworkInterfaces() {
   local re_mac='([a-f0-9]{2}:){5}[a-f0-9]{2}'
-  IFS=$'\n'
-  interfaceList=''
-  for inf in $listofInterfaces
-  do
-    ifc=$(ifconfig $inf)
-    mac=$(echo "$ifc" | grep -o 'HWaddr.*$' | cut -d' ' -f2 | tr "[A-Z]" "[a-z]")
+  local listofInterfaces
+  local interfaceList
+  local inf ifc ifn
+  local mac
+  local inet4 inet6
+  local ip iplist
+  local pnd line
+
+  Send2Log "AddNetworkInterfaces:" 1
+  listofInterfaces="$(ifconfig | grep "HWaddr" | awk '{ print $1 }')"
+  for inf in $listofInterfaces; do
+    ifc="$(ifconfig "$inf")"
+    mac="$(cat "/sys/class/net/${inf}/address")"
     [ -z "$mac" ] && continue
-    if [ -z "$(echo "$mac" | grep -Ei "$re_mac")" ] ; then
+    if [ -z "$(echo "$mac" | grep -Ei "$re_mac")" ]; then
       Send2Log "AddNetworkInterfaces: bad mac --> $mac from $ifc" 1
       continue
     fi
-    inet4=$(echo "$ifc" | grep 'inet addr' | cut -d: -f2 | awk '{print $1}')
-    inet6=$(echo "$ifc" | grep 'inet6 addr'| awk '{print $3}')
+    inet4="$(echo "$ifc" | grep 'inet addr' | cut -d':' -f2 | awk '{ print $1 }')"
+    inet6="$(echo "$ifc" | grep 'inet6 addr'| awk '{ print $3 }')"
     [ -z "$inet4" ] && [ -z "$inet6" ] && continue
-    iplist=$(echo -e "$inet4\n$inet6")
+    iplist="$(echo -e "${inet4}\n${inet6}")"
     Send2Log "AddNetworkInterfaces: $inf --> $mac $(IndentList "$iplist")" 1
-    for ip in $iplist
-    do
+    for ip in $iplist; do
       [ -z "$ip" ] && continue
       CheckMAC2IPinUserJS "$mac" "$ip" "$inf"
       CheckMAC2GroupinUserJS "$mac" 'Interfaces'
       CheckIPTableEntry "$ip" "Interfaces"
     done
-    interfaceList="$interfaceList,$inf"
+    interfaceList="${interfaceList},${inf}"
   done
-  interfaceList=${interfaceList#,}
+  interfaceList="${interfaceList#,}"
   AddEntry "_interfaces" "$interfaceList"
 
   IFS=$'\n'
-  pnd=$(cat "/proc/net/dev" | grep -E "${interfaceList//,/|}")
-  for line in $pnd
-  do
-    ifn=$(echo "$line" | awk '{ print $1 }' | sed -e 's~-~_~' -e 's~:~~')
+  pnd="$(cat "/proc/net/dev" | grep -E "${interfaceList//,/|}")"
+  for line in $pnd; do
+    ifn="$(echo "$line" | awk '{ print $1 }' | sed -e 's~-~_~' -e 's~:~~')"
     AddEntry "interface_${ifn}" "$(echo "$line" | awk '{ print $10","$2 }')"
   done
+  unset IFS
 
   CheckMAC2IPinUserJS "$_generic_mac" "$_generic_ipv4" "No Matching Device"
-  [ "$ip6Enabled" == '1' ] && CheckMAC2IPinUserJS "$_generic_mac" "$_generic_ipv6" "No Matching Device"
+  [ -n "$ip6Enabled" ] && CheckMAC2IPinUserJS "$_generic_mac" "$_generic_ipv6" "No Matching Device"
   CheckMAC2GroupinUserJS "$_generic_mac" "$_defaultGroup"
 }
