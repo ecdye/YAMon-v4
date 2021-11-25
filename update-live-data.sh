@@ -82,7 +82,7 @@ CurrentConnections_1() { # _doCurrConnections=1
 			do="$(echo "$ipt" | grep -E "(${_generic_ipv4}|${_generic_ipv6}) $tip\b" | cut -d' ' -f1 | head -n 1)"
 			up="$(echo "$ipt" | grep -E "$tip (${_generic_ipv4}|${_generic_ipv6})" | cut -d' ' -f1 | head -n 1)"
 			mac="$(echo "$macIP" | grep "$tip" | awk '{ print $1 }')"
-			[ -z "$mac" ] && mac="$(GetMACbyIP "$tip")"
+			[ -z "$mac" ] && mac="$(GetMACbyIP "$ip")"
 			echo "curr_users4({id:'${mac}-${ip}',down:'${do:-0}',up:'${up:-0}'})" >> $_liveFilePath
 			ipt="$(echo -e "$ipt" | grep -v "$tip")" # delete all matching entries for the current IP
 		fi
