@@ -165,26 +165,24 @@ GetTraffic(){
 			mac="$(echo "$macIPList" | grep "$tip" | cut -d' ' -f1)"
 			if [ -z "$mac" ]; then
 				mac="$(GetMACbyIP "$ip")"
+				group="$(GetDeviceGroup "$mac" "$ip")"
 				Send2Log "GetTraffic: no matching entry for ${fl}. Appending \`${mac} ${ip}\` to macIPFile" 2
 				echo -e "$mac $ip" >> "$macIPFile"
 				Send2Log "GetTraffic: Checking users.js for \`${mac} ${ip}\`" 1
 				CheckMAC2IPinUserJS "$mac" "$ip"
-				CheckIPTableEntry "$ip"
-				CheckMAC2GroupinUserJS "$mac"
+				CheckMAC2GroupinUserJS "$mac" "$group"
+				CheckIPTableEntry "$ip" "$group"
 			fi
 
-			if [ -n "$mac" ]; then
-				do="$(echo "$ipt" | grep -E "(${_generic_ipv4}|${_generic_ipv6}) $tip\b" | cut -d' ' -f1 | head -n 1)"
-				up="$(echo "$ipt" | grep -E "$tip (${_generic_ipv4}|${_generic_ipv6})" | cut -d' ' -f1 | head -n 1)"
-				total_down=$(( total_down + ${do:-0} ))
-				total_up=$(( total_up + ${up:-0} ))
-				Send2Log "GetTraffic: ${mac}-${ip} / ${do:-0} / ${up:-0} / ${hr}"
-				newLine="hourlyData4({ \"id\":\"${mac}-${ip}\", \"hour\":\"${hr}\", \"traffic\":\"${do:-0},${up:-0},$(( currentlyUnlimited * ${do:-0} )),$(( currentlyUnlimited * ${up:-0} ))\" })"
-				intervalTraffic="${intervalTraffic}\n${newLine}"
-				UpdateLastSeen "${mac}-${ip}" "$tls"
-			else
-				Send2Log "GetTraffic: still no matching mac for '${ip}'?!? skipping this entry $(IndentList "$fl")" 3
-			fi
+			[ -z "$mac" ] && Send2Log "GetTraffic: still no matching mac for '${ip}'?!? skipping this entry $(IndentList "$fl")" 3; continue
+			do="$(echo "$ipt" | grep -E "(${_generic_ipv4}|${_generic_ipv6}) $tip\b" | cut -d' ' -f1 | head -n 1)"
+			up="$(echo "$ipt" | grep -E "$tip (${_generic_ipv4}|${_generic_ipv6})" | cut -d' ' -f1 | head -n 1)"
+			total_down=$(( total_down + ${do:-0} ))
+			total_up=$(( total_up + ${up:-0} ))
+			Send2Log "GetTraffic: ${mac}-${ip} / ${do:-0} / ${up:-0} / ${hr}"
+			newLine="hourlyData4({ \"id\":\"${mac}-${ip}\", \"hour\":\"${hr}\", \"traffic\":\"${do:-0},${up:-0},$(( currentlyUnlimited * ${do:-0} )),$(( currentlyUnlimited * ${up:-0} ))\" })"
+			intervalTraffic="${intervalTraffic}\n${newLine}"
+			UpdateLastSeen "${mac}-${ip}" "$tls"
 			ipt="$(echo -e "$ipt" | grep -v "$tip")" # delete all matching entries for the current IP
 		fi
 	done
