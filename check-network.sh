@@ -99,7 +99,7 @@ Check4NewDevices() {
 	if [ -z "$newIPList" ]; then
 		Send2Log "Check4NewDevices: no new devices... checking that all IP addresses exist in iptables"
 		ipsFromARP="$(echo "$combinedIPArp" | awk '{ print $2 }')"
-		iptablesList="$(iptables -L "$YAMON_IPTABLES" -vnx | awk '{ print $8 }' | grep -v '0.0.0.0' | sort | grep "^[1-9]")"
+		iptablesList="$(iptables -L "$YAMON_IPTABLES" -vnx $_iptablesWait | awk '{ print $8 }' | grep -v '0.0.0.0' | sort | grep "^[1-9]")"
 		unmatchedIPs="$(echo "$ipsFromARP" | grep -Ev "$iptablesList")"
 		for nip in $unmatchedIPs; do
 			mac="$(GetMACbyIP "$nip")"
@@ -113,7 +113,7 @@ Check4NewDevices() {
 			IFS=$'\n'
 			for line in $dmsg; do
 				# TODO: parse lines for MAC & IP
-				Send2Log "check-network.sh: dmesg --> $line" 2
+				Send2Log "Check4NewDevices: dmesg --> $line" 2
 			done
 			unset IFS
 		fi
@@ -124,7 +124,7 @@ Check4NewDevices() {
 			[ -z "$nd" ] && return
 			m="$(echo "$nd" | cut -d' ' -f1)"
 			i="$(echo "$nd" | cut -d' ' -f2)"
-			Send2Log "check-network: new device --> ip=${i}; mac=${m}" 1
+			Send2Log "Check4NewDevices: new device --> ip=${i}; mac=${m}" 1
 			if [ -z "$(echo "$m" | grep -Ei "$re_mac")" ]; then
 				Send2Log "Check4NewDevices: Bad MAC --> $(IndentList "$(echo -e "IP: $(echo "$ipResults" | grep "\b${i}\b")\nARP: $(echo "$arpResults" | grep "\b${i}\b")")")" 2
 				rm="$(FindRefMAC)"

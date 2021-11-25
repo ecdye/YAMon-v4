@@ -95,10 +95,10 @@ CheckGroupChain() {
 
 	Send2Log "CheckGroupChain: $cmd / $groupName" 0
 	groupChain="${YAMON_IPTABLES}_$(echo "$groupName" | sed "s/[^a-z0-9]//ig")"
-	if [ -z "$($cmd -L | grep '^Chain' | grep "${groupChain}\b")" ]; then
+	if [ -z "$($cmd -L $_iptablesWait | grep '^Chain' | grep "${groupChain}\b")" ]; then
 		Send2Log "CheckGroupChain: Adding group chain to iptables: $groupChain" 2
-		eval $cmd -N "$groupChain" "$_iptablesWait"
-		eval $cmd -A "$groupChain" -j "RETURN" "$_iptablesWait"
+		eval $cmd -N "$groupChain" $_iptablesWait
+		eval $cmd -A "$groupChain" -j "RETURN" $_iptablesWait
 	fi
 }
 
@@ -161,7 +161,7 @@ AddIPTableRules() {
 			while true; do
 				ln="$($cmd -L "$YAMON_IPTABLES" -n --line-numbers | grep "$ruleName" | awk '{ print $1 }' | head -n 1)"
 				[ -z $ln ] && break
-				eval $cmd -D "$YAMON_IPTABLES" "$ln" "$_iptablesWait"
+				eval $cmd -D "$YAMON_IPTABLES" "$ln" $_iptablesWait
 				nl="$(( nl + 1 ))"
 			done
 			Send2Log "DeleteIPTableRule: deleted $nl $ruleName rules from ${cmd}: $YAMON_IPTABLES" 2
@@ -175,10 +175,10 @@ AddIPTableRules() {
 
 	for cmd in ${commands//,/ }; do
 		if [ "$_logNoMatchingMac" -eq "1" ]; then
-			eval $cmd -A "$YAMON_IPTABLES" -j LOG --log-prefix "YAMon: " "$_iptablesWait"
+			eval $cmd -A "$YAMON_IPTABLES" -j LOG --log-prefix "YAMon: " $_iptablesWait
 			Send2Log "AddIPTableRules: added LOG rule in ${cmd}: $YAMON_IPTABLES" 2
 		else
-			eval $cmd -A "$YAMON_IPTABLES" -j RETURN "$_iptablesWait"
+			eval $cmd -A "$YAMON_IPTABLES" -j RETURN $_iptablesWait
 			Send2Log "AddIPTableRules: added RETURN rule in ${cmd}: $YAMON_IPTABLES" 2
 		fi
 	done
@@ -201,7 +201,7 @@ CheckIPTableEntry() {
 			[ -z "$ip" ] && break
 			dup_num="$($cmd -L "$YAMON_IPTABLES" -n --line-numbers | grep -m 1 -i "$tip" | cut -d' ' -f1)"
 			[ -z "$dup_num" ] && break
-			eval $cmd -D "$YAMON_IPTABLES" $dup_num "$_iptablesWait"
+			eval $cmd -D "$YAMON_IPTABLES" $dup_num $_iptablesWait
 			n=$(( n + 1 ))
 		done
 		Send2Log "ClearDuplicateRules: removed $n duplicate entries for $ip" 0
@@ -212,13 +212,13 @@ CheckIPTableEntry() {
 		groupChain="${YAMON_IPTABLES}_$(echo $groupName | sed "s~[^a-z0-9]~~ig")"
 		Send2Log "AddIP: $cmd $YAMON_IPTABLES $ip --> $groupChain (firmware: $_firmware)" 0
 		if [ "$_firmware" -eq "0" ] && [ "$cmd" == 'ip6tables' ] ; then
-			eval $cmd -I "$YAMON_IPTABLES" -j "RETURN" -s $ip "$_iptablesWait"
-			eval $cmd -I "$YAMON_IPTABLES" -j "RETURN" -d $ip "$_iptablesWait"
-			eval $cmd -I "$YAMON_IPTABLES" -j "$groupChain" -s $ip "$_iptablesWait"
-			eval $cmd -I "$YAMON_IPTABLES" -j "$groupChain" -d $ip "$_iptablesWait"
+			eval $cmd -I "$YAMON_IPTABLES" -j "RETURN" -s $ip $_iptablesWait
+			eval $cmd -I "$YAMON_IPTABLES" -j "RETURN" -d $ip $_iptablesWait
+			eval $cmd -I "$YAMON_IPTABLES" -j "$groupChain" -s $ip $_iptablesWait
+			eval $cmd -I "$YAMON_IPTABLES" -j "$groupChain" -d $ip $_iptablesWait
 		else
-			eval $cmd -I "$YAMON_IPTABLES" -g "$groupChain" -s $ip "$_iptablesWait"
-			eval $cmd -I "$YAMON_IPTABLES" -g "$groupChain" -d $ip "$_iptablesWait"
+			eval $cmd -I "$YAMON_IPTABLES" -g "$groupChain" -s $ip $_iptablesWait
+			eval $cmd -I "$YAMON_IPTABLES" -g "$groupChain" -d $ip $_iptablesWait
 			Send2Log "AddIP: $cmd -I \"$YAMON_IPTABLES\" -g \"$groupChain\" -s $ip"
 		fi
 	}
@@ -237,7 +237,7 @@ CheckIPTableEntry() {
 	Send2Log "CheckIPTableEntry: checking $cmd for $ip"
 
 	[ "$ip" == "$g_ip" ] && return
-	nm="$($cmd -L "$YAMON_IPTABLES" -n | grep -ic "$tip")"
+	nm="$($cmd -L "$YAMON_IPTABLES" -n $_iptablesWait | grep -ic "$tip")"
 
 	if [ "$nm" -eq "2" ] || [ "$nm" -eq "4" ]; then  # correct number of entries
 		Send2Log "CheckIPTableEntry: $nm matches for $ip in $cmd / $YAMON_IPTABLES"
@@ -408,10 +408,10 @@ CheckChains() {
 
 	[ -n "$ip6Enabled" ] && commands='iptables,ip6tables' || commands='iptables'
 	for cmd in ${commands//,/ }; do
-		ipChain="$($cmd -L | grep "Chain $YAMON_IPTABLES" | grep "\b${chain}\b")"
+		ipChain="$($cmd -L $_iptablesWait | grep "Chain $YAMON_IPTABLES" | grep "\b${chain}\b")"
 		if [ -z "$ipChain" ]; then
 			Send2Log "CheckChains: Adding $chain in $cmd" 2
-			eval $cmd -N $chain "$_iptablesWait"
+			eval $cmd -N $chain $_iptablesWait
 		else
 			Send2Log "CheckChains: $chain exists in $cmd" 1
 		fi
@@ -458,17 +458,17 @@ CheckMAC2GroupinUserJS() {
 			fi
 			Send2Log "ChangeMACGroup: changing chain destination for $ip in $cmd ($gn)" 2
 
-			matchingRules="$($cmd -L "$YAMON_IPTABLES" -n --line-numbers | grep "\b${ip//\./\\.}\b")"
+			matchingRules="$($cmd -L "$YAMON_IPTABLES" -n --line-numbers $_iptablesWait | grep "\b${ip//\./\\.}\b")"
 			for rule in $matchingRules; do
 				[ -z "$rule" ] && continue
 				ln="$(echo "$rule" | awk '{ print $1 }')"
 				i="$(echo "$rule" | awk '{ print $5 }')"
 				CheckChains "$groupChain"
 				if [ "$i" != "$_generic_ipv4" ]; then
-					eval $cmd -R "$YAMON_IPTABLES" "$ln" -s "$i" -j "$groupChain" "$_iptablesWait"
+					eval $cmd -R "$YAMON_IPTABLES" "$ln" -s "$i" -j "$groupChain" $_iptablesWait
 				else
 					i="$(echo "$rule" | awk '{ print $6 }')"
-					eval $cmd -R "$YAMON_IPTABLES" "$ln" -d "$i" -j "$groupChain" "$_iptablesWait"
+					eval $cmd -R "$YAMON_IPTABLES" "$ln" -d "$i" -j "$groupChain" $_iptablesWait
 				fi
 				Send2Log "ChangeMACGroup: changing destination of $rule to $gn" 2
 			done
