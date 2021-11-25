@@ -93,9 +93,9 @@ CheckGroupChain() {
 	local groupName="${2:-Unknown}"
 	local groupChain
 
-	Send2Log "CheckGroupChain: $cmd /  $groupName" 0
+	Send2Log "CheckGroupChain: $cmd / $groupName" 0
 	groupChain="${YAMON_IPTABLES}_$(echo "$groupName" | sed "s/[^a-z0-9]//ig")"
-	if [ -z "$($cmd -L "$_iptablesWait" | grep '^Chain' | grep "${groupChain}\b")" ]; then
+	if [ -z "$($cmd "$_iptablesWait" -L | grep '^Chain' | grep "${groupChain}\b")" ]; then
 		Send2Log "CheckGroupChain: Adding group chain to iptables: $groupChain" 2
 		eval $cmd -N "$groupChain" "$_iptablesWait"
 		eval $cmd -A "$groupChain" -j "RETURN" "$_iptablesWait"
@@ -237,7 +237,7 @@ CheckIPTableEntry() {
 	Send2Log "CheckIPTableEntry: checking $cmd for $ip"
 
 	[ "$ip" == "$g_ip" ] && return
-	nm="$($cmd -L "$YAMON_IPTABLES" -n | grep -ic "$tip")"
+	nm="$($cmd -L "$YAMON_IPTABLES" -n "$_iptablesWait" | grep -ic "$tip")"
 
 	if [ "$nm" -eq "2" ] || [ "$nm" -eq "4" ]; then  # correct number of entries
 		Send2Log "CheckIPTableEntry: $nm matches for $ip in $cmd / $YAMON_IPTABLES"
