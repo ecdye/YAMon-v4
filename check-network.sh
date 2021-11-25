@@ -99,7 +99,7 @@ Check4NewDevices() {
 	if [ -z "$newIPList" ]; then
 		Send2Log "Check4NewDevices: no new devices... checking that all IP addresses exist in iptables"
 		ipsFromARP="$(echo "$combinedIPArp" | awk '{ print $2 }')"
-		iptablesList="$(iptables -L "$YAMON_IPTABLES" -vnx $_iptablesWait | awk '{ print $8 }' | grep -v '0.0.0.0' | sort | grep "^[1-9]")"
+		iptablesList="$(iptables -L "$YAMON_IPTABLES" -vnx -w -W1 | awk '{ print $8 }' | grep -v '0.0.0.0' | sort | grep "^[1-9]")"
 		unmatchedIPs="$(echo "$ipsFromARP" | grep -Ev "$iptablesList")"
 		for nip in $unmatchedIPs; do
 			mac="$(GetMACbyIP "$nip")"

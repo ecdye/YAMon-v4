@@ -41,7 +41,7 @@ CurrentConnections_1() { # _doCurrConnections=1
 	local err
 
 	IP6Enabled() {
-		echo "$(ip6tables -L "$YAMON_IPTABLES" -vnx $_iptablesWait | grep -v RETURN | awk '{ print $2,$7,$8 }' | grep "^[1-9]")"
+		echo "$(ip6tables -L "$YAMON_IPTABLES" -vnx -w -W1 | grep -v RETURN | awk '{ print $2,$7,$8 }' | grep "^[1-9]")"
 	}
 	NoIP6() {
 		echo
@@ -61,7 +61,7 @@ CurrentConnections_1() { # _doCurrConnections=1
 	}
 
 	# to-do - grab the iptables data and send along with the live data
-	ip4t=$(iptables -L "$YAMON_IPTABLES" -vnx $_iptablesWait | grep -v RETURN | awk '{ print $2,$8,$9 }' | grep "^[1-9]")
+	ip4t=$(iptables -L "$YAMON_IPTABLES" -vnx -w -W1 | grep -v RETURN | awk '{ print $2,$8,$9 }' | grep "^[1-9]")
 	ip6t="$($ip6tablesFn)"
 	ipt="$ip4t\n$ip6t"
 	macIP="$(cat "$macIPFile")"

@@ -108,7 +108,7 @@ GetTraffic(){
 	local totalsLine
 
 	IP6Enabled() {
-		echo "$(ip6tables -L "$YAMON_IPTABLES" "$vnx" $_iptablesWait | awk '{ print $2,$7,$8 }' | grep "^[1-9]")"
+		echo "$(ip6tables -L "$YAMON_IPTABLES" "$vnx" -w -W1 | awk '{ print $2,$7,$8 }' | grep "^[1-9]")"
 	}
 	NoIP6() {
 		echo
@@ -116,7 +116,7 @@ GetTraffic(){
 
 	[ "$vnx" == '-vnxZ' ] && ltrl=1
   macIPList="$(cat "$macIPFile")"
-	ip4t="$(iptables -L "$YAMON_IPTABLES" "$vnx" $_iptablesWait | awk '{ print $2,$8,$9 }' | grep "^[1-9]")"
+	ip4t="$(iptables -L "$YAMON_IPTABLES" "$vnx" -w -W1 | awk '{ print $2,$8,$9 }' | grep "^[1-9]")"
 	ip6t="$($ip6tablesFn)"
 	ipt="$ip4t\n$ip6t"
 	tls="$(date +"%H:%M:%S")"

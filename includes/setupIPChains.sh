@@ -38,14 +38,14 @@ CheckTables() {
   [ -n "$ip6Enabled" ] && commands='iptables,ip6tables' || commands='iptables'
 
   for cmd in ${commands//,/ }; do
-    foundRuleInChain="$($cmd -nL "$1" $_iptablesWait | grep -ic "\b$rule\b")"
+    foundRuleInChain="$($cmd -nL "$1" -w -W1 | grep -ic "\b$rule\b")"
 
     if [ "$foundRuleInChain" -eq 1 ]; then
       Send2Log "CheckTables: '$cmd' rule $rule exists in chain $1" 1
       return
     elif [ "$foundRuleInChain" -eq 0 ]; then
       Send2Log "CheckTables: Created '$cmd' rule $rule in chain $1" 2
-      eval $cmd -I "$1" -j "$rule" $_iptablesWait
+      eval $cmd -I "$1" -j "$rule" -w -W1
       return
     fi
 
@@ -53,10 +53,10 @@ CheckTables() {
     Send2Log "CheckTables: Found $foundRuleInChain instances of '$cmd' $rule in chain $1... deleting entries individually rather than flushing!" 3
     while [  "$i" -le "$foundRuleInChain" ]; do
       dup_num="$($cmd -nL "$1" --line-numbers | grep -m 1 -i "\b$rule\b" | cut -d' ' -f1)"
-      eval $cmd -D "$1" "$dup_num" $_iptablesWait
+      eval $cmd -D "$1" "$dup_num" -w -W1
       i=$(( i + 1 ))
     done
-    eval $cmd -I "$1" -j "$rule" $_iptablesWait
+    eval $cmd -I "$1" -j "$rule" -w -W1
   done
 }
 
@@ -70,24 +70,24 @@ AddPrivateBlocks() {
   [ -n "$ip6Enabled" ] && ipBlocks="$_PRIVATE_IP6_BLOCKS" || ipBlocks="$_PRIVATE_IP4_BLOCKS"
 
   for cmd in $commands; do
-    $cmd -F "$YAMON_IPTABLES" $_iptablesWait
-    $cmd -F "$ENTRY" $_iptablesWait
-    $cmd -F "$LOCAL" $_iptablesWait
+    $cmd -F "$YAMON_IPTABLES" -w -W1
+    $cmd -F "$ENTRY" -w -W1
+    $cmd -F "$LOCAL" -w -W1
     Send2Log "AddPrivateBlocks: $cmd / '$YAMON_IPTABLES' / '$ENTRY' / '$LOCAL' / $ipBlocks" 1
     for iprs in ${ipBlocks//,/ }; do
       for iprd in ${ipBlocks//,/ }; do
         if [ "$_firmware" -eq "0" ] && [ "$cmd" == 'ip6tables' ]; then
-          eval $cmd -I "$ENTRY" -j "RETURN" -s $iprs -d $iprd $_iptablesWait
-          eval $cmd -I "$ENTRY" -j "$LOCAL" -s $iprs -d $iprd $_iptablesWait
+          eval $cmd -I "$ENTRY" -j "RETURN" -s $iprs -d $iprd -w -W1
+          eval $cmd -I "$ENTRY" -j "$LOCAL" -s $iprs -d $iprd -w -W1
         else
-          eval $cmd -I "$ENTRY" -g "$LOCAL" -s $iprs -d $iprd $_iptablesWait
+          eval $cmd -I "$ENTRY" -g "$LOCAL" -s $iprs -d $iprd -w -W1
         fi
       done
     done
-    eval $cmd -A "$ENTRY" -j "${YAMON_IPTABLES}" $_iptablesWait
-    eval $cmd -I "$LOCAL" -j "RETURN" $_iptablesWait
+    eval $cmd -A "$ENTRY" -j "${YAMON_IPTABLES}" -w -W1
+    eval $cmd -I "$LOCAL" -j "RETURN" -w -W1
 
-    Send2Log "chains --> $cmd / $YAMON_IPTABLES --> $(IndentList "$($cmd -L -vx $_iptablesWait | grep "$YAMON_IPTABLES" | grep "Chain")")"
+    Send2Log "chains --> $cmd / $YAMON_IPTABLES --> $(IndentList "$($cmd -L -vx -w -W1 | grep "$YAMON_IPTABLES" | grep "Chain")")"
   done
 }
 
@@ -104,13 +104,13 @@ AddLocalIPs() {
     Send2Log "AddLocalIPs: $cmd / '$YAMON_IPTABLES' / '$ENTRY' / '$LOCAL' / $ipAddresses" 1
     for ip in ${ipAddresses//,/ }; do
       if [ "$_firmware" -eq "0" ] && [ "$cmd" == 'ip6tables' ] ; then
-        eval $cmd -I "$ENTRY" -j "RETURN" -s $ip $_iptablesWait
-        eval $cmd -I "$ENTRY" -j "RETURN" -d $ip $_iptablesWait
-        eval $cmd -I "$ENTRY" -j "$LOCAL" -s $ip $_iptablesWait
-        eval $cmd -I "$ENTRY" -j "$LOCAL" -d $ip $_iptablesWait
+        eval $cmd -I "$ENTRY" -j "RETURN" -s $ip -w -W1
+        eval $cmd -I "$ENTRY" -j "RETURN" -d $ip -w -W1
+        eval $cmd -I "$ENTRY" -j "$LOCAL" -s $ip -w -W1
+        eval $cmd -I "$ENTRY" -j "$LOCAL" -d $ip -w -W1
       else
-        eval $cmd -I "$ENTRY" -g "$LOCAL" -s $ip $_iptablesWait
-        eval $cmd -I "$ENTRY" -g "$LOCAL" -d $ip $_iptablesWait
+        eval $cmd -I "$ENTRY" -g "$LOCAL" -s $ip -w -W1
+        eval $cmd -I "$ENTRY" -g "$LOCAL" -d $ip -w -W1
       fi
     done
   done
