@@ -174,7 +174,7 @@ GetTraffic(){
 				CheckIPTableEntry "$ip" "$group"
 			fi
 
-			[ -z "$mac" ] && Send2Log "GetTraffic: still no matching mac for '${ip}'?!? skipping this entry $(IndentList "$fl")" 3; continue
+			[ -z "$mac" ] && Send2Log "GetTraffic: still no matching mac for '${ip}'?!? skipping this entry $(IndentList "$fl")" 3 && continue
 			do="$(echo "$ipt" | grep -E "(${_generic_ipv4}|${_generic_ipv6}) $tip\b" | cut -d' ' -f1 | head -n 1)"
 			up="$(echo "$ipt" | grep -E "$tip (${_generic_ipv4}|${_generic_ipv6})" | cut -d' ' -f1 | head -n 1)"
 			total_down=$(( total_down + ${do:-0} ))

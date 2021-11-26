@@ -27,3 +27,4 @@ source "${d_baseDir}/includes/traffic.sh"
 GetTraffic "-vnx"   # get the data without zeroing the tables
 
 LogEndOfFunction
+exit
