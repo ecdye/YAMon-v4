@@ -21,8 +21,9 @@ Send2Log "start-stop" 0
 
 if [ "$_firmware" -eq "0" ]; then
 	cronJobsFile="/tmp/cron.d/yamon_jobs"
-	stopService="stopservice crond"
-	startService="startservice crond"
+	wc="$(ps | grep -v grep | grep cron | awk '{ print $3 }')"
+	stopService="stopservice $wc root"
+	startService="startservice $wc root"
 elif [ "$_firmware" -eq "2" ] || [ "$_firmware" == "3" ] || [ "$_firmware" -eq "5" ]; then #Tomato, AsusMerlin & variants
 	Send2Log "Do nothing, Firmware uses cru" 0 # Need something here or complaint of else on next line
 else
@@ -34,9 +35,9 @@ fi
 ResetCron() {
 	# TODO: confirm paths for other firmware variants... works in Turris & dd-wrt
 	Send2Log "ResetCron: $stopService / $startService" 1
-	$stopService #2>/dev/null # redirecting spurious error messages to /dev/null
+	$stopService 2>/dev/null # redirecting spurious error messages to /dev/null
 	sleep 1
-	$startService #2>/dev/null # redirecting spurious error messages to /dev/null
+	$startService 2>/dev/null # redirecting spurious error messages to /dev/null
 }
 
 StartScheduledJobs(){
