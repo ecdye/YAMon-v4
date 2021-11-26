@@ -19,7 +19,6 @@
 
 d_baseDir="$(cd "$(dirname "$0")" && pwd)"
 source "${d_baseDir}/includes/shared.sh"
-source "${d_baseDir}/includes/traffic.sh"
 
 Send2Log "Running update-live-data"
 
