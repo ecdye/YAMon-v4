@@ -153,7 +153,7 @@ GetTraffic(){
 			UpdateLastSeen "${_generic_mac}-${ip}" "$tls"
 			do="$(echo "$fl" | cut -d' ' -f1)"
 			Send2Log "GetTraffic: down: $do / $total_down " 1
-			total_down=$(( total_down + ${do:-0} )) # assuming total_up is zero because all traffic goes to a single iptable rule
+			total_down=$(DigitAdd "$total_down" "${do:-0}") # assuming total_up is zero because all traffic goes to a single iptable rule
 			newLine="hourlyData4({ \"id\":\"${_generic_mac}-${ip}\", \"hour\":\"${hr}\", \"traffic\":\"${do:-0},0,$(( currentlyUnlimited * ${do:-0} )),0\" })"
 			intervalTraffic="${intervalTraffic}\n${newLine}"
 
@@ -177,8 +177,8 @@ GetTraffic(){
 			[ -z "$mac" ] && Send2Log "GetTraffic: still no matching mac for '${ip}'?!? skipping this entry $(IndentList "$fl")" 3 && continue
 			do="$(echo "$ipt" | grep -E "(${_generic_ipv4}|${_generic_ipv6}) $tip\b" | cut -d' ' -f1 | head -n 1)"
 			up="$(echo "$ipt" | grep -E "$tip (${_generic_ipv4}|${_generic_ipv6})" | cut -d' ' -f1 | head -n 1)"
-			total_down=$(( total_down + ${do:-0} ))
-			total_up=$(( total_up + ${up:-0} ))
+			total_down=$(DigitAdd "$total_down" "${do:-0}")
+			total_up=$(DigitAdd "$total_up" "${up:-0}")
 			Send2Log "GetTraffic: ${mac}-${ip} / ${do:-0} / ${up:-0} / ${hr}"
 			newLine="hourlyData4({ \"id\":\"${mac}-${ip}\", \"hour\":\"${hr}\", \"traffic\":\"${do:-0},${up:-0},$(( currentlyUnlimited * ${do:-0} )),$(( currentlyUnlimited * ${up:-0} ))\" })"
 			intervalTraffic="${intervalTraffic}\n${newLine}"
@@ -206,7 +206,7 @@ GetTraffic(){
 	totalsLine="Totals({ \"hour\":\"${hr}\", \"uptime\":\"${currentUptime}\", \"interval\":\"${total_down},${total_up}\", \"interfaces\":'[${interfaceTotals}]', \"memory\":'${memoryTotals}', \"disk_utilization\":'${diskUtilization}' })"
 
 	if [ -n "$intervalTraffic" ]; then
-		Send2Log "GetTraffic (${hr}:${mm} --> ${vnx}): intervalTraffic --> $(IndentList "${intervalTraffic}\n${totalsLine}")" $ltrl
+		Send2Log "GetTraffic (${hr}:${mm} --> ${vnx}): intervalTraffic --> $(IndentList "${intervalTraffic//,0,0\"/\"}\n${totalsLine//,0,0\"/\"}")" $ltrl
 		echo -e "$(echo "$hrlyData" | grep -v "\"hour\":\"${hr}\"")\n${intervalTraffic//,0,0\"/\"}\n${totalsLine//,0,0\"/\"}" > "$hourlyDataFile"
 		echo -e "\n//$hr:${sm}->${hr}:${mm} (${vnx})\n${intervalTraffic//,0,0\"/\"}\n${totalsLine//,0,0\"/\"}" >> "$rawtraffic_hr"
 	else
