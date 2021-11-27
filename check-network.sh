@@ -24,13 +24,12 @@ source "${d_baseDir}/includes/start-stop.sh"
 
 Send2Log "Checking the network for new devices" 1
 
-excluding='FAILED,STALE,INCOMPLETE,00:00:00:00:00:00' # excludes listed entries from the results
 arpResults="$(cat /proc/net/arp | grep "^[1-9]" | tr "[A-Z]" "[a-z]")"
-arpList="$(echo "$arpResults" | grep -Ev "(${excluding//,/|})" | awk '{ print $4,$1 }')"
+arpList="$(echo "$arpResults" | grep -Ev "(${_excluding//,/|})" | awk '{ print $4,$1 }')"
 #[ -n "$arpList" ] && Send2Log "Check4NewDevices: arpList: $(IndentList "$arpList")"
 
 ipResults="$($_IPCmd | tr "[A-Z]" "[a-z]")" # a hack for firmware variants which do not include the full ip command (so `ip neigh show` does not return valid info)
-ipList="$(echo "$ipResults" | grep -Ev "(${excluding//,/|})" | awk '{ print $5,$1 }')"
+ipList="$(echo "$ipResults" | grep -Ev "(${_excluding//,/|})" | awk '{ print $5,$1 }')"
 #[ -n "$ipList" ] && Send2Log "Check4NewDevices: ipList: $(IndentList "$ipList")"
 
 

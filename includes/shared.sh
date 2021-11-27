@@ -22,6 +22,7 @@
 _ds="$(date +"%Y-%m-%d")"
 _ts="$(date +"%T")"
 _generic_mac="un:kn:ow:n0:0m:ac"
+_excluding='FAILED,STALE,INCOMPLETE,00:00:00:00:00:00' # excludes listed entries from the results
 
 source "${d_baseDir}/includes/version.sh"
 source "${d_baseDir}/config.file"
@@ -111,7 +112,7 @@ GetMACbyIP() {
 	local mac
 
 	# first check arp
-  mip="$(cat /proc/net/arp | grep "$tip" | awk '{print $4}' | tr "[A-Z]" "[a-z]")"
+  mip="$(cat /proc/net/arp | grep -Ev "(${_excluding//,/|})" | grep "$tip" | awk '{ print $4 }' | tr "[A-Z]" "[a-z]")"
 	if [ -n "$mip" ]; then
 		echo "$mip"
 		return
@@ -259,7 +260,7 @@ UpdateLastSeen() {
 	local tls="$2"
 	local lsd="$_ds $tls"
 
-	Send2Log "UpdateLastSeen:  Updating last seen for '${id}' to '${lsd}'" 0
+	Send2Log "UpdateLastSeen: Updating last seen for '${id}' to '${lsd}'" 0
 	echo -e "lastseen({ \"id\":\"${id}\", \"last-seen\":\"${lsd}\" })\n$(cat "$tmpLastSeen" | grep -e '^lastseen({.*})$' | grep -v "\"$id\"")" > "$tmpLastSeen"
 }
 

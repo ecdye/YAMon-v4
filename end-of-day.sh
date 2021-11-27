@@ -30,8 +30,6 @@ DeactiveIdleDevices() {
 	local changes2
 
   _activeIPs="$(cat "$_usersFile" | grep -e '^mac2ip({.*})$' | grep '"active":"1"')"
-	_inActiveIPs="$(cat "$_usersFile" | grep -e '^mac2ip({.*})$' | grep '"active":"0"')"
-	[ -f "$_lastSeenFile" ] && lastseen="$(cat "$_lastSeenFile" | grep -e '^lastseen({.*})$')"
 
 	Send2Log "DeactiveIdleDevices - _activeIPs"
 	IFS=$'\n'
@@ -39,18 +37,23 @@ DeactiveIdleDevices() {
 		[ -z "$line" ] && continue
 		id="$(GetField "$line" 'id')"
 		ls="$(GetField "$(echo "$lastseen" | grep "$id")" 'last-seen')"
-		# TODO: add a check for last-seen more than 30 days old
-		if [ -z "$ls" ]; then
-			newline="$(echo "${line/\"active\":\"1\"/\"active\":\"0\"}")"
-			sed -i "s~${line}~${newline}~" "$_usersFile"
+		ods="$(date --date=@"$(DigitSub "$(date --date="$_ds" +%s)" "2592000")" +%s)"
+		if [ -z "$ls" ] || [ "$ods" -ge "$(date --date="$ls" +%s)" ]; then
+			newline="$(UpdateField "$line" 'active' '0')"
+			newline="$(UpdateField "$newline" 'updated' "$_ds $_ts")"
+			sed -i "s~${line}~${newline}~g" "$_usersFile"
+			cat "$tmpLastSeen" | grep -e '^lastseen({.*})$' | grep -v "\"$id\"" > $tmpLastSeen
+			cp "$tmpLastSeen" "$_lastSeenFile"
 			# TODO: cull the inactive entries from iptables?!?
 			Send2Log "DeactiveIdleDevices: $id set to inactive (based upon users.js)" 1
 			changes1=1
-		fi
+	  fi
 	done
 	unset IFS
 	[ -z "$changes1" ] && Send2Log "DeactiveIdleDevices: no active devices deactivated"
 
+	_inActiveIPs="$(cat "$_usersFile" | grep -e '^mac2ip({.*})$' | grep '"active":"0"')"
+	[ -f "$_lastSeenFile" ] && lastseen="$(cat "$_lastSeenFile" | grep -e '^lastseen({.*})$')"
 	Send2Log "DeactiveIdleDevices - lastseen"
 	IFS=$'\n'
 	for line in $lastseen; do
@@ -58,7 +61,8 @@ DeactiveIdleDevices() {
 		id="$(GetField "$line" 'id')"
 		wl="$(echo "$_inActiveIPs" | grep "\"$id\"")"
 		if [ -n "$wl" ]; then
-			newline="$(echo "${wl/\"active\":\"0\"/\"active\":\"1\"}")"
+			newline="$(UpdateField "$wl" 'active' '1')"
+			newline="$(UpdateField "$newline" 'updated' "$_ds $_ts")"
 			sed -i "s~${wl}~${newline}~" "$_usersFile"
 			Send2Log "DeactiveIdleDevices: $id set to active (based upon lastseen.js)" 1
 			changes2=1
