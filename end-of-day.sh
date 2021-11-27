@@ -22,11 +22,9 @@ DeactiveIdleDevices() {
 	local _inActiveIPs
 	local lastseen
 	local line
-	local id
-	local ls
-	local wl
-	local changes1
-	local changes2
+	local id ls changes
+	local re_ip4="([0-9]{1,3}\.){3}[0-9]{1,3}"
+	local matchingRules rule ip
 
   _activeIPs="$(cat "$_usersFile" | grep -e '^mac2ip({.*})$' | grep '"active":"1"')"
 	[ -f "$_lastSeenFile" ] && lastseen="$(cat "$_lastSeenFile" | grep -e '^lastseen({.*})$')"
@@ -42,31 +40,24 @@ DeactiveIdleDevices() {
 			sed -i "s~${line}~$(UpdateField "$line" 'active' '0')~g" "$_usersFile"
 			cat "$tmpLastSeen" | grep -e '^lastseen({.*})$' | grep -v "\"$id\"" > $tmpLastSeen
 			cp "$tmpLastSeen" "$_lastSeenFile"
-			# TODO: cull the inactive entries from iptables?!?
+			ip="$(echo "$id" | cut -d'-' -f2)"
+			if [ -n "$(echo "$ip" | grep -E "$re_ip4")" ]; then # simplistically matches IPv4
+				local cmd='iptables'
+			else
+				[ -n "$ip6Enabled" ] || local cmd='iptables'
+				local cmd='ip6tables'
+			fi
+			matchingRules="$($cmd -L "$YAMON_IPTABLES" -n --line-numbers -w -W1 | grep "\b${ip//\./\\.}\b")"
+			for rule in $matchingRules; do
+				[ -z "$rule" ] && continue
+				eval $cmd -D "$YAMON_IPTABLES" "$(echo "$rule" | awk '{ print $1 }')" -w -W1
+			done
 			Send2Log "DeactiveIdleDevices: $id set to inactive (based upon users.js)" 1
-			changes1=1
+			changes=1
 	  fi
 	done
 	unset IFS
-	[ -z "$changes1" ] && Send2Log "DeactiveIdleDevices: no active devices deactivated"
-
-	_inActiveIPs="$(cat "$_usersFile" | grep -e '^mac2ip({.*})$' | grep '"active":"0"')"
-	[ -f "$_lastSeenFile" ] && lastseen="$(cat "$_lastSeenFile" | grep -e '^lastseen({.*})$')"
-	Send2Log "DeactiveIdleDevices - lastseen"
-	IFS=$'\n'
-	for line in $lastseen; do
-		[ -z "$line" ] && continue
-		id="$(GetField "$line" 'id')"
-		wl="$(echo "$_inActiveIPs" | grep "\"$id\"")"
-		if [ -n "$wl" ]; then
-			sed -i "s~${wl}~$(UpdateField "$wl" 'active' '1')~" "$_usersFile"
-			Send2Log "DeactiveIdleDevices: $id set to active (based upon lastseen.js)" 1
-			changes2=1
-		fi
-	done
-	unset IFS
-	[ -z "$changes2" ] && Send2Log "DeactiveIdleDevices: no deactived devices activated"
-	[ -n "$changes1" ] || [ -n "$changes2" ] && UsersJSUpdated
+	[ -z "$changes" ] && Send2Log "DeactiveIdleDevices: no active devices deactivated" || UsersJSUpdated
 }
 
 d_baseDir="$(cd "$(dirname "$0")" && pwd)"

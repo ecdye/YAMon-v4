@@ -266,8 +266,8 @@ UpdateLastSeen() {
 	line="$(cat "$_usersFile" | grep -e '^mac2ip({ "id":"'${id}'".*})$' | grep -m1 '"active":"0"')"
 	[ -z "$line" ] && return
 	sed -i "s~${line}~$(UpdateField "$line" 'active' '1')~" "$_usersFile"
-	UsersJSUpdated
 	Send2Log "UpdateLastSeen: $id set to active" 1
+	UsersJSUpdated
 }
 
 GetField() {	#returns just the first match... duplicates are ignored
