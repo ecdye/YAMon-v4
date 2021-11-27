@@ -263,7 +263,7 @@ UpdateLastSeen() {
 
 	Send2Log "UpdateLastSeen: Updating last seen for '${id}' to '${lsd}'" 0
 	echo -e "lastseen({ \"id\":\"${id}\", \"last-seen\":\"${lsd}\" })\n$(cat "$tmpLastSeen" | grep -e '^lastseen({.*})$' | grep -v "\"$id\"")" > "$tmpLastSeen"
-	line="$(cat "$_usersFile" | grep -e '^mac2ip({ "id":"'${id}'".*})$' | grep '"active":"0"')"
+	line="$(cat "$_usersFile" | grep -e '^mac2ip({ "id":"'${id}'".*})$' | grep -m1 '"active":"0"')"
 	[ -z "$line" ] && return
 	sed -i "s~${line}~$(UpdateField "$line" 'active' '1')~" "$_usersFile"
 	UsersJSUpdated
