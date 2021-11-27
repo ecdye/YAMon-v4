@@ -17,7 +17,7 @@
 #
 ##########################################################################
 
-d_baseDir=$(cd "$(dirname "$0")" && pwd)
+d_baseDir="$(cd "$(dirname "$0")" && pwd)"
 source "${d_baseDir}/includes/shared.sh"
 
 Send2Log "Manually copying temp log to permanent" 2

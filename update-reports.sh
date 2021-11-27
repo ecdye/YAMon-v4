@@ -19,7 +19,7 @@
 
 sleep 1 # needed to ensure that raw traffic is stored in the right hourly file... might have to be adjusted
 
-d_baseDir=$(cd "$(dirname "$0")" && pwd)
+d_baseDir="$(cd "$(dirname "$0")" && pwd)"
 
 source "${d_baseDir}/includes/shared.sh"
 source "${d_baseDir}/includes/traffic.sh"

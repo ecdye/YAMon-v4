@@ -17,61 +17,56 @@
 #
 ##########################################################################
 
-function ClearTables(){
-	cmd="$1"
-	tables="FORWARD,INPUT,OUTPUT"
+d_baseDir="$(cd "$(dirname "$0")" && pwd)"
+source "${d_baseDir}/includes/shared.sh"
+
+ClearTables() {
+	local tables="FORWARD,INPUT,OUTPUT"
+	local tt dup_num rn oe
 	echo " > Clearing tables:"
-	IFS=$','
-	for tt in $tables
-	do
-		oe=$($cmd -nL "$tt" --line-numbers | grep "$str")
+	for tt in ${tables//,/ }; do
+		oe="$($1 -nL "$tt" --line-numbers -w -W1 | grep "$YAMON_IPTABLES")"
 		[ -z "$oe" ] && echo "   * Nothing to clear in $tt" && continue
-		rn=$(echo "$oe" | awk '{ print $2 }')
+		rn="$(echo "$oe" | awk '{ print $2 }')"
 		echo "   * Deleting $rn from $tt"
-		dup_num=$(echo "$oe" | awk '{ print $1 }')
-		[ -n "$rn" ] && eval $cmd -D "$tt" $dup_num
+		dup_num="$(echo "$oe" | awk '{ print $1 }')"
+		[ -n "$rn" ] && eval $1 -D "$tt" $dup_num -w -W1
 	done
 }
 
-function FlushChains(){
-	cmd="$1"
-	echo -e "\n > Flushing chains in $cmd:"
-	chainlist=$($cmd -L | grep $str | grep Chain)
+FlushChains() {
+	local ch wc chainlist
+	echo -e "\n > Flushing chains in $1:"
+	chainlist="$($1 -L -w -W1 | grep $YAMON_IPTABLES | grep Chain)"
 	[ -z "$chainlist" ] && echo "   * Nothing to flush" && return
 	IFS=$'\n'
-	for ch in $chainlist
-	do
-		wc=$(echo $ch | cut -d' ' -f2)
+	for ch in $chainlist; do
+		wc="$(echo $ch | cut -d' ' -f2)"
 		echo "   * $wc"
-		$cmd -F "$wc"
+		$1 -F "$wc" -w -W1
 	done
+	unset IFS
 }
 
-function DeleteChains(){
-	cmd="$1"
+DeleteChains() {
+	local ch wc chainlist
 	echo -e "\n > Deleting chains in $cmd:"
-	chainlist=$($cmd -L | grep $str | grep Chain)
+	chainlist="$($1 -L -w -W1 | grep $YAMON_IPTABLES | grep Chain)"
 	[ -z "$chainlist" ] && echo "   * Nothing to flush" && return
 	IFS=$'\n'
-	for ch in $chainlist
-	do
-		wc=$(echo $ch | cut -d' ' -f2)
+	for ch in $chainlist; do
+		wc="$(echo $ch | cut -d' ' -f2)"
 		echo "   * $wc"
-		$cmd -X "$wc"
+		$1 -X "$wc"
 	done
+	unset IFS
 }
 
-str='YAMONv40'
-commands='iptables,ip6tables'
-IFS=$','
-for c in $commands
-do
+[ -n "$ip6Enabled" ] && commands='iptables,ip6tables' || commands='iptables'
+for c in ${commands//,/ }; do
 	echo -e "\n*******************\nCleaning entries for $c:"
 	ClearTables $c
-
 	FlushChains $c
-
 	DeleteChains $c
-	IFS=$','
 done
-echo -e "\n*******************\nAll '$str' entries have been removed from iptables & ip6tables\n\n"
+echo -e "\n*******************\nAll '$YAMON_IPTABLES' entries have been removed from iptables & ip6tables\n\n"

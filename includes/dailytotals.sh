@@ -76,8 +76,8 @@ CalculateDailyTotals() {
 				o_d="$(eval echo "\$${vn}_down")"
 				o_u="$(eval echo "\$${vn}_up")"
 
-				eval "${vn}_down=$(( ${o_d:-0} + ${t_d:-0} ))"
-				eval "${vn}_up=$(( ${o_u:-0} + ${t_u:-0} ))"
+				eval "${vn}_down=$(DigitAdd ${o_d:-0} ${t_d:-0})"
+				eval "${vn}_up=$(DigitAdd ${o_u:-0} ${t_u:-0})"
 				Send2Log "$ifn: $o_d + ${t_d:-0} = $(eval echo "\$${vn}_down") / $o_u + ${t_u:-0} = $(eval echo "\$${vn}_up")"
 			done
 			IFS=$'\n'

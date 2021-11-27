@@ -15,7 +15,7 @@
 # 2019-06-18: development starts on initial v4 release
 #
 ##########################################################################
-d_baseDir=$(cd "$(dirname "$0")" && pwd)
+d_baseDir="$(cd "$(dirname "$0")" && pwd)"
 [ -z "$(echo "$d_baseDir" | grep -i 'yamon')" ] && d_baseDir='/opt/YAMon4'
 
 alias clearlog='> /tmp/yamon/yamon.log'

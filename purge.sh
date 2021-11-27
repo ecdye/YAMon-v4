@@ -21,7 +21,7 @@
 #
 ##########################################################################
 
-d_baseDir=$(cd "$(dirname "$0")" && pwd)
+d_baseDir="$(cd "$(dirname "$0")" && pwd)"
 source "${d_baseDir}/includes/shared.sh"
 Send2Log "Running purge.sh" 2
 days=${1:-30}

@@ -2,7 +2,7 @@
 
 set -o pipefail
 
-d_baseDir=$(cd "$(dirname "$0")" && pwd)
+d_baseDir="$(cd "$(dirname "$0")" && pwd)"
 showEcho=1
 source "${d_baseDir}/includes/shared.sh"
 

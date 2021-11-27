@@ -169,7 +169,7 @@ re_path=^.*$
 re_path_slash=^.*/$
 
 d_baseDir="${YAMON%/}"
-[ -z "$d_baseDir" ] && d_baseDir=$(cd "$(dirname "$0")" && pwd)
+[ -z "$d_baseDir" ] && d_baseDir="$(cd "$(dirname "$0")" && pwd)"
 source "${d_baseDir}/includes/prompts.sh"
 
 delay=${1:-5}

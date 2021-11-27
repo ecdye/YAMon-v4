@@ -75,7 +75,7 @@ SetWebDirectories() {
 	WriteConfigFile
 }
 
-d_baseDir=$(cd "$(dirname "$0")" && pwd)
+d_baseDir="$(cd "$(dirname "$0")" && pwd)"
 source "${d_baseDir}/includes/version.sh"
 echo "$(sed -e 's|$_version|'"${_version}"'|' ${d_baseDir}/strings/title.inc)"
 

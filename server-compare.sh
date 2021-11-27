@@ -24,7 +24,7 @@ UpdateEntries(){
 
 [ -z "$directory" ] && directory='current'
 d_baseDir="$YAMON"
-[ -z "$d_baseDir" ] && d_baseDir=$(cd "$(dirname "$0")" && pwd)
+[ -z "$d_baseDir" ] && d_baseDir="$(cd "$(dirname "$0")" && pwd)"
 source "${d_baseDir}/includes/version.sh"
 
 YAMON=$(cd "$(dirname "$0")" && pwd)

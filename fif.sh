@@ -1,6 +1,6 @@
 #!/bin/sh
 
-d_baseDir=$(cd "$(dirname "$0")" && pwd)
+d_baseDir="$(cd "$(dirname "$0")" && pwd)"
 echo -en "\nFind in File:  "
 [ -z "$1" ] && echo -e " Error - must include one or two parameter(s)\n\tRun fif.sh -h for help\n" && exit 0
 [ "$1" == '-h' ] && echo " fif '<pattern>' -or- fif '<path>' '<pattern>'

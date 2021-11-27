@@ -19,7 +19,7 @@ LS_Path(){
 }
 
 tmplog='/tmp/yamon/'
-d_baseDir=$(cd "$(dirname "$0")" && pwd)
+d_baseDir="$(cd "$(dirname "$0")" && pwd)"
 source "${d_baseDir}/config.file"
 source "${d_baseDir}/includes/paths.sh"
 

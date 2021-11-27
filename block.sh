@@ -24,7 +24,7 @@
 ## NB - timestart &  timestop must be converted to UTC
 
 
-d_baseDir=$(cd "$(dirname "$0")" && pwd)
+d_baseDir="$(cd "$(dirname "$0")" && pwd)"
 showEcho=1
 source "${d_baseDir}/includes/shared.sh"
 Send2Log "Block - $0 : $1 / $2 / $3 / $4" 1

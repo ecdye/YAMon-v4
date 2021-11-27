@@ -15,7 +15,7 @@
 ##########################################################################
 
 showEcho=1
-d_baseDir=$(cd "$(dirname "$0")" && pwd)
+d_baseDir="$(cd "$(dirname "$0")" && pwd)"
 source "${d_baseDir}/includes/shared.sh"
 
 echo -e "Running fixes.sh... this will likely take several minutes.
