@@ -259,15 +259,13 @@ UpdateLastSeen() {
 	local id="$1"
 	local tls="$2"
 	local lsd="$_ds $tls"
-	local line newline
+	local line
 
 	Send2Log "UpdateLastSeen: Updating last seen for '${id}' to '${lsd}'" 0
 	echo -e "lastseen({ \"id\":\"${id}\", \"last-seen\":\"${lsd}\" })\n$(cat "$tmpLastSeen" | grep -e '^lastseen({.*})$' | grep -v "\"$id\"")" > "$tmpLastSeen"
 	line="$(cat "$_usersFile" | grep -e '^mac2ip({ "id":"'${id}'".*})$' | grep '"active":"0"')"
 	[ -z "$line" ] && return
-	newline="$(UpdateField "$line" 'active' '1')"
-	newline="$(UpdateField "$newline" 'updated' "$_ds $_ts")"
-	sed -i "s~${line}~${newline}~" "$_usersFile"
+	sed -i "s~${line}~$(UpdateField "$line" 'active' '1')~" "$_usersFile"
 	UsersJSUpdated
 	Send2Log "UpdateLastSeen: $id set to active" 1
 }
@@ -525,12 +523,10 @@ CheckMAC2IPinUserJS() {
 		IFS=$'\n'
 		for od in $othersWithIP; do
 			Send2Log "DeactivateByIP: set active=0 in $od" 0
-			nl="$(UpdateField "$od" 'active' '0')"
-			nl="$(UpdateField "$nl" 'updated' "$_ds $_ts")"
-			sed -i "s~${od}~${nl}~g" "$_usersFile"
+			sed -i "s~${od}~$(UpdateField "$od" 'active' '0')~g" "$_usersFile"
+			UsersJSUpdated
 		done
 		unset IFS
-		[ -n "$nl" ] && UsersJSUpdated
 	}
 	AddNewMACIP() {
 		local othersWithMAC

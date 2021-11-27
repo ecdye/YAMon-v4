@@ -25,7 +25,6 @@ DeactiveIdleDevices() {
 	local id
 	local ls
 	local wl
-	local newline
 	local changes1
 	local changes2
 
@@ -40,9 +39,7 @@ DeactiveIdleDevices() {
 		ls="$(GetField "$(echo "$lastseen" | grep "$id")" 'last-seen')"
 		ods="$(date --date=@"$(DigitSub "$(date --date="$_ds" +%s)" "2592000")" +%s)"
 		if [ -z "$ls" ] || [ "$ods" -ge "$(date --date="$ls" +%s)" ]; then
-			newline="$(UpdateField "$line" 'active' '0')"
-			newline="$(UpdateField "$newline" 'updated' "$_ds $_ts")"
-			sed -i "s~${line}~${newline}~g" "$_usersFile"
+			sed -i "s~${line}~$(UpdateField "$line" 'active' '0')~g" "$_usersFile"
 			cat "$tmpLastSeen" | grep -e '^lastseen({.*})$' | grep -v "\"$id\"" > $tmpLastSeen
 			cp "$tmpLastSeen" "$_lastSeenFile"
 			# TODO: cull the inactive entries from iptables?!?
@@ -62,9 +59,7 @@ DeactiveIdleDevices() {
 		id="$(GetField "$line" 'id')"
 		wl="$(echo "$_inActiveIPs" | grep "\"$id\"")"
 		if [ -n "$wl" ]; then
-			newline="$(UpdateField "$wl" 'active' '1')"
-			newline="$(UpdateField "$newline" 'updated' "$_ds $_ts")"
-			sed -i "s~${wl}~${newline}~" "$_usersFile"
+			sed -i "s~${wl}~$(UpdateField "$wl" 'active' '1')~" "$_usersFile"
 			Send2Log "DeactiveIdleDevices: $id set to active (based upon lastseen.js)" 1
 			changes2=1
 		fi
