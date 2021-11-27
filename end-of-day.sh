@@ -81,7 +81,7 @@ cp "$hourlyDataFile" "$_path2CurrentMonth"
 
 # Calculate the daily totals
 Send2Log "End of day: tally the traffic for the day and update the monthly file"
-CalculateDailyTotals ## no param --> implies value of _ds
+CalculateDailyTotals "$_ds" "$_intervalDataFile"
 
 Send2Log "End of day: backup files as required"
 cp "$tmplogFile" "$_path2logs"

@@ -24,10 +24,6 @@ d_baseDir="$(cd "$(dirname "$0")" && pwd)"
 source "${d_baseDir}/includes/shared.sh"
 source "${d_baseDir}/includes/dailytotals.sh"
 
-[ -n "$1" ] && totalsDate="$1"
-[ -z "$totalsDate" ] && totalsDate="$_ds"
-intervalDataFile="${2:-${_intervalDataFile}}"
-
-CalculateDailyTotals "$totalsDate" "$intervalDataFile"
+CalculateDailyTotals "${1:-${_ds}}" "${2:-${_intervalDataFile}}"
 
 LogEndOfFunction

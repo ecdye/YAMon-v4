@@ -94,7 +94,7 @@ CalculateDailyTotals() {
 	}
 
 	[ -n "$1" ] && totalsDate="$1" || totalsDate="$_ds"
-	if [ -n "$2" ] ; then
+	if [ -n "$2" ]; then
 		intervalDataFile="$2"
 		if [ ! -f "$intervalDataFile" ]; then
 			Send2Log "CalculateDailyTotals: couldn't find \`$intervalDataFile\`?!?" 3
