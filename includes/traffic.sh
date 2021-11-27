@@ -204,6 +204,7 @@ GetTraffic(){
 	memoryTotals="$(GetMemory)"
 	diskUtilization="$(df "$d_baseDir" | tail -n 1 | awk '{ print $(NF-1) }')"
 	totalsLine="Totals({ \"hour\":\"${hr}\", \"uptime\":\"${currentUptime}\", \"interval\":\"${total_down},${total_up}\", \"interfaces\":'[${interfaceTotals}]', \"memory\":'${memoryTotals}', \"disk_utilization\":'${diskUtilization}' })"
+	loads="$(cat /proc/loadavg | cut -d' ' -f1,2,3 | tr -s ' ' ',')"
 
 	if [ -n "$intervalTraffic" ]; then
 		Send2Log "GetTraffic (${hr}:${mm} --> ${vnx}): intervalTraffic --> $(IndentList "${intervalTraffic//,0,0\"/\"}\n${totalsLine//,0,0\"/\"}")" $ltrl
@@ -218,6 +219,7 @@ GetTraffic(){
 
 	sed -i "s~var hourly_updated.\{0,\}$~var hourly_updated=\"$_ds ${hr}:${mm}\"~" "$hourlyDataFile"
 	sed -i "s~var serverUptime.\{0,\}$~var serverUptime=\"${currentUptime}\"~" "$hourlyDataFile"
+	sed -i "s~^serverload(.*)$~serverload(${loads})~" "$hourlyDataFile"
 
 	cp "$hourlyDataFile" "$_path2CurrentMonth"
 	cp "$tmpLastSeen" "$_lastSeenFile"

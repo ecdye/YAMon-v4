@@ -22,11 +22,12 @@ source "${d_baseDir}/includes/shared.sh"
 ChangePath 'rawtraffic_day' "${_path2CurrentMonth}raw-traffic-${_ds}.txt"
 hourlyDataFile="${tmplog}hourly_${_ds}.js"
 dailyLogFile="${_path2logs}${_ds}.html"
+loads="$(cat /proc/loadavg | cut -d' ' -f1,2,3 | tr -s ' ' ',')"
 ChangePath 'hourlyDataFile' "$hourlyDataFile"
 ChangePath 'dailyLogFile' "$dailyLogFile"
 [ "${_doArchiveLiveUpdates:-0}" -eq "1" ] && ChangePath '_liveArchiveFilePath' "${_path2CurrentMonth}${_ds}-live_data4.js"
 if [ ! -f "$hourlyDataFile" ] ; then
-	echo -e "var hourly_created=\"${_ds} ${_ts}\"\nvar hourly_updated=\"${_ds} ${_ts}\"\nvar serverUptime=\"${_uptime}\"\n" > "$hourlyDataFile"
+	echo -e "var hourly_created=\"${_ds} ${_ts}\"\nvar hourly_updated=\"${_ds} ${_ts}\"\nvar serverUptime=\"${_uptime}\"\nserverload(${loads})\n" > "$hourlyDataFile"
 fi
 Send2Log "New day: $_ds (${hourlyDataFile})" 1
 
