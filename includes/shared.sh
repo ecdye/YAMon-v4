@@ -259,9 +259,17 @@ UpdateLastSeen() {
 	local id="$1"
 	local tls="$2"
 	local lsd="$_ds $tls"
+	local line newline
 
 	Send2Log "UpdateLastSeen: Updating last seen for '${id}' to '${lsd}'" 0
 	echo -e "lastseen({ \"id\":\"${id}\", \"last-seen\":\"${lsd}\" })\n$(cat "$tmpLastSeen" | grep -e '^lastseen({.*})$' | grep -v "\"$id\"")" > "$tmpLastSeen"
+	line="$(cat "$_usersFile" | grep -e '^mac2ip({ "id":"'${id}'".*})$' | grep '"active":"0"')"
+	[ -z "$line" ] && return
+	newline="$(UpdateField "$line" 'active' '1')"
+	newline="$(UpdateField "$newline" 'updated' "$_ds $_ts")"
+	sed -i "s~${line}~${newline}~" "$_usersFile"
+	UsersJSUpdated
+	Send2Log "UpdateLastSeen: $id set to active" 1
 }
 
 GetField() {	#returns just the first match... duplicates are ignored
