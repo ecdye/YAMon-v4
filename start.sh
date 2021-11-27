@@ -77,9 +77,7 @@ SetWebDirectories() {
 
 d_baseDir=$(cd "$(dirname "$0")" && pwd)
 source "${d_baseDir}/includes/version.sh"
-source "$d_baseDir/strings/title.inc"
-
-echo -E "$_s_title"
+echo "$(sed -e 's|$_version|'"${_version}"'|' ${d_baseDir}/strings/title.inc)"
 
 "${d_baseDir}/setPaths.sh"
 tmplog='/tmp/yamon/'

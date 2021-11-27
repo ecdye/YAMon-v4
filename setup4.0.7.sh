@@ -176,11 +176,10 @@ delay=${1:-5}
 [ "$delay" == 'dev' ] && delay=5
 
 source "${d_baseDir}/includes/version.sh"
-source "${d_baseDir}/strings/title.inc"
 source "${d_baseDir}/strings/${_lang:-en}/strings.sh"
 
 echo -e "${los}"
-echo -E "$_s_title"
+echo "$(sed -e 's|$_version|'"${_version}"'|' ${d_baseDir}/strings/title.inc)"
 echo -e "${los}"
 
 _ds=$(date +"%Y-%m-%d")
