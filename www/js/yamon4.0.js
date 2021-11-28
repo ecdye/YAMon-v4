@@ -1575,7 +1575,7 @@ function curr_users(arr){
 }
 function curr_users4(arr){
 	var tt=last_update.split(' ')[1]
-	if(old_last_update==last_update) return
+	if (old_last_update==last_update) return
 	var id=arr.id.split('-')
 	var mac=id[0].toLowerCase(), ip=id[1].toLowerCase(), dg=!devices[mac]?'Unknown group':devices[mac].group, dn=!devices[mac]?'Unknown device':devices[mac].name
 	//var mac=arr.mac.toLowerCase(), dg=!devices[mac]?'Unknown group':devices[mac].group, dn=!devices[mac]?'Unknown device':devices[mac].name
@@ -1585,12 +1585,12 @@ function curr_users4(arr){
 	var nr=$('#blank-cu').clone(true,true).removeAttr('id').attr('ip',ip).attr('data-mac',id[0]).attr('title',ip).addClass('p-cu '+tt_id+fltr).removeClass('hidden')
 	nr.find('.cu-o').text(dg)
 	nr.find('.cu-d').text(dn)
-	var down=arr.down*1-(!live[arr.id]||!live[arr.id].down?0:live[arr.id].down)
-	var up=arr.up*1-(!live[arr.id]||!live[arr.id].up?0:live[arr.id].up)
+	var down=arr.down*1-(!live[arr.id] ? 0 : live[arr.id].down*1)
+	var up=arr.up*1-(!live[arr.id] ? 0 : live[arr.id].up*1)
 	nr.find('.cu_do').data('value',down)
-	nr.find('.cu_do_ps').text((down/dt/g_toKB).toFixed(_dec))
+	if (old_last_update) nr.find('.cu_do_ps').text((down/dt/g_toKB).toFixed(_dec))
 	nr.find('.cu_up').data('value',up)
-	nr.find('.cu_up_ps').text((up/dt/g_toKB).toFixed(_dec))
+	if (old_last_update) nr.find('.cu_up_ps').text((up/dt/g_toKB).toFixed(_dec))
 	nr.prependTo('#curr-users')
 	ip2device[ip]=dn
 	$('.no-current-users').remove()
@@ -1613,9 +1613,9 @@ function curr_users_totals(tt){
 	nr.find('.cu-o').text('# devices: '+ncu)
 	nr.find('.cu-d').text('# connections: '+(curr_connections.length-1))
 	nr.find('.cu_do').data('value',t_do)
-	if (old_last_update) nr.find('.kbs-do').text((t_do/dt/g_toKB).toFixed(_dec))
+	nr.find('.kbs-do').text((t_do/dt/g_toKB).toFixed(_dec))
 	nr.find('.cu_up').data('value',t_up)
-	if (old_last_update) nr.find('.kbs-up').text((t_up/dt/g_toKB).toFixed(_dec))
+	nr.find('.kbs-up').text((t_up/dt/g_toKB).toFixed(_dec))
 	nr.prependTo('#curr-users')
 	$('#curr-users-gt').data('value',$('#curr-users-gt').data('value')*1+dt)
 	if (!old_last_update) return
