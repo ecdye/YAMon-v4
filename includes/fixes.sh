@@ -37,24 +37,27 @@ Send2Log "fixes.sh: fixing }}'} error in hourly files" 2
 [ -n "$(find $_path2data | grep 'hourly')" ] && sed -i "s~}}'}~}}'~g" $(find $_path2data | grep 'hourly')
 [ -n "$(find $tmplog | grep 'hourly')" ] && sed -i "s~}}'}~}}'~g" $(find $tmplog | grep 'hourly')
 
-FixMonthlyUsageFile(){
-	[ -n "$(find $_path2data | grep 'mac_usage')" ] && sed -i "s~^monthly_updated~var monthly_updated~g" $(find $_path2data | grep 'mac_usage')
+FixMonthlyUsageFile() {
+	local filelist usagefiles
+	local dir df uf dt
+
+	[ -n "$(find $_path2data | grep 'mac_usage')" ] && sed -i "s~^monthly_updated~var monthly_updated~g" "$(find $_path2data | grep 'mac_usage')"
 	source "${d_baseDir}/includes/dailytotals.sh"
-	local filelist=$(find $_path2data | grep 'hourly')
-	local usagefiles=$(find $_path2data | grep 'mac_usage.js')
+	usagefiles="$(find $_path2data | grep 'mac_usage.js')"
 	IFS=$'\n'
 	for uf in $usagefiles ; do
 		cp $uf "${uf/.js/.old}"
 		echo "$(cat "$uf" | grep "^var")" > $uf
-		local dir=$(dirname $uf)
-		Send2Log "FixMonthlyUsageFile: dir -->$dir" 2
-		local filelist=$(find $dir | grep 'hourly')
-		for df in $filelist ; do
-			local dt=$(echo $df | cut -d'_' -f2 | cut -d'.' -f1)
-			Send2Log "FixMonthlyUsageFile:  - $dt -> $df" 1
+		dir="$(dirname $uf)"
+		Send2Log "FixMonthlyUsageFile: dir --> $dir" 2
+		filelist="$(find $dir | grep 'hourly')"
+		for df in $filelist; do
+			dt="$(echo $df | cut -d'_' -f2 | cut -d'.' -f1)"
+			Send2Log "FixMonthlyUsageFile: - $dt -> $df" 1
 			CalculateDailyTotals "$dt" "$uf"
 		done
 	done
+	unset IFS
 }
 
 FixDefaultDeviceNames(){
