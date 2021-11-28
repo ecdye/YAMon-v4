@@ -1613,11 +1613,12 @@ function curr_users_totals(tt){
 	nr.find('.cu-o').text('# devices: '+ncu)
 	nr.find('.cu-d').text('# connections: '+(curr_connections.length-1))
 	nr.find('.cu_do').data('value',t_do)
-	nr.find('.kbs-do').text((t_do/dt/g_toKB).toFixed(_dec))
+	if (livekbs_do) nr.find('.kbs-do').text((t_do/dt/g_toKB).toFixed(_dec))
 	nr.find('.cu_up').data('value',t_up)
-	nr.find('.kbs-up').text((t_up/dt/g_toKB).toFixed(_dec))
+	if (livekbs_do) nr.find('.kbs-up').text((t_up/dt/g_toKB).toFixed(_dec))
 	nr.prependTo('#curr-users')
 	$('#curr-users-gt').data('value',$('#curr-users-gt').data('value')*1+dt)
+	if (!livekbs_do) return
 	$('#cu-gt-do').data('value',$('#cu-gt-do').data('value')*1+t_do)
 	$('#cu-gt-up').data('value',$('#cu-gt-up').data('value')*1+t_up)
 	$('#cu-kbs-do').text((($('#cu-gt-do').data('value')*1)/$('#curr-users-gt').data('value')*1/g_toKB).toFixed(_dec))
@@ -1628,8 +1629,6 @@ function curr_users_totals(tt){
 		var l_id=$('.p-cu-tot:last').attr('id')
 		$('#'+l_id+',.'+l_id).remove()
 	}
-	if (!old_last_update) return
-	if (!livekbs_do) return
 	livekbs_do.addRow([tt,$('#curr-users .kbs-do:first').text()*1,$('#cu-kbs-do').text()*1])
 	var do_options={width:475,height:300,backgroundColor: { fill:inDarkMode?darkmodeBG:'transparent'},chartArea: {width: '80%',height: '73%'},title:'Live Downloads (in KB/s)',curveType:'function',fontSize:9,legend:{position:'top',fontSize:14},isStacked:true,hAxis:{title:'Time',fontSize:14,slantedText:true,titleTextStyle:{color:'green'}},vAxis:{title:'Usage in KB/s',fontSize:14,titleTextStyle:{color:'green'},viewWindow:{min:0}},series:{0:{lineWidth:1,color:'red',visibleInLegend:true},1:{lineWidth:1,color:'green',visibleInLegend:true}}}
 	livekbs_do_chart.draw(livekbs_do,do_options)
