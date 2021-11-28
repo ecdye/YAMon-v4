@@ -46,7 +46,7 @@ Send2Log "End of hour: append \`$tmplogFile\` to \`$dailyLogFile\`" 2
 #contents of tmplog minus the header lines
 tmplogContents=$(cat "$tmplogFile" | grep -v "<\(/\{0,1\}head\|html\|meta\|link\|script\|head\|body\|!--header--\)")
 
-echo "$tmplogContents</div>" | sed -E "s~^ ([^<].*$)~<pre>\1</pre>~g" | sed -E "s~(^[^<].*$)~<p class='err'>\1</p>~g" >> "$dailyLogFile"
+echo "$tmplogContents</div>" | sed -E -e "s~^ ([^<].*$)~<pre>\1</pre>~g" -e "s~(^[^<].*$)~<p class='err'>\1</p>~g" >> "$dailyLogFile"
 
 #use temp timestamps to catch the change of hour & date
 tds=$(date +"%Y-%m-%d")

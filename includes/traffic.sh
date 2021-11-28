@@ -192,7 +192,7 @@ GetTraffic(){
   currentUptime="$(cat /proc/uptime | cut -d' ' -f1)"
 	[ -z "$currentUptime" ] && Send2Log "GetTraffic: currentUptime is null?!?" 2
 
-	if [ -n "$currentUptime" ] && [ "$currentUptime" \< "$_uptime" ]; then
+	if [ "$currentUptime" \< "$_uptime" ]; then
 		rebootFile="${tmplog}reboot-${_ds}.js"
 		Send2Log "GetTraffic: rebooted ($currentUptime < $_uptime) --> save current hour data to reboot.js" 2
 		echo "// Uptime: $currentUptime < $_uptime" >> "$rebootFile"

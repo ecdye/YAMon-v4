@@ -22,7 +22,7 @@
 _ds="$(date +"%Y-%m-%d")"
 _ts="$(date +"%T")"
 _generic_mac="un:kn:ow:n0:0m:ac"
-_excluding='FAILED,STALE,INCOMPLETE,00:00:00:00:00:00' # excludes listed entries from the results
+_excluding='FAILED,INCOMPLETE,00:00:00:00:00:00' # excludes listed entries from the results
 
 source "${d_baseDir}/includes/version.sh"
 source "${d_baseDir}/config.file"

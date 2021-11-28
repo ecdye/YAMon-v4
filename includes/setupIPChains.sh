@@ -52,7 +52,7 @@ CheckTables() {
     # It's unlikely you should get here... but added defensively
     Send2Log "CheckTables: Found $foundRuleInChain instances of '$cmd' $rule in chain $1... deleting entries individually rather than flushing!" 3
     while [  "$i" -le "$foundRuleInChain" ]; do
-      dup_num="$($cmd -nL "$1" --line-numbers | grep -m 1 -i "\b$rule\b" | cut -d' ' -f1)"
+      dup_num="$($cmd -nL "$1" --line-numbers -w -W1 | grep -m 1 -i "\b$rule\b" | cut -d' ' -f1)"
       eval $cmd -D "$1" "$dup_num" -w -W1
       i=$(( i + 1 ))
     done
