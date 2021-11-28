@@ -1582,14 +1582,11 @@ function curr_users4(arr){
 	var tt_id='cu-'+tt.replace(/:/gi,'-')
 	var dt=old_last_update?(Date.parse(last_update.replace(/ /g,"T"))-Date.parse(old_last_update.replace(/ /g,"T")))/1000:_updatefreq
 	var fltr=ip==$('.filterIP:first').text()?' filter':''
+	var down=arr.down*1-(!live[arr.id] ? 0 : live[arr.id].down*1)
+	var up=arr.up*1-(!live[arr.id] ? 0 : live[arr.id].up*1)
 	var nr=$('#blank-cu').clone(true,true).removeAttr('id').attr('ip',ip).attr('data-mac',id[0]).attr('title',ip).addClass('p-cu '+tt_id+fltr).removeClass('hidden')
 	nr.find('.cu-o').text(dg)
 	nr.find('.cu-d').text(dn)
-	var down=arr.down*1-(!live[arr.id] ? 0 : live[arr.id].down*1)
-	var up=arr.up*1-(!live[arr.id] ? 0 : live[arr.id].up*1)
-	console.log(!live[arr.id] ? 0 : live[arr.id].up*1)
-	console.log(down)
-	console.log(up)
 	nr.find('.cu_do').data('value',down)
 	nr.find('.cu_do_ps').text((down/dt/g_toKB).toFixed(_dec))
 	nr.find('.cu_up').data('value',up)
