@@ -276,7 +276,7 @@ GetField() {	#returns just the first match... duplicates are ignored
 	result="$(echo "$1" | grep -io -m1 "${2}\":\"[^\"]\{1,\}" | cut -d'"' -f3)"
 	echo "$result"
 	[ -n "$result" ] && Send2Log "GetField: ${2}='${result}' in \`${1}\`" && return
-	[ -z "$result" ] && [ -z "$1" ] && Send2Log "GetField: field '${2}' not found because the search string was empty (\`${1}\`)" 1 && return
+	[ -z "$result" ] && [ -z "$1" ] && Send2Log "GetField: field '${2}' not found because the search string was empty (\`${1}\`)" && return
 	[ -z "$result" ] && Send2Log "GetField: field '${2}' not found in \`${1}\`" 1
 }
 

@@ -24,7 +24,7 @@ DeactiveIdleDevices() {
 	local line
 	local id ls changes
 	local re_ip4="([0-9]{1,3}\.){3}[0-9]{1,3}"
-	local matchingRules rule ip
+	local matchingRules rule ip cmd
 
   _activeIPs="$(cat "$_usersFile" | grep -e '^mac2ip({.*})$' | grep '"active":"1"')"
 	[ -f "$_lastSeenFile" ] && lastseen="$(cat "$_lastSeenFile" | grep -e '^lastseen({.*})$')"
@@ -38,21 +38,22 @@ DeactiveIdleDevices() {
 		ods="$(date --date=@"$(DigitSub "$(date --date="$_ds" +%s)" "2592000")" +%s)"
 		if [ -z "$ls" ] || [ "$ods" -ge "$(date --date="$ls" +%s)" ]; then
 			sed -i "s~${line}~$(UpdateField "$line" 'active' '0')~g" "$_usersFile"
+			Send2Log "DeactiveIdleDevices: $id set to inactive" 1
+			[ -n "$ls" ] && changes=1 && continue
 			cat "$tmpLastSeen" | grep -e '^lastseen({.*})$' | grep -v "\"$id\"" > $tmpLastSeen
 			cp "$tmpLastSeen" "$_lastSeenFile"
 			ip="$(echo "$id" | cut -d'-' -f2)"
 			if [ -n "$(echo "$ip" | grep -E "$re_ip4")" ]; then # simplistically matches IPv4
-				local cmd='iptables'
+				cmd='iptables'
 			else
-				[ -n "$ip6Enabled" ] || local cmd='iptables'
-				local cmd='ip6tables'
+				[ -n "$ip6Enabled" ] || cmd='iptables'
+				cmd='ip6tables'
 			fi
 			matchingRules="$($cmd -L "$YAMON_IPTABLES" -n --line-numbers -w -W1 | grep "\b${ip//\./\\.}\b")"
 			for rule in $matchingRules; do
 				[ -z "$rule" ] && continue
 				eval $cmd -D "$YAMON_IPTABLES" "$(echo "$rule" | awk '{ print $1 }')" -w -W1
 			done
-			Send2Log "DeactiveIdleDevices: $id set to inactive (based upon users.js)" 1
 			changes=1
 	  fi
 	done
