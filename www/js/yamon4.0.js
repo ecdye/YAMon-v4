@@ -1588,9 +1588,9 @@ function curr_users4(arr){
 	var down=arr.down*1-(!live[arr.id] ? 0 : live[arr.id].down*1)
 	var up=arr.up*1-(!live[arr.id] ? 0 : live[arr.id].up*1)
 	nr.find('.cu_do').data('value',down)
-	if (old_last_update) nr.find('.cu_do_ps').text((down/dt/g_toKB).toFixed(_dec))
+	nr.find('.cu_do_ps').text((down/dt/g_toKB).toFixed(_dec))
 	nr.find('.cu_up').data('value',up)
-	if (old_last_update) nr.find('.cu_up_ps').text((up/dt/g_toKB).toFixed(_dec))
+	nr.find('.cu_up_ps').text((up/dt/g_toKB).toFixed(_dec))
 	nr.prependTo('#curr-users')
 	ip2device[ip]=dn
 	$('.no-current-users').remove()
