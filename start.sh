@@ -76,13 +76,34 @@ SetWebDirectories() {
 }
 
 d_baseDir="$(cd "$(dirname "$0")" && pwd)"
+tmplog='/tmp/yamon/'
+tmplogFile='/tmp/yamon/yamon.log'
+[ -d "$tmplog" ] || mkdir -p "$tmplog"
 source "${d_baseDir}/includes/version.sh"
 echo "$(sed -e 's|$_version|'"${_version}"'|' ${d_baseDir}/strings/title.inc)"
 
-"${d_baseDir}/setPaths.sh"
-tmplog='/tmp/yamon/'
-[ -d "$tmplog" ] || mkdir -p "$tmplog"
+[ ! -f "$tmplogFile" ] && echo "<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta http-equiv='cache-control' content='no-cache' />
+<meta http-equiv='Content-Type' content='text/html;charset=utf-8' />
+<link rel='stylesheet' href='https://code.jquery.com/ui/1.13.0/themes/smoothness/jquery-ui.min.css'>
+<link rel='stylesheet' type='text/css' href='../css/normalize.min.css'>
+<link rel='stylesheet' type='text/css' href='../css/logs.css'>
+<script src='https://code.jquery.com/jquery-3.6.0.min.js'></script>
+<script src='https://code.jquery.com/ui/1.13.0/jquery-ui.min.js'></script>
+<script src='../js/logs.js'></script>
+<link rel='shortcut icon' href='../images/favicon.png'/>
+</head>
+<body>
+<div id='header'> <!--header-->
+<h1>Log for <span id='logDate'>$(date +"%Y-%m-%d")</span></h1> <!--header-->
+<p>Show: <label><input class='filter' type='checkbox' name='no-errors' checked>Errors</label><label><input class='filter' type='checkbox' name='no-ll2' checked>Level 2</label><label><input class='filter' type='checkbox' name='no-ll1' checked>Level 1</label><label><input class='filter' type='checkbox' name='no-ll0'>Level 0</label></p> <!--header-->
+</div> <!--header-->
+<div class='hour-contents'><p>Hour: $(date +"%H")</p>
+" > "$tmplogFile"
 
+"${d_baseDir}/setPaths.sh"
 source "${d_baseDir}/includes/shared.sh"
 source "${d_baseDir}/includes/setupIPChains.sh"
 source "${d_baseDir}/includes/paths.sh"
@@ -112,8 +133,8 @@ fi
 
 [ -z "$1" ] && rebootOrStart='Script Restarted' || rebootOrStart='Server Rebooted'
 echo -e "// $rebootOrStart" >> "$hourlyDataFile"
-Send2Log "YAMon:: $rebootOrStart" 2
-Send2Log "YAMon:: version $_version	_loglevel: $_loglevel" 1
+Send2Log "YAMon:: $rebootOrStart" 3
+Send2Log "YAMon:: version $_version	_loglevel: $_loglevel" 3
 if [ -f "$_usersFile" ]; then
 	if [ -z "$(cat "$_usersFile" | grep "^var users_updated")" ]; then
 		Send2Log "Start: adding users_updated to $_usersFile" 2
