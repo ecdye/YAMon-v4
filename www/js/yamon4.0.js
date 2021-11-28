@@ -1628,6 +1628,7 @@ function curr_users_totals(tt){
 		var l_id=$('.p-cu-tot:last').attr('id')
 		$('#'+l_id+',.'+l_id).remove()
 	}
+	if (!old_last_update) return
 	if (!livekbs_do) return
 	livekbs_do.addRow([tt,$('#curr-users .kbs-do:first').text()*1,$('#cu-kbs-do').text()*1])
 	var do_options={width:475,height:300,backgroundColor: { fill:inDarkMode?darkmodeBG:'transparent'},chartArea: {width: '80%',height: '73%'},title:'Live Downloads (in KB/s)',curveType:'function',fontSize:9,legend:{position:'top',fontSize:14},isStacked:true,hAxis:{title:'Time',fontSize:14,slantedText:true,titleTextStyle:{color:'green'}},vAxis:{title:'Usage in KB/s',fontSize:14,titleTextStyle:{color:'green'},viewWindow:{min:0}},series:{0:{lineWidth:1,color:'red',visibleInLegend:true},1:{lineWidth:1,color:'green',visibleInLegend:true}}}
