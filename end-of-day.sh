@@ -29,7 +29,7 @@ DeactiveIdleDevices() {
   _activeIPs="$(cat "$_usersFile" | grep -e '^mac2ip({.*})$' | grep '"active":"1"')"
 	[ -f "$_lastSeenFile" ] && lastseen="$(cat "$_lastSeenFile" | grep -e '^lastseen({.*})$')"
 
-	Send2Log "DeactiveIdleDevices - _activeIPs"
+	Send2Log "DeactiveIdleDevices"
 	IFS=$'\n'
 	for line in $_activeIPs; do
 		[ -z "$line" ] && continue

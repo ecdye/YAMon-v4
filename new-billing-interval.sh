@@ -26,7 +26,7 @@ yr=$(echo $newBillingDate | cut -d'-' -f1)
 mo=$(echo $newBillingDate | cut -d'-' -f2)
 da=$(echo $newBillingDate | cut -d'-' -f3)
 
-[ "${da#0}" == "$_ispBillingDay" ] || echo "New Billing Interval: current date (${da#0}) does not match _ispBillingDay ($_ispBillingDay)... exitting!" 2 || exit 0
+[ "${da#0}" == "$_ispBillingDay" ] || echo "New Billing Interval: current date (${da#0}) does not match _ispBillingDay ($_ispBillingDay)... exiting!" 2 || exit 0
 
 _currentInterval="${yr}-${mo}"
 Send2Log "New Billing Interval: $_currentInterval" 2

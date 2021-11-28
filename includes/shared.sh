@@ -676,23 +676,12 @@ DigitSub() {
 	Send2Log "DigitSub: $1 - $2 = $(echo "$total" | sed 's/0*//')"
 }
 
-CheckIntervalFiles(){
-# create the data directory
-	[ -f "$_intervalDataFile" ] && Send2Log "CheckIntervalFiles: interval file exists: $_intervalDataFile" 1 && return
-
-	if [ ! -d "$_path2CurrentMonth" ] ; then
+CheckIntervalFiles() {
+	[ -f "$_intervalDataFile" ] && Send2Log "CheckIntervalFiles: interval file exists --> $_intervalDataFile" 1 && return
+	if [ ! -d "$_path2CurrentMonth" ]; then
 		mkdir -p "$_path2CurrentMonth"
-		Send2Log "CheckIntervalFiles: create directory: $_path2CurrentMonth" 1
+		Send2Log "CheckIntervalFiles: create directory --> $_path2CurrentMonth" 1
 	fi
-	Send2Log "CheckIntervalFiles: create interval file: $_intervalDataFile" 1
-	echo "var monthly_created=\"${_ds} ${_ts}\"
-	var monthly_updated=\"${_ds} ${_ts}\"
-	var monthlyDataCap=\"$_monthlyDataCap\"
-	var monthly_total_down=\"0\"	// 0 GB
-	var monthly_total_up=\"0\"	// 0 GB
-	var monthly_unlimited_down=\"0\"	// 0 GB
-	var monthly_unlimited_up=\"0\"	// 0 GB
-	var monthly_billed_down=\"0\"	// 0 GB
-	var monthly_billed_up=\"0\"	// 0 GB
-	" >> $_intervalDataFile
+	Send2Log "CheckIntervalFiles: create interval file --> $_intervalDataFile" 1
+	echo -e 'var monthly_created='"${_ds} ${_ts}"'\nvar monthly_updated='"${_ds} ${_ts}"'\nvar monthlyDataCap='"${_monthlyDataCap}"'\nvar monthly_total_down="0"	// 0 GB\nvar monthly_total_up=\"0\"	// 0 GB\nvar monthly_unlimited_down=\"0\"	// 0 GB\nvar monthly_unlimited_up=\"0\"	// 0 GB\nvar monthly_billed_down=\"0\"	// 0 GB\nvar monthly_billed_up=\"0\"	// 0 GB\n' >> $_intervalDataFile
 }
