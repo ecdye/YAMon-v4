@@ -49,6 +49,14 @@ html {
 	margin-top: 126px;
 }
 
+button {
+	border-radius: 3px;
+}
+
+button:hover {
+	background-color: #ddd;
+}
+
 #b1d,
 #a1d {
 	border-radius: 50%;
@@ -118,7 +126,7 @@ label:active {
 
 .hour-contents .ll3 {
 	background-color: #EEE;
-	color: #090;
+	color: #0C0;
 	font-style: italic;
 	font-weight: bold;
 }
