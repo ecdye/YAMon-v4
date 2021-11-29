@@ -2112,10 +2112,9 @@ span.current-interval {
 
 .ipfnd {
 	background-image: url("../images/flags16.png");
-	background-position: right 0;
 	background-repeat: no-repeat;
-	heigth: 16px;
 	width: 18px;
+	height: auto;
 }
 
 .normal {
