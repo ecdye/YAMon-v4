@@ -66,6 +66,7 @@ $_setRenice
 
 LogEndOfFunction() {
 	Send2Log "${0##$d_baseDir/} - end" $1
+	sed -i -E -e 's~^ ([^<].*$)~<pre>\1</pre>~g' -e 's~(^[^<].*$)~<p class="err">\1</p>~g' "$tmplogFile"
 }
 
 AddEntry() {
