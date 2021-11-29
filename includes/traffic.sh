@@ -126,10 +126,11 @@ GetTraffic(){
 	[ -z "$ip4t" ] && Send2Log "GetTraffic - No IPv4 traffic"
 	[ -z "$ip6t" ] && Send2Log "GetTraffic - No IPv6 traffic"
 	if [ -z "$ip4t" ] && [ -z "$ip6t" ]; then
-		Send2Log "GetTraffic - No traffic at all... checking chains!" 3
+		Send2Log "GetTraffic - No traffic at all... checking chains!" 1
 		true > $macIPFile
 		source "${d_baseDir}/includes/setupIPChains.sh"
 		SetupIPChains
+		AddNetworkInterfaces
 		return
 	fi
 
