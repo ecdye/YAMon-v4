@@ -77,7 +77,7 @@ echo -e "\n# Generic functions" >> "${pathsFile}"
 	AddEntry '_path2CurrentMonth' "$_path2CurrentMonth"
 	AddEntry '_intervalDataFile' "$_path2CurrentMonth${_currentInterval}-mac_usage.js"
 
-	AddEntry '_uptime' "$(cut -d' ' -f1 < /proc/uptime)"
+	AddEntry '_uptime' "$(cat /proc/uptime | cut -d'.' -f1)"
 	AddEntry 'lastCheckinHour' "$(( 60 - ${_updateTraffic:-4} ))"
 
 	if [ "${_doDailyBU:-1}" -eq "1" ]; then

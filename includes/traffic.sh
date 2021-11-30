@@ -190,7 +190,7 @@ GetTraffic(){
 
 	intervalTraffic="$(echo -e "$intervalTraffic" | grep -e '^hourlyData4({ .* })$')"
 	hrlyData="$(cat "$hourlyDataFile")"
-  currentUptime="$(cat /proc/uptime | cut -d' ' -f1)"
+  currentUptime="$(cat /proc/uptime | cut -d'.' -f1)"
 	[ -z "$currentUptime" ] && Send2Log "GetTraffic: currentUptime is null?!?" 2
 
 	if [ "$currentUptime" \< "$_uptime" ]; then
