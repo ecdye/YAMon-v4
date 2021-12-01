@@ -131,6 +131,7 @@ GetTraffic(){
 		source "${d_baseDir}/includes/setupIPChains.sh"
 		SetupIPChains
 		AddNetworkInterfaces
+		AddActiveDevices
 		return
 	fi
 
