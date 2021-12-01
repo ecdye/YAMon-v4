@@ -206,7 +206,7 @@ RemoveMatchingRules() {
 		eval $cmd -D "$YAMON_IPTABLES" "$matchingRule" -w -W1
 		n=$(( n + 1 ))
 	done
-	Send2Log "RemoveMatchingRules: removed $n entries for $ip"
+	Send2Log "RemoveMatchingRules: removed $n entries for $ip" 2
 }
 
 CheckIPTableEntry() {

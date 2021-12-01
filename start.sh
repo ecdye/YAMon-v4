@@ -127,7 +127,7 @@ true > "$macIPFile" # create and/or empty the MAC IP list files
 [ ! -f "$hourlyDataFile" ] &&  [ ! -f "${_path2CurrentMonth}hourly_${_ds}.js" ] && cp "${_path2CurrentMonth}hourly_${_ds}.js" "$hourlyDataFile"
 
 if [ -f "$_lastSeenFile" ]; then
-	cp "${_lastSeenFile}" "$tmpLastSeen"
+	cp "$_lastSeenFile" "$tmpLastSeen"
 	cp "$_lastSeenFile" "${_lastSeenFile/.js/-${_ds}-${_ts}.js}"
 fi
 
