@@ -23,8 +23,6 @@ DeactiveIdleDevices() {
 	local lastseen
 	local line
 	local id ls changes
-	local re_ip4="([0-9]{1,3}\.){3}[0-9]{1,3}"
-	local matchingRules rule ip cmd
 
   _activeIPs="$(cat "$_usersFile" | grep -e '^mac2ip({.*})$' | grep '"active":"1"')"
 	[ -f "$_lastSeenFile" ] && lastseen="$(cat "$_lastSeenFile" | grep -e '^lastseen({.*})$')"
@@ -36,17 +34,11 @@ DeactiveIdleDevices() {
 		id="$(GetField "$line" 'id')"
 		ls="$(GetField "$(echo "$lastseen" | grep "$id")" 'last-seen')"
 		ods="$(date --date=@"$(DigitSub "$(date --date="$_ds" +%s)" "2592000")" +%s)"
-		if [ -z "$ls" ] || [ "$ods" \> "$(date --date="$ls" +%s)" ]; then
-			sed -i "s~${line}~$(UpdateField "$line" 'active' '0')~g" "$_usersFile"
-			Send2Log "DeactiveIdleDevices: $id set to inactive" 1
-			if [ "$ods" \> "$(date --date="$ls" +%s)" ]; then
-				cat "$tmpLastSeen" | grep -e '^lastseen({.*})$' | grep -v "\"$id\"" > $tmpLastSeen
-				cp "$tmpLastSeen" "$_lastSeenFile"
-			fi
-			ip="$(echo "$id" | cut -d'-' -f2)"
-			RemoveMatchingRules "$ip"
-			changes=1
-	  fi
+		[ -n "$ls" ] && [ "$ods" \< "$(date --date="$ls" +%s)" ] && continue
+		sed -i "s~${line}~$(UpdateField "$line" 'active' '0')~g" "$_usersFile"
+		Send2Log "DeactiveIdleDevices: $id set to inactive" 1
+		RemoveMatchingRules "$(echo "$id" | cut -d'-' -f2)"
+		changes=1
 	done
 	unset IFS
 	[ -z "$changes" ] && Send2Log "DeactiveIdleDevices: no active devices deactivated" || UsersJSUpdated
