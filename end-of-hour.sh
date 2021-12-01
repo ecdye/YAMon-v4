@@ -40,7 +40,7 @@ else
 	acRules="$(crontab -l)"
 fi
 
-Send2Log "crontab: $(IndentList "$acRules")" 0
+Send2Log "crontab: $(IndentList "$acRules")"
 [ -n "$_dbkey" ] && Send2Log "blocked: $(IndentList "$(iptables -L | grep blocked -B 2)")" 2
 Send2Log "End of hour: append \`$tmplogFile\` to \`$dailyLogFile\`" 2
 #contents of tmplog minus the header lines

@@ -144,7 +144,7 @@ GetTraffic(){
 			ip="$(echo "$fl" | cut -d' ' -f3)"
 		fi
 
-		Send2Log "GetTraffic: $fl / $ip" 0
+		Send2Log "GetTraffic: $fl / $ip"
 
 		if [ "$_generic_ipv4" == "$ip" ] || [ "$_generic_ipv6" == "$ip" ]; then
 			# unmatched traffic

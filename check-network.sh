@@ -39,10 +39,8 @@ Check4NewDevices() {
 	local combinedIPArp
 	local newIPList
 	local dmsg
-	local ipsFromARP
 	local nip
 	local nd
-	local iptablesList
 	local mac
 	local re_mac='([a-f0-9]{2}:){5}[a-f0-9]{2}'
 	local groupName
@@ -97,9 +95,7 @@ Check4NewDevices() {
 	[ "${_logNoMatchingMac:-0}" -eq "1" ] && dmsg="$(dmesg -c | grep "YAMon")"
 	if [ -z "$newIPList" ]; then
 		Send2Log "Check4NewDevices: no new devices... checking that all IP addresses exist in iptables"
-		ipsFromARP="$(echo "$combinedIPArp" | awk '{ print $2 }')"
-		iptablesList="$(iptables -L "$YAMON_IPTABLES" -vnx -w -W1 | awk '{ print $8 }' | grep -v '0.0.0.0' | sort | grep "^[1-9]")"
-		unmatchedIPs="$(echo "$ipsFromARP" | grep -Ev "$iptablesList")"
+		unmatchedIPs="$(echo "$combinedIPArp" | awk '{ print $2 }' | grep -Ev "$(iptables -L "$YAMON_IPTABLES" -vnx -w -W1 | awk '{ print $8 }' | grep '^[1-9]' | grep -v '0.0.0.0/0' | sort)")"
 		for nip in $unmatchedIPs; do
 			mac="$(GetMACbyIP "$nip")"
 			groupName="$(GetDeviceGroup "$mac" "$nip")"

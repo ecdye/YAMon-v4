@@ -17,7 +17,7 @@
 #
 ##########################################################################
 
-Send2Log "start-stop" 0
+Send2Log "start-stop"
 
 if [ "$_firmware" -eq "0" ]; then
 	cronJobsFile="/tmp/cron.d/yamon_jobs"
@@ -25,7 +25,7 @@ if [ "$_firmware" -eq "0" ]; then
 	stopService="stopservice $wc"
 	startService="startservice $wc"
 elif [ "$_firmware" -eq "2" ] || [ "$_firmware" == "3" ] || [ "$_firmware" -eq "5" ]; then #Tomato, AsusMerlin & variants
-	Send2Log "Do nothing, Firmware uses cru" 0 # Need something here or complaint of else on next line
+	Send2Log "Do nothing, Firmware uses cru" # Need something here or complaint of else on next line
 else
 	cronJobsFile="/etc/crontabs/root"
 	stopService="/etc/init.d/cron stop"
@@ -107,7 +107,7 @@ StartScheduledJobs(){
 		Send2Log "Setting cru jobs for: $(IndentList "$(cru l | grep 'yamon')")"
 	}
 
-	Send2Log "StartScheduledJobs - started..." 0
+	Send2Log "StartScheduledJobs - started..."
 	if [ "$_firmware" -eq "3" ] || [ "$_firmware" -eq "2" ] || [ "$_firmware" -eq "5" ]; then
 		scheduler='cru'
 		SetCruJobs
@@ -198,7 +198,7 @@ SetAccessRestrictions(){
 		local jtime=$(echo "$job" | awk '{ print $2":"$1 }')
 		local jday=$(echo "$job" | awk '{print $5}')
 		local jmonth=$(echo "$job" | awk '{print $4}')
-		Send2Log "SetAccessRestrictions: jtime=$jtime / _ts=$_ts ($jday - $jmonth)" 0
+		Send2Log "SetAccessRestrictions: jtime=$jtime / _ts=$_ts ($jday - $jmonth)"
 		if [ "$jmonth" == '*' ] || [ -n "$(echo "$jmonth" | grep -e "\b$cm\b")" ] ; then
 			if [ "$jday" == '*' ] || [ -n "$(echo "$jday" | grep -e "\b$cd\b")" ] ; then
 				if [ "$_ts" \> "$jtime" ] ; then

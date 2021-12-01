@@ -73,10 +73,10 @@ for ch in $chainNames ; do
 	fi
 done
 unset IFS
-Send2Log "Block: done" 0
+Send2Log "Block: done"
 [ "$duration" == 0 ] && return
 Send2Log "[Un]blocking $chainNames in $duration minutes" 2
 [ "$status" == 'DROP' ] && newStatus='RETURN' || newStatus='DROP'
 sleep $((duration * 60)) && ${d_baseDir}/block.sh "$chainNames" "$newStatus" &
 
-Send2Log "Block: done after $duration" 0
+Send2Log "Block: done after $duration"

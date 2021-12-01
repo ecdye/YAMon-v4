@@ -36,24 +36,15 @@ DeactiveIdleDevices() {
 		id="$(GetField "$line" 'id')"
 		ls="$(GetField "$(echo "$lastseen" | grep "$id")" 'last-seen')"
 		ods="$(date --date=@"$(DigitSub "$(date --date="$_ds" +%s)" "2592000")" +%s)"
-		if [ -z "$ls" ] || [ "$ods" -ge "$(date --date="$ls" +%s)" ]; then
+		if [ -z "$ls" ] || [ "$ods" \> "$(date --date="$ls" +%s)" ]; then
 			sed -i "s~${line}~$(UpdateField "$line" 'active' '0')~g" "$_usersFile"
 			Send2Log "DeactiveIdleDevices: $id set to inactive" 1
-			[ -n "$ls" ] && changes=1 && continue
-			cat "$tmpLastSeen" | grep -e '^lastseen({.*})$' | grep -v "\"$id\"" > $tmpLastSeen
-			cp "$tmpLastSeen" "$_lastSeenFile"
-			ip="$(echo "$id" | cut -d'-' -f2)"
-			if [ -n "$(echo "$ip" | grep -E "$re_ip4")" ]; then # simplistically matches IPv4
-				cmd='iptables'
-			else
-				[ -n "$ip6Enabled" ] || cmd='iptables'
-				cmd='ip6tables'
+			if [ "$ods" \> "$(date --date="$ls" +%s)" ]; then
+				cat "$tmpLastSeen" | grep -e '^lastseen({.*})$' | grep -v "\"$id\"" > $tmpLastSeen
+				cp "$tmpLastSeen" "$_lastSeenFile"
 			fi
-			matchingRules="$($cmd -L "$YAMON_IPTABLES" -n --line-numbers -w -W1 | grep "\b${ip//\./\\.}\b")"
-			for rule in $matchingRules; do
-				[ -z "$rule" ] && continue
-				eval $cmd -D "$YAMON_IPTABLES" "$(echo "$rule" | awk '{ print $1 }')" -w -W1
-			done
+			ip="$(echo "$id" | cut -d'-' -f2)"
+			RemoveMatchingRules "$ip"
 			changes=1
 	  fi
 	done

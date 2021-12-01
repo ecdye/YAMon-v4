@@ -48,17 +48,17 @@ IndentList() {
 	echo '</ul>'
 }
 
-Send2Log "${0##$d_baseDir/} - start" 0
+Send2Log "${0##$d_baseDir/} - start"
 
 SetRenice() {
 	# if firmware supports renice, set the value
-	Send2Log "SetRenice: renice 10 $$" 0
+	Send2Log "SetRenice: renice 10 $$"
 	renice 10 $$
 }
 
 NoRenice() {
 	# if firmware doesn't support renice
-	Send2Log "NoRenice" 0
+	Send2Log "NoRenice"
 	return
 }
 
@@ -95,7 +95,7 @@ CheckGroupChain() {
 	local groupName="${2:-Unknown}"
 	local groupChain
 
-	Send2Log "CheckGroupChain: $cmd / $groupName" 0
+	Send2Log "CheckGroupChain: $cmd / $groupName"
 	groupChain="${YAMON_IPTABLES}_$(echo "$groupName" | sed "s/[^a-z0-9]//ig")"
 	if [ -z "$($cmd -L -w -W1 | grep '^Chain' | grep "${groupChain}\b")" ]; then
 		Send2Log "CheckGroupChain: Adding group chain to iptables: $groupChain" 2
@@ -186,6 +186,29 @@ AddIPTableRules() {
 	done
 }
 
+RemoveMatchingRules() {
+	local ip="$1"
+	local tip="\b${ip//\./\\.}\b"
+	local n=0
+	local matchingRule cmd
+
+	if [ -n "$(echo "$ip" | grep -E "([0-9]{1,3}\.){3}[0-9]{1,3}")" ]; then
+		cmd='iptables'
+	else
+		[ -z "$ip6Enabled" ] && return
+		cmd='ip6tables'
+	fi
+
+	while true; do
+		[ -z "$ip" ] && break
+		matchingRule="$($cmd -L "$YAMON_IPTABLES" -n --line-numbers -w -W1 | grep -m1 -i "$tip" | cut -d' ' -f1)"
+		[ -z "$matchingRule" ] && break
+		eval $cmd -D "$YAMON_IPTABLES" "$matchingRule" -w -W1
+		n=$(( n + 1 ))
+	done
+	Send2Log "RemoveMatchingRules: removed $n entries for $ip"
+}
+
 CheckIPTableEntry() {
 	local ip="$1"
 	local tip="\b${ip//\./\\.}\b"
@@ -195,24 +218,11 @@ CheckIPTableEntry() {
 	local g_ip
 	local nm
 
-	ClearDuplicateRules() {
-		local n=1
-		local dup_num
-
-		while true; do
-			[ -z "$ip" ] && break
-			dup_num="$($cmd -L "$YAMON_IPTABLES" -n --line-numbers | grep -m 1 -i "$tip" | cut -d' ' -f1)"
-			[ -z "$dup_num" ] && break
-			eval $cmd -D "$YAMON_IPTABLES" $dup_num -w -W1
-			n=$(( n + 1 ))
-		done
-		Send2Log "ClearDuplicateRules: removed $n duplicate entries for $ip" 0
-	}
 	AddIP() {
 		local groupChain
 
 		groupChain="${YAMON_IPTABLES}_$(echo $groupName | sed "s~[^a-z0-9]~~ig")"
-		Send2Log "AddIP: $cmd $YAMON_IPTABLES $ip --> $groupChain (firmware: $_firmware)" 0
+		Send2Log "AddIP: $cmd $YAMON_IPTABLES $ip --> $groupChain (firmware: $_firmware)"
 		if [ "$_firmware" -eq "0" ] && [ "$cmd" == 'ip6tables' ] ; then
 			eval $cmd -I "$YAMON_IPTABLES" -j "RETURN" -s $ip -w -W1
 			eval $cmd -I "$YAMON_IPTABLES" -j "RETURN" -d $ip -w -W1
@@ -233,8 +243,8 @@ CheckIPTableEntry() {
 		cmd='ip6tables'
 		g_ip="$_generic_ipv6"
 	fi
-	Send2Log "CheckIPTableEntry: $ip / $groupName" 0
-	Send2Log "CheckIPTableEntry: ip=$ip / cmd=$cmd / chain=$YAMON_IPTABLES" 0
+	Send2Log "CheckIPTableEntry: $ip / $groupName"
+	Send2Log "CheckIPTableEntry: ip=$ip / cmd=$cmd / chain=$YAMON_IPTABLES"
 	Send2Log "CheckIPTableEntry: checking $cmd for $ip"
 
 	[ "$ip" == "$g_ip" ] && return
@@ -251,7 +261,7 @@ CheckIPTableEntry() {
 		Send2Log "CheckIPTableEntry: no match for $ip in $cmd / $YAMON_IPTABLES"
 	else
 		Send2Log "CheckIPTableEntry: Incorrect number of rules for $ip in $cmd / $YAMON_IPTABLES -> ${nm}... removing duplicates" 3
-		ClearDuplicateRules
+		RemoveMatchingRules "$ip"
 	fi
 	AddIP
 }
@@ -262,7 +272,7 @@ UpdateLastSeen() {
 	local lsd="$_ds $tls"
 	local line
 
-	Send2Log "UpdateLastSeen: Updating last seen for '${id}' to '${lsd}'" 0
+	Send2Log "UpdateLastSeen: Updating last seen for '${id}' to '${lsd}'"
 	echo -e "lastseen({ \"id\":\"${id}\", \"last-seen\":\"${lsd}\" })\n$(cat "$tmpLastSeen" | grep -e '^lastseen({.*})$' | grep -v "\"$id\"")" > "$tmpLastSeen"
 	line="$(cat "$_usersFile" | grep -e '^mac2ip({ "id":"'${id}'".*})$' | grep -m1 '"active":"0"')"
 	[ -z "$line" ] && return
@@ -311,7 +321,7 @@ GetDeviceName() {
 		local result
 
 		result="$(echo "$(cat $_dnsmasq_conf | grep -i "dhcp-host=")" | grep -i "$mac" | cut -d',' -f"$deviceNameField")"
-		Send2Log "DNSMasqConf: result=$result" 0
+		Send2Log "DNSMasqConf: result=$result"
 		echo "$result"
 	}
 	DNSMasqLease() {
@@ -321,7 +331,7 @@ GetDeviceName() {
 
 		[ -f "$_dnsmasq_leases" ] && dnsmasq="$(cat "$_dnsmasq_leases")"
 		result="$(echo "$dnsmasq" | grep -i "$mac" | tr '\n' ' / ' | cut -d' ' -f4)"
-		Send2Log "DNSMasqLease: result=$result" 0
+		Send2Log "DNSMasqLease: result=$result"
 		echo "$result"
 	}
 	StaticLeases_DDWRT() {
@@ -331,7 +341,7 @@ GetDeviceName() {
 
 		nvr="$(nvram show 2>&1 | grep -i "static_leases=")"
 		result="$(echo "$nvr" | grep -io "${mac}[^=]*=.\{1,\}=.\{1,\}=" | cut -d'=' -f2)"
-		Send2Log "StaticLeases_DDWRT: result=$result" 0
+		Send2Log "StaticLeases_DDWRT: result=$result"
 		echo "$result"
 	}
 	StaticLeases_OpenWRT() { # thanks to Robert Micsutka for providing this code & easywinclan for suggesting & testing improvements!
@@ -341,7 +351,7 @@ GetDeviceName() {
 
 		ucihostid="$(uci show dhcp | grep -i "$mac" | cut -d'.' -f2)"
 		[ -n "$ucihostid" ] && result="$(uci get "dhcp.${ucihostid}.name")"
-		Send2Log "StaticLeases_OpenWRT: result=$result" 0
+		Send2Log "StaticLeases_OpenWRT: result=$result"
 		echo "$result"
 	}
 	StaticLeases_Merlin_Tomato() { #thanks to Chris Dougherty for providing Merlin code, and to Tvlz for providing Tomato Nvram settings
@@ -367,44 +377,44 @@ GetDeviceName() {
 		done
 		nvr="${nvrfix//>/=}"
 		result=$(echo "$nvr" | grep -io "${mac}[^=]*=.\{1,\}=.\{1,\}=" | cut -d'=' -f3)
-		Send2Log "StaticLeases_Merlin_Tomato: result=$result" 0
+		Send2Log "StaticLeases_Merlin_Tomato: result=$result"
 		echo "$result"
 	}
 
-	Send2Log "GetDeviceName: $mac $2" 0
+	Send2Log "GetDeviceName: $mac $2"
 
 	# check first in static leases
 	dn="$($nameFromStaticLeases "$mac")"
 	if [ -n "${dn/$/}" ]; then
-		Send2Log "GetDeviceName: found device name $dn for $mac in static leases (${nameFromStaticLeases})" 0
+		Send2Log "GetDeviceName: found device name $dn for $mac in static leases (${nameFromStaticLeases})"
 		echo "$dn"
 		return
 	fi
-	Send2Log "GetDeviceName: No device name for $mac in static leases (${nameFromStaticLeases})" 0
+	Send2Log "GetDeviceName: No device name for $mac in static leases (${nameFromStaticLeases})"
 
 	# then in DNSMasqConf
 	dn="$($nameFromDNSMasqConf "$mac")"
 	if [ -n "${dn/$/}" ]; then
-		Send2Log "GetDeviceName: found device name $dn for $mac in $_dnsmasq_conf" 0
+		Send2Log "GetDeviceName: found device name $dn for $mac in $_dnsmasq_conf"
 		echo "$dn"
 		return
 	fi
-	Send2Log "GetDeviceName: No device name for $mac in in $_dnsmasq_conf (${nameFromDNSMasqConf})" 0
+	Send2Log "GetDeviceName: No device name for $mac in in $_dnsmasq_conf (${nameFromDNSMasqConf})"
 
 	# finally in DNSMasqLease
 	dn="$($nameFromDNSMasqLease "$mac")"
 	if [ -n "${dn/$/}" ]; then
-		Send2Log "GetDeviceName: found device name $dn for $mac in $_dnsmasq_leases" 0
+		Send2Log "GetDeviceName: found device name $dn for $mac in $_dnsmasq_leases"
 		echo "$dn"
 		return
 	fi
-	Send2Log "GetDeviceName: No device name for $mac in in $_dnsmasq_leases (${nameFromDNSMasqLease})" 0
+	Send2Log "GetDeviceName: No device name for $mac in in $_dnsmasq_leases (${nameFromDNSMasqLease})"
 
 	# Dang... no matches
 	big="$(cat "$_usersFile" | grep -e '^mac2ip({.*})$' | grep -o "\"${_defaultDeviceName}-[^\"]\{0,\}\"" | sort | tail -1 | tr -d '"' | cut -d'-' -f2)"
 	nextnum="$(printf %02d $(( $(echo "${big#0} ") + 1 )))"
 	echo "${_defaultDeviceName}-${nextnum}"
-	Send2Log "GetDeviceName: did not find name for ${mac}... defaulting to ${_defaultDeviceName}-${nextnum}" 0
+	Send2Log "GetDeviceName: did not find name for ${mac}... defaulting to ${_defaultDeviceName}-${nextnum}"
 }
 
 CheckChains() {
@@ -523,7 +533,7 @@ CheckMAC2IPinUserJS() {
 		Send2Log "DeactivateByIP: $(echo "$othersWithIP" | wc -l) active duplicates of $i in $_usersFile"
 		IFS=$'\n'
 		for od in $othersWithIP; do
-			Send2Log "DeactivateByIP: set active=0 in $od" 0
+			Send2Log "DeactivateByIP: set active=0 in $od"
 			sed -i "s~${od}~$(UpdateField "$od" 'active' '0')~g" "$_usersFile"
 			UsersJSUpdated
 		done
@@ -547,7 +557,7 @@ CheckMAC2IPinUserJS() {
 			dn="$(GetDeviceName "$m" "$i")"
 		fi
 		local newentry="mac2ip({ \"id\":\"$m-$i\", \"name\":\"${dn:-New Device}\", \"active\":\"1\", \"added\":\"${_ds} ${_ts}\", \"updated\":\"\" })"
-		Send2Log "AddNewMACIP: adding $newentry to $_usersFile" 0
+		Send2Log "AddNewMACIP: adding $newentry to $_usersFile"
 		sed -i "s~// MAC -> IP~// MAC -> IP\n${newentry}~g" "$_usersFile"
 		UpdateLastSeen "$m-$i" "$(date +"%T")"
 		UsersJSUpdated
@@ -576,7 +586,7 @@ AddActiveDevices() {
 	local mac
 	local group
 
-	Send2Log "AddActiveDevices" 0
+	Send2Log "AddActiveDevices"
 	_ActiveIPs="$(cat "$_usersFile" | grep -e '^mac2ip({.*})$' | grep '"active":"1"')"
 	_MACGroups="$(cat "$_usersFile" | grep -e '^mac2group({.*})$')"
 	IFS=$'\n'
@@ -591,7 +601,7 @@ AddActiveDevices() {
 
 		Send2Log "AddActiveDevices --> $id / $mac / $ip / ${group:-Unknown} "
 		if [ -z "$(echo "$currentMacIP" | grep "${ip//\./\\.}$")" ]; then
-			Send2Log "AddActiveDevices --> IP $ip does not exist in ${macIPFile}... added to the list" 0
+			Send2Log "AddActiveDevices --> IP $ip does not exist in ${macIPFile}... added to the list"
 		else
 			Send2Log "AddActiveDevices --> IP $ip exists in ${macIPFile}... deleted entries $(IndentList "$(echo "$currentMacIP" | grep "${ip//\./\\.}$")")" 2
 			echo "$currentMacIP" | grep -v "${ip//\./\\.}$" > "$macIPFile"
