@@ -128,7 +128,6 @@ true > "$macIPFile" # create and/or empty the MAC IP list files
 
 if [ -f "$_lastSeenFile" ]; then
 	cp "$_lastSeenFile" "$tmpLastSeen"
-	cp "$_lastSeenFile" "${_lastSeenFile/.js/-${_ds}-${_ts}.js}"
 fi
 
 [ -z "$1" ] && rebootOrStart='Script Restarted' || rebootOrStart='Server Rebooted'
