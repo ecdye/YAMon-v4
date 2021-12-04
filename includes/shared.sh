@@ -694,5 +694,5 @@ CheckIntervalFiles() {
 		Send2Log "CheckIntervalFiles: create directory --> $_path2CurrentMonth" 1
 	fi
 	Send2Log "CheckIntervalFiles: create interval file --> $_intervalDataFile" 1
-	echo -e 'var monthly_created='"${_ds} ${_ts}"'\nvar monthly_updated='"${_ds} ${_ts}"'\nvar monthlyDataCap='"${_monthlyDataCap}"'\nvar monthly_total_down="0"	// 0 GB\nvar monthly_total_up=\"0\"	// 0 GB\nvar monthly_unlimited_down=\"0\"	// 0 GB\nvar monthly_unlimited_up=\"0\"	// 0 GB\nvar monthly_billed_down=\"0\"	// 0 GB\nvar monthly_billed_up=\"0\"	// 0 GB\n' >> $_intervalDataFile
+	echo -e 'var monthly_created="'"${_ds} ${_ts}"'"\nvar monthly_updated="'"${_ds} ${_ts}"'"\nvar monthlyDataCap="'"${_monthlyDataCap}"'"\nvar monthly_total_down="0"\t// 0 GB\nvar monthly_total_up="0"\t// 0 GB\nvar monthly_unlimited_down="0"\t// 0 GB\nvar monthly_unlimited_up="0"\t// 0 GB\nvar monthly_billed_down="0"\t// 0 GB\nvar monthly_billed_up="0"\t// 0 GB\n' >> $_intervalDataFile
 }
