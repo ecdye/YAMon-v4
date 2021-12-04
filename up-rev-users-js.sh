@@ -21,9 +21,6 @@ d_baseDir="$(cd "$(dirname "$0")" && pwd)"
 
 source "${d_baseDir}/includes/shared.sh"
 
-mac2ipTemplate='printf "mac2ip({\"id\":\"%s\",\"name\":\"%s\",\"added\":\"%s\",\"updated\":\"%s\",\"last-seen\":\"%s\"})"'
-re_ip4="([0-9]{1,3}\.){3}[0-9]{1,3}"
-
 nis=$(date +"%s")   #now in seconds
 tl=$((30*24*3600))  #timelimit for active--> 1 month
 

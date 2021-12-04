@@ -23,19 +23,18 @@ _ds="$(date +"%Y-%m-%d")"
 _ts="$(date +"%T")"
 _generic_mac="un:kn:ow:n0:0m:ac"
 _excluding='FAILED,INCOMPLETE,00:00:00:00:00:00' # excludes listed entries from the results
+_reIP4="([0-9]{1,3}\.){3}[0-9]{1,3}"
 
 source "${d_baseDir}/includes/version.sh"
 source "${d_baseDir}/config.file"
 source "${d_baseDir}/includes/paths.sh"
-source "$d_baseDir/strings/${_lang:-en}/strings.sh"
+source "${d_baseDir}/strings/${_lang:-en}/strings.sh"
 
 tmplog='/tmp/yamon/'
 [ -d "$tmplog" ] || mkdir -p "$tmplog"
 tmplogFile='/tmp/yamon/yamon.log'
 
 [ -z "$showEcho" ] && exec >> $tmplogFile 2>&1 # send error messages to the log file as well!
-
-[ -f "$_usersFile" ] && _currentUsers="$(cat "$_usersFile")"
 
 Send2Log() {
 	[ "${2:-0}" -lt "${_loglevel:-0}" ] && return
@@ -65,7 +64,7 @@ NoRenice() {
 $_setRenice
 
 LogEndOfFunction() {
-	Send2Log "${0##$d_baseDir/} - end" $1
+	Send2Log "${0##$d_baseDir/} - end" "$1"
 	sed -i -E -e 's~^ ([^<].*$)~<pre>\1</pre>~g' -e 's~(^[^<].*$)~<p class="err">\1</p>~g' "$tmplogFile"
 }
 
@@ -75,7 +74,7 @@ AddEntry() {
 	local pathsFile="${3:-${d_baseDir}/includes/paths.sh}"
 	local existingValue
 
-	existingValue="$(cat "$pathsFile" | grep "${param}=.\{0,\}\$")"
+	existingValue="$(grep "${param}=.\{0,\}\$" "$pathsFile")"
 	if [ -z "$existingValue" ] ; then
 		Send2Log "AddEntry: adding value --> \`${param}\`='${value}' in $pathsFile" 1
 		echo "${param}='${value}'" >> "${d_baseDir}/includes/paths.sh"
@@ -113,20 +112,20 @@ GetMACbyIP() {
 	local mac
 
 	# first check arp
-  mip="$(cat /proc/net/arp | grep -Ev "(${_excluding//,/|})" | grep "$tip" | awk '{ print $4 }' | tr "[A-Z]" "[a-z]")"
+  mip="$(grep -Ev "(${_excluding//,/|})" /proc/net/arp | grep -m1 "$tip" | awk '{ print $4 }' | tr "[A-Z]" "[a-z]")"
 	if [ -n "$mip" ]; then
 		echo "$mip"
 		return
 	fi
 
 	# then check users.js
-	dd="$(echo "$_currentUsers" | grep -e "^mac2ip({.*})$" | grep "$tip")"
+	dd="$(grep -e '^mac2ip({ .* })$' "$_usersFile" | grep -m1 "$tip")"
 	if [ -z "$dd" ]; then
-		Send2Log "GetMACbyIP - no matching entry for $ip in users.js $(IndentList $dd)" 2
+		Send2Log "GetMACbyIP - no matching entry for $ip in users.js $(IndentList "$dd")" 2
 	else
 		id="$(GetField "$dd" 'id')"
 		mac="$(echo "$id"| cut -d'-' -f1)"
-		Send2Log "GetMACbyIP - $ip --> $id  --> $mac"
+		Send2Log "GetMACbyIP - $ip --> $id --> $mac"
 		[ -n "$mac" ] && echo "$mac"
 	fi
 }
@@ -136,7 +135,7 @@ GetDeviceGroup() {
 	local dd
 	local group
 
-	mgList="$(echo "$_currentUsers" | grep -e '^mac2group({.*})$')"
+	mgList="$(grep -e '^mac2group({ .* })$' "$_usersFile")"
 	dd="$(echo "$mgList" | grep "$1")"
 	if [ -z "$dd" ]; then
 		Send2Log "GetDeviceGroup - no matching entry for $1 in users.js... set to '${_defaultGroup:-Unknown}'" 2
@@ -161,7 +160,7 @@ AddIPTableRules() {
 
 		for cmd in ${commands//,/ }; do
 			while true; do
-				ln="$($cmd -L "$YAMON_IPTABLES" -n --line-numbers | grep "$ruleName" | awk '{ print $1 }' | head -n 1)"
+				ln="$($cmd -L "$YAMON_IPTABLES" -n --line-numbers | grep -m1 "$ruleName" | awk '{ print $1 }')"
 				[ -z $ln ] && break
 				eval $cmd -D "$YAMON_IPTABLES" "$ln" -w -W1
 				nl="$(( nl + 1 ))"
@@ -192,7 +191,7 @@ RemoveMatchingRules() {
 	local n=0
 	local matchingRule cmd
 
-	if [ -n "$(echo "$ip" | grep -E "([0-9]{1,3}\.){3}[0-9]{1,3}")" ]; then
+	if [ -n "$(echo "$ip" | grep -E "$_reIP4")" ]; then
 		cmd='iptables'
 	else
 		[ -z "$ip6Enabled" ] && return
@@ -213,7 +212,6 @@ CheckIPTableEntry() {
 	local ip="$1"
 	local tip="\b${ip//\./\\.}\b"
 	local groupName="${2:-Unknown}"
-	local re_ip4="([0-9]{1,3}\.){3}[0-9]{1,3}"
 	local cmd
 	local g_ip
 	local nm
@@ -235,7 +233,7 @@ CheckIPTableEntry() {
 		fi
 	}
 
-	if [ -n "$(echo $ip | grep -E "$re_ip4")" ]; then
+	if [ -n "$(echo $ip | grep -E "$_reIP4")" ]; then
 		cmd='iptables'
 		g_ip="$_generic_ipv4"
 	else
@@ -255,7 +253,7 @@ CheckIPTableEntry() {
 		return
 	fi
 
-	CheckGroupChain $cmd $groupName
+	CheckGroupChain "$cmd" "$groupName"
 
 	if [ "$nm" -eq "0" ]; then
 		Send2Log "CheckIPTableEntry: no match for $ip in $cmd / $YAMON_IPTABLES"
@@ -273,8 +271,8 @@ UpdateLastSeen() {
 	local line
 
 	Send2Log "UpdateLastSeen: Updating last seen for '${id}' to '${lsd}'"
-	echo -e "lastseen({ \"id\":\"${id}\", \"last-seen\":\"${lsd}\" })\n$(cat "$tmpLastSeen" | grep -e '^lastseen({.*})$' | grep -v "\"$id\"")" > "$tmpLastSeen"
-	line="$(cat "$_usersFile" | grep -e '^mac2ip({ "id":"'${id}'".*})$' | grep -m1 '"active":"0"')"
+	echo -e "lastseen({ \"id\":\"${id}\", \"last-seen\":\"${lsd}\" })\n$(grep -v -e "^lastseen({ \"id\":\"${id}\".* })\$" "$tmpLastSeen")" > "$tmpLastSeen"
+	line="$(grep -e "^mac2ip({ \"id\":\"${id}\".* })\$" "$_usersFile" | grep -m1 '"active":"0"')"
 	[ -z "$line" ] && return
 	sed -i "s~${line}~$(UpdateField "$line" 'active' '1')~" "$_usersFile"
 	Send2Log "UpdateLastSeen: $id set to active" 1
@@ -320,17 +318,14 @@ GetDeviceName() {
 		local mac="$1"
 		local result
 
-		result="$(echo "$(cat $_dnsmasq_conf | grep -i "dhcp-host=")" | grep -i "$mac" | cut -d',' -f"$deviceNameField")"
+		result="$(grep -i "dhcp-host=" "$_dnsmasq_conf" | grep -i "$mac" | cut -d',' -f"$deviceNameField")"
 		Send2Log "DNSMasqConf: result=$result"
 		echo "$result"
 	}
 	DNSMasqLease() {
-		local mac="$1"
-		local dnsmasq
 		local result
 
-		[ -f "$_dnsmasq_leases" ] && dnsmasq="$(cat "$_dnsmasq_leases")"
-		result="$(echo "$dnsmasq" | grep -i "$mac" | tr '\n' ' / ' | cut -d' ' -f4)"
+		[ -f "$_dnsmasq_leases" ] && result="$(grep -i "$1" "$_dnsmasq_leases" | tr '\n' ' / ' | cut -d' ' -f4)"
 		Send2Log "DNSMasqLease: result=$result"
 		echo "$result"
 	}
@@ -411,7 +406,7 @@ GetDeviceName() {
 	Send2Log "GetDeviceName: No device name for $mac in in $_dnsmasq_leases (${nameFromDNSMasqLease})"
 
 	# Dang... no matches
-	big="$(cat "$_usersFile" | grep -e '^mac2ip({.*})$' | grep -o "\"${_defaultDeviceName}-[^\"]\{0,\}\"" | sort | tail -1 | tr -d '"' | cut -d'-' -f2)"
+	big="$(grep -e '^mac2ip({ .* })$' "$_usersFile" | grep -o "\"${_defaultDeviceName}-[^\"]\{0,\}\"" | sort | tail -1 | tr -d '"' | cut -d'-' -f2)"
 	nextnum="$(printf %02d $(( $(echo "${big#0} ") + 1 )))"
 	echo "${_defaultDeviceName}-${nextnum}"
 	Send2Log "GetDeviceName: did not find name for ${mac}... defaulting to ${_defaultDeviceName}-${nextnum}"
@@ -428,7 +423,7 @@ CheckChains() {
 		ipChain="$($cmd -L -w -W1 | grep "Chain $YAMON_IPTABLES" | grep "\b${chain}\b")"
 		if [ -z "$ipChain" ]; then
 			Send2Log "CheckChains: Adding $chain in $cmd" 2
-			eval $cmd -N $chain -w -W1
+			eval $cmd -N "$chain" -w -W1
 		else
 			Send2Log "CheckChains: $chain exists in $cmd" 1
 		fi
@@ -446,19 +441,15 @@ CheckMAC2GroupinUserJS() {
 		local groupChain
 		local matchingMACs
 		local matchingRules
-		local rule
-		local ip
-		local id
-		local ln
-		local i
+		local rule ip id ln i cmd
 
 		Send2Log "ChangeMACGroup: group names do not match! $gn != $cgn" 2
 		newLine="$(UpdateField "$matchesMACGroup" 'group' "$gn")"
-		groupChain="${YAMON_IPTABLES}_$(echo $gn | sed "s~[^a-z0-9]~~ig")"
-		sed -i "s~${matchesMACGroup}~${newLine}~" $_usersFile
+		groupChain="${YAMON_IPTABLES}_$(echo "$gn" | sed "s~[^a-z0-9]~~ig")"
+		sed -i "s~${matchesMACGroup}~${newLine}~" "$_usersFile"
 		#To do - change entries in ip[6]tables
 		# iptables -E YAMONv40_Interfaces2 YAMONv40_Interfaces
-		matchingMACs="$(cat $_usersFile | grep "^mac2ip({ \"id\":\"$(GetField "$matchesMACGroup" 'mac').*$")"
+		matchingMACs="$(grep "^mac2ip({ \"id\":\"$(GetField "$matchesMACGroup" 'mac').* })\$" "$_usersFile")"
 		IFS=$'\n'
 		for line in $matchingMACs; do
 			[ -z "$line" ] && continue
@@ -466,12 +457,11 @@ CheckMAC2GroupinUserJS() {
 			[ -z "$id" ] && continue
 			ip="$(echo "$id" | cut -d'-' -f2)"
 
-			re_ip4="([0-9]{1,3}\.){3}[0-9]{1,3}"
-			if [ -n "$(echo $ip | grep -E "$re_ip4")" ]; then # simplistically matches IPv4
-				local cmd='iptables'
+			if [ -n "$(echo $ip | grep -E "$_reIP4")" ]; then # simplistically matches IPv4
+				cmd='iptables'
 			else
-				[ -n "$ip6Enabled" ] || local cmd='iptables'
-				local cmd='ip6tables'
+				[ -n "$ip6Enabled" ] || cmd='iptables'
+				cmd='ip6tables'
 			fi
 			Send2Log "ChangeMACGroup: changing chain destination for $ip in $cmd ($gn)" 2
 
@@ -501,7 +491,7 @@ CheckMAC2GroupinUserJS() {
 	}
 
 	Send2Log "CheckMAC2GroupinUserJS: $m $gn" 2
-	matchesMACGroup="$(cat "$_usersFile" | grep -e '^mac2group({.*})$' | grep "\"mac\":\"${m}\"")"
+	matchesMACGroup="$(grep -e "^mac2group({ \"mac\":\"${m}\".* })\$" "$_usersFile")"
 
 	if [ -z "$matchesMACGroup" ]; then
 		AddNewMACGroup
@@ -509,7 +499,7 @@ CheckMAC2GroupinUserJS() {
 		cgn="$(GetField "$matchesMACGroup" 'group')"
 		[ "$gn" == "$cgn" ] || ChangeMACGroup
 	else
-		Send2Log "CheckDeviceInUserJS: uh-oh... *${matchesMACGroup}* mac2group matches for '${m}' in '${_usersFile}' --> $(IndentList "$(cat "$_usersFile" | grep -e '^mac2group({.*})$' | grep "\"id\":\"${m}\"")")" 2
+		Send2Log "CheckDeviceInUserJS: uh-oh... *${matchesMACGroup}* mac2group matches for '${m}' in '${_usersFile}' --> $(IndentList "$(grep -e "^mac2group({ \"mac\":\"${m}\".* })\$" "$_usersFile")")" 2
 	fi
 }
 
@@ -525,7 +515,7 @@ CheckMAC2IPinUserJS() {
 		local nl
 
 		Send2Log "DeactivateByIP: $i"
-		othersWithIP="$(cat "$_usersFile" | grep -e '^mac2ip({.*})$' | grep "\b${i//\./\\.}\b" | grep '"active":"1"')"
+		othersWithIP="$(grep -e '^mac2ip({ .* })$' "$_usersFile" | grep "\b${i//\./\\.}\b" | grep '"active":"1"')"
 		if [ -z "$othersWithIP" ]; then
 			Send2Log "DeactivateByIP: no active duplicates of $i in $_usersFile"
 			return
@@ -545,7 +535,7 @@ CheckMAC2IPinUserJS() {
 
 		Send2Log "AddNewMACIP: mac=$m ip=$i device-name=$dn"
 		DeactivateByIP
-		[ -z "$dn" ] && othersWithMAC="$(cat "$_usersFile" | grep -e '^mac2ip({.*})$' | grep -m1 "$m")" # NB - specifically looks for just one match
+		[ -z "$dn" ] && othersWithMAC="$(grep -e '^mac2ip({ .* })$' "$_usersFile" | grep -m1 "$m")" # NB - specifically looks for just one match
 		if [ -n "$othersWithMAC" ]; then
 			dn="$(GetField "$othersWithMAC" 'name')"
 			Send2Log "AddNewMACIP: copying device name '$dn' from $othersWithMAC"
@@ -556,7 +546,7 @@ CheckMAC2IPinUserJS() {
 		elif [ -z "$dn" ]; then
 			dn="$(GetDeviceName "$m" "$i")"
 		fi
-		local newentry="mac2ip({ \"id\":\"$m-$i\", \"name\":\"${dn:-New Device}\", \"active\":\"1\", \"added\":\"${_ds} ${_ts}\", \"updated\":\"\" })"
+		local newentry="mac2ip({ \"id\":\"${m}-${i}\", \"name\":\"${dn:-New Device}\", \"active\":\"1\", \"added\":\"${_ds} ${_ts}\", \"updated\":\"\" })"
 		Send2Log "AddNewMACIP: adding $newentry to $_usersFile"
 		sed -i "s~// MAC -> IP~// MAC -> IP\n${newentry}~g" "$_usersFile"
 		UpdateLastSeen "$m-$i" "$(date +"%T")"
@@ -564,7 +554,7 @@ CheckMAC2IPinUserJS() {
 	}
 
 	Send2Log "CheckMAC2IPinUserJS: mac=$m ip=$i"
-	matchesMACIP="$(cat "$_usersFile" | grep -e '^mac2ip({.*})$' | grep "\"id\":\"${m}-${i}\"")"
+	matchesMACIP="$(grep -e "^mac2ip({ \"id\":\"${m}-${i}\".* })\$" "$_usersFile")"
 	if [ -z "$matchesMACIP" ]; then
 		AddNewMACIP
 	elif [ "$(echo "$matchesMACIP" | wc -l)" -eq 1 ] ; then
@@ -587,8 +577,8 @@ AddActiveDevices() {
 	local group
 
 	Send2Log "AddActiveDevices"
-	_ActiveIPs="$(cat "$_usersFile" | grep -e '^mac2ip({.*})$' | grep '"active":"1"')"
-	_MACGroups="$(cat "$_usersFile" | grep -e '^mac2group({.*})$')"
+	_ActiveIPs="$(grep -e '^mac2ip({ .* })$' "$_usersFile" | grep '"active":"1"')"
+	_MACGroups="$(grep -e '^mac2group({ .* })$' "$_usersFile")"
 	IFS=$'\n'
 	for device in $_ActiveIPs; do
 		currentMacIP="$(cat "$macIPFile")"
@@ -603,8 +593,8 @@ AddActiveDevices() {
 		if [ -z "$(echo "$currentMacIP" | grep "${ip//\./\\.}$")" ]; then
 			Send2Log "AddActiveDevices --> IP $ip does not exist in ${macIPFile}... added to the list"
 		else
-			Send2Log "AddActiveDevices --> IP $ip exists in ${macIPFile}... deleted entries $(IndentList "$(echo "$currentMacIP" | grep "${ip//\./\\.}$")")" 2
-			echo "$currentMacIP" | grep -v "${ip//\./\\.}$" > "$macIPFile"
+			Send2Log "AddActiveDevices --> IP $ip exists in ${macIPFile}... deleted entries $(IndentList "$(echo "$currentMacIP" | grep "${ip//\./\\.}\$")")" 2
+			echo "$currentMacIP" | grep -v "${ip//\./\\.}\$" > "$macIPFile"
 		fi
 		Send2Log "AddActiveDevices --> $id added to $macIPFile" 1
 		echo "$mac $ip" >> "$macIPFile"
@@ -694,5 +684,5 @@ CheckIntervalFiles() {
 		Send2Log "CheckIntervalFiles: create directory --> $_path2CurrentMonth" 1
 	fi
 	Send2Log "CheckIntervalFiles: create interval file --> $_intervalDataFile" 1
-	echo -e 'var monthly_created="'"${_ds} ${_ts}"'"\nvar monthly_updated="'"${_ds} ${_ts}"'"\nvar monthlyDataCap="'"${_monthlyDataCap}"'"\nvar monthly_total_down="0"\t// 0 GB\nvar monthly_total_up="0"\t// 0 GB\nvar monthly_unlimited_down="0"\t// 0 GB\nvar monthly_unlimited_up="0"\t// 0 GB\nvar monthly_billed_down="0"\t// 0 GB\nvar monthly_billed_up="0"\t// 0 GB\n' >> $_intervalDataFile
+	echo -e "var monthly_created=\"${_ds} ${_ts}\"\nvar monthly_updated=\"${_ds} ${_ts}\"\nvar monthlyDataCap=\"${_monthlyDataCap}\"\n" >> $_intervalDataFile
 }
