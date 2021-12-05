@@ -74,8 +74,8 @@ AddEntry() {
 	local pathsFile="${3:-${d_baseDir}/includes/paths.sh}"
 	local existingValue
 
-	existingValue="$(grep "${param}=.\{0,\}\$" "$pathsFile")"
-	if [ -z "$existingValue" ] ; then
+	existingValue="$(grep -m1 "${param}=.\{0,\}\$" "$pathsFile")"
+	if [ -z "$existingValue" ]; then
 		Send2Log "AddEntry: adding value --> \`${param}\`='${value}' in $pathsFile" 1
 		echo "${param}='${value}'" >> "${d_baseDir}/includes/paths.sh"
 	else
