@@ -74,14 +74,13 @@ AddEntry() {
 	local pathsFile="${3:-${d_baseDir}/includes/paths.sh}"
 	local existingValue
 
-	eval existingValue=\"\$$param\"
-	[ -z "$existingValue" ] && existingValue="$(grep -m1 "${param}=.\{0,\}\$" "$pathsFile")" # Check if it is null but exists
+	existingValue="$(grep -m1 "${param}=.\{0,\}\$" "$pathsFile")"
 	if [ -z "$existingValue" ]; then
 		Send2Log "AddEntry: adding value --> \`${param}\`='${value}' in $pathsFile" 1
 		echo "${param}='${value}'" >> "${d_baseDir}/includes/paths.sh"
 	else
 		Send2Log "ChangePath: changing value of \`${param}\` to $value (prior ${existingValue}) in $pathsFile" 1
-		sed -i "s~^${param}=.\{0,\}\$~${param}='${value}'~" "$pathsFile"
+		sed -i "s~^${existingValue}\$~${param}='${value}'~" "$pathsFile"
 	fi
 }
 
