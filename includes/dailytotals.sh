@@ -123,12 +123,12 @@ CalculateDailyTotals() {
 		[ -z "$id" ] && break # should be unnecessary?!?
 		entries4id="$(echo "$hourlyData" | grep "\"${id}\"")"
 		# Send2Log "CalculateDailyTotals: entries4id:$(IndentList "$entries4id")"
+		total_down=0
+		total_up=0
+		total_unlimited_down=0
+		total_unlimited_up=0
 		for line in $entries4id; do
 			[ -z "$line" ] && break
-			total_down=0
-			total_up=0
-			total_unlimited_down=0
-			total_unlimited_up=0
 			Send2Log "CalculateDailyTotals --> line:$(IndentList "$line")"
 			traffic="$(GetField "$line" 'traffic')"
 			down="$(echo "$traffic" | cut -d',' -f1)"
