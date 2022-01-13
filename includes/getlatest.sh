@@ -1,7 +1,7 @@
 ##########################################################################
 # Yet Another Monitor (YAMon)
 # Copyright (c) 2013-2020 Al Caughey
-# Copyright (c) 2021 Ethan Dye
+# Copyright (c) 2021-2022 Ethan Dye
 # All rights reserved.
 #
 # Script to download the latest files from usage-monitoring.com
