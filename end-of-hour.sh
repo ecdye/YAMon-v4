@@ -44,7 +44,7 @@ Send2Log "crontab: $(IndentList "$acRules")"
 [ -n "$_dbkey" ] && Send2Log "blocked: $(IndentList "$(iptables -L | grep blocked -B 2)")" 2
 Send2Log "End of hour: append \`$tmplogFile\` to \`$dailyLogFile\`" 2
 #contents of tmplog minus the header lines
-tmplogContents=$(cat "$tmplogFile" | grep -v "<\(/\{0,1\}head\|html\|meta\|link\|script\|head\|body\|!--header--\)")
+tmplogContents=$(cat "$tmplogFile" | grep -v "<\(/\{0,1\}head\|html\|meta\|link\|script\|head\|body\|!--header--\|!DOCTYPE\)")
 
 echo "$tmplogContents</div>" | sed -E -e "s~^ ([^<].*$)~<pre>\1</pre>~g" -e "s~(^[^<].*$)~<p class='err'>\1</p>~g" >> "$dailyLogFile"
 
@@ -53,7 +53,7 @@ tds=$(date +"%Y-%m-%d")
 thr=$(date +"%H")
 #reset the temporary log file
 echo "<!DOCTYPE html>
-<html lang='en'>
+<html lang='en-US'>
 <head>
 <meta http-equiv='cache-control' content='no-cache' />
 <meta http-equiv='Content-Type' content='text/html;charset=utf-8' />

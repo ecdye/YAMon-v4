@@ -27,7 +27,7 @@ rawtraffic_hr="${tmplog}raw-traffic-$_ds-$hr.txt"
 ChangePath 'rawtraffic_hr' "$rawtraffic_hr"
 
 [ ! -f "$rawtraffic_hr" ] && true > "$rawtraffic_hr"
-Send2Log "new hour: created new temporary hour file: $rawtraffic_hr"
+Send2Log "New hour: created new temporary hour file: $rawtraffic_hr"
 
 sleep 5
 [ -z "$(grep "// Hour: $hr" "$hourlyDataFile")" ] && echo -e "\n// Hour: $hr" >> "$hourlyDataFile"

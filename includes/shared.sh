@@ -43,7 +43,7 @@ Send2Log() {
 
 IndentList() {
 	echo '<ul>'
-	echo -e "$1" | grep -Ev '^\s{0,}$' | sed -e "s~^\s\{0,\}~<li>~Ig"
+	echo -e "$1" | grep -Ev '^\s{0,}$' | sed -E -e 's~(.*$)~<li>\1</li>~Ig'
 	echo '</ul>'
 }
 
@@ -80,7 +80,7 @@ AddEntry() {
 		echo "${param}='${value}'" >> "${d_baseDir}/includes/paths.sh"
 	else
 		Send2Log "ChangePath: changing value of \`${param}\` to $value (prior ${existingValue}) in $pathsFile" 1
-		sed -i "s~^${existingValue}\$~${param}='${value}'~" "$pathsFile"
+		sed -i "s~^${existingValue}\$~${param}='${value}'~g" "$pathsFile"
 	fi
 }
 

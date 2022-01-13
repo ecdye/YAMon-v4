@@ -211,12 +211,12 @@ GetTraffic(){
 	if [ -n "$intervalTraffic" ]; then
 		Send2Log "GetTraffic (${hr}:${mm} --> ${vnx}): intervalTraffic --> $(IndentList "${intervalTraffic//,0,0\"/\"}\n${totalsLine//,0,0\"/\"}")" $ltrl
 		echo -e "$(echo "$hrlyData" | grep -v "\"hour\":\"${hr}\"")\n${intervalTraffic//,0,0\"/\"}\n${totalsLine//,0,0\"/\"}" > "$hourlyDataFile"
-		echo -e "\n//$hr:${sm}->${hr}:${mm} (${vnx})\n${intervalTraffic//,0,0\"/\"}\n${totalsLine//,0,0\"/\"}" >> "$rawtraffic_hr"
+		echo -e "\n// ${hr}:${sm}->${hr}:${mm} (${vnx})\n${intervalTraffic//,0,0\"/\"}\n${totalsLine//,0,0\"/\"}" >> "$rawtraffic_hr"
 	else
 		Send2Log "GetTraffic (${hr}:${mm}): No traffic" 1
 		local str="Totals({ \"hour\":\"${hr}\""
 		echo -e "$(echo "$hrlyData" | grep -v "$str")\n${totalsLine//,0,0\"/\"}" > "$hourlyDataFile"
-		echo -e "\n//${hr}:${sm})->${hr}:${mm} (${vnx})\n//No traffic" >> "$rawtraffic_hr"
+		echo -e "\n// ${hr}:${sm})->${hr}:${mm} (${vnx})\n// No traffic" >> "$rawtraffic_hr"
 	fi
 
 	sed -i "s~var hourly_updated.\{0,\}$~var hourly_updated=\"$_ds ${hr}:${mm}\"~" "$hourlyDataFile"

@@ -19,21 +19,22 @@
 
 d_baseDir="$(cd "$(dirname "$0")" && pwd)"
 source "${d_baseDir}/includes/shared.sh"
-ChangePath 'rawtraffic_day' "${_path2CurrentMonth}raw-traffic-${_ds}.txt"
+rawtraffic_day="${_path2CurrentMonth}raw-traffic-${_ds}.txt"
 hourlyDataFile="${tmplog}hourly_${_ds}.js"
 dailyLogFile="${_path2logs}${_ds}.html"
 loads="$(cat /proc/loadavg | cut -d' ' -f1,2,3 | tr -s ' ' ',')"
+ChangePath 'rawtraffic_day' "$rawtraffic_day"
 ChangePath 'hourlyDataFile' "$hourlyDataFile"
 ChangePath 'dailyLogFile' "$dailyLogFile"
 [ "${_doArchiveLiveUpdates:-0}" -eq "1" ] && ChangePath '_liveArchiveFilePath' "${_path2CurrentMonth}${_ds}-live_data4.js"
-if [ ! -f "$hourlyDataFile" ] ; then
+if [ ! -f "$hourlyDataFile" ]; then
 	echo -e "var hourly_created=\"${_ds} ${_ts}\"\nvar hourly_updated=\"${_ds} ${_ts}\"\nvar serverUptime=\"${_uptime}\"\nserverload(${loads})\n" > "$hourlyDataFile"
 fi
 Send2Log "New day: $_ds (${hourlyDataFile})" 1
 
-[ ! -f "$dailyLogFile" ] && true > "$rawtraffic_day"
+[ ! -f "$rawtraffic_day" ] && true > "$rawtraffic_day"
 [ ! -f "$dailyLogFile" ] && echo "<!DOCTYPE html>
-<html lang='en'>
+<html lang='en-US'>
 <head>
 <meta http-equiv='cache-control' content='no-cache' />
 <meta http-equiv='Content-Type' content='text/html;charset=utf-8' />
@@ -57,6 +58,6 @@ nll="${_path2logs%/}/${_ds}.html"
 oll="${_wwwPath}logs/day-log.html"
 [ -h "$oll" ] && rm -fv "$oll"
 ln -s "$nll" "$oll"
-Send2Log "new-day: day log changed from  $oll --> $nll" 1
+Send2Log "New day: day log changed from  $oll --> $nll" 1
 
 LogEndOfFunction
