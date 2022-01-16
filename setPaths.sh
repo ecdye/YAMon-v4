@@ -130,13 +130,7 @@ echo -e "\n# Generic functions" >> "${pathsFile}"
 	fi
 	# computed function names
 
-	if [ "${_unlimited_usage:-0}" -eq "1" ]; then
-		AddEntry 'hourlyDataTemplate' 'hourlyData4({\"id\":\"%s\",\"hour\":\"%s\",\"down\":\"%s\",\"up\":\"%s\",\"ul_do\":\"%s\",\"ul_up\":\"%s\"})'
-
-	else
-		AddEntry 'hourlyDataTemplate' 'hourlyData4({\"id\":\"%s\",\"hour\":\"%s\",\"down\":\"%s\",\"up\":\"%s\"})'
-	fi
-	AddEntry 'currentlyUnlimited' "0"
+AddEntry 'currentlyUnlimited' "0"
 
 # Firmware specfic & dependent entries
 

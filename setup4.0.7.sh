@@ -113,7 +113,7 @@ CheckDataPath(){
 	}
 
 	if [ "${_dataDir:0:1}" == "/" ] ; then
-		local path2data="${_dataDir}" #absolute path to the logs
+		local path2data="${_dataDir}" # absolute path to the logs
 	else
 		local path2data="${d_baseDir}/${_dataDir:-data/}"
 	fi

@@ -36,8 +36,10 @@ Send2Log "New day: $_ds (${hourlyDataFile})" 1
 [ ! -f "$dailyLogFile" ] && echo "<!DOCTYPE html>
 <html lang='en-US'>
 <head>
-<meta http-equiv='cache-control' content='no-cache' />
-<meta http-equiv='Content-Type' content='text/html;charset=utf-8' />
+<meta charset='utf-8'/>
+<meta http-equiv='cache-control' content='no-cache'/>
+<meta name='viewport' content='width=device-width,initial-scale=1.0'/>
+<title>YAMon: Logs</title>
 <link rel='stylesheet' href='https://code.jquery.com/ui/1.13.0/themes/smoothness/jquery-ui.min.css'>
 <link rel='stylesheet' type='text/css' href='../css/normalize.min.css'>
 <link rel='stylesheet' type='text/css' href='../css/logs.css'>
